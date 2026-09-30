@@ -32,6 +32,16 @@ h1{font-family:Barlow Condensed,sans-serif;font-size:clamp(38px,6vw,76px);line-h
 .compare-table{width:100%;border-collapse:collapse;background:var(--deep);border:1px solid var(--line);border-radius:10px;overflow:hidden}.compare-table th{background:rgba(122,12,12,.2);color:var(--red2);font-family:Barlow Condensed,sans-serif;font-size:10px;letter-spacing:.24em;text-transform:uppercase;text-align:left;padding:12px}.compare-table td{padding:12px;border-top:1px solid rgba(255,30,30,.08);font-size:14px;color:var(--text)}.up{color:var(--green);font-family:Barlow Condensed,sans-serif;font-weight:900;font-size:16px}.down{color:var(--red2);font-family:Barlow Condensed,sans-serif;font-weight:900;font-size:16px}.flat{color:var(--muted);font-family:Barlow Condensed,sans-serif;font-weight:900}
 .empty{padding:30px;text-align:center;color:var(--muted);font-family:Cormorant Garamond,serif;font-size:20px;font-style:italic;background:var(--deep);border:1px dashed var(--line);border-radius:10px}.notice{font-size:12px;color:var(--muted);margin-top:8px}.row-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}.pr{color:var(--green);font-weight:800}.footer{text-align:center;color:var(--muted);font-family:Barlow Condensed,sans-serif;font-size:10px;letter-spacing:.25em;text-transform:uppercase;padding:35px 0}
 .nav-home-link{color:var(--red2);text-decoration:none;font-family:Barlow Condensed,sans-serif;font-weight:800;letter-spacing:.08em;font-size:14px;margin-right:6px;border:1px solid var(--line);border-radius:6px;padding:6px 10px;transition:.2s}.nav-home-link:hover{border-color:var(--red);color:var(--white);background:rgba(255,30,30,.08)}
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}.cal-month-label{font-family:Barlow Condensed,sans-serif;font-weight:900;letter-spacing:.14em;text-transform:uppercase;font-size:15px;color:var(--white)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}.cal-dow{font-family:Barlow Condensed,sans-serif;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);text-align:center;padding:4px 0}
+.cal-day{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:8px;background:var(--deep);border:1px solid var(--line);font-family:Barlow Condensed,sans-serif;font-weight:700;font-size:13px;color:var(--text);position:relative}
+.cal-day.empty{background:transparent;border-color:transparent}
+.cal-day.today{border-color:var(--gold)}
+.cal-day.has-run{background:rgba(56,189,248,.16);border-color:rgba(56,189,248,.4);color:var(--white)}
+.cal-day.has-work{background:rgba(255,30,30,.14);border-color:rgba(255,30,30,.4);color:var(--white)}
+.cal-day.has-both{background:linear-gradient(135deg,rgba(56,189,248,.22),rgba(255,30,30,.22));border-color:var(--gold);color:var(--white)}
+.cal-legend{display:flex;gap:16px;margin-top:12px;font-size:11px;color:var(--muted);flex-wrap:wrap}.cal-legend span{display:flex;align-items:center;gap:6px}
+.cal-dot{width:10px;height:10px;border-radius:3px;display:inline-block}.cal-dot-run{background:rgba(56,189,248,.5);border:1px solid rgba(56,189,248,.8)}.cal-dot-work{background:rgba(255,30,30,.4);border:1px solid rgba(255,30,30,.7)}.cal-dot-both{background:linear-gradient(135deg,rgba(56,189,248,.5),rgba(255,30,30,.5));border:1px solid var(--gold)}
 @media(max-width:850px){.hero,.grid.two,.grid.three,.grid.four{grid-template-columns:1fr}.tabs{overflow:auto}.tab{min-width:120px}.history-item{grid-template-columns:1fr}.nav{padding:12px 16px}.tag{display:none}.wrap{padding:18px 12px 70px}.round-table{font-size:12px}.round-table th,.round-table td{padding:6px}.hero-card,.card{padding:16px}}
 </style>
 </head>
@@ -80,6 +90,16 @@ h1{font-family:Barlow Condensed,sans-serif;font-size:clamp(38px,6vw,76px);line-h
     <div class="grid four" id="weekCards"></div>
     <div class="section-title">Personal Records</div>
     <div class="grid four" id="prCards"></div>
+    <div class="section-title">Activity Calendar</div>
+    <div class="card">
+      <div class="cal-header">
+        <button class="btn ghost small-btn" onclick="shiftCalMonth(-1)">&larr;</button>
+        <div class="cal-month-label" id="calMonthLabel"></div>
+        <button class="btn ghost small-btn" onclick="shiftCalMonth(1)">&rarr;</button>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+      <div class="cal-legend"><span><i class="cal-dot cal-dot-run"></i>Run</span><span><i class="cal-dot cal-dot-work"></i>Workout</span><span><i class="cal-dot cal-dot-both"></i>Both</span></div>
+    </div>
   </section>
 
   <section id="tab-log" class="panel">
@@ -126,6 +146,7 @@ h1{font-family:Barlow Condensed,sans-serif;font-size:clamp(38px,6vw,76px);line-h
 const STORAGE_KEY='7ace_bodycontrol_tracker_only_v1';
 const PROFILE_KEY='7ace_bodycontrol_profile_v1';
 let editingId=null;
+let calViewYear=parseInt(isoToday().slice(0,4)),calViewMonth=parseInt(isoToday().slice(5,7))-1;
 let editPowerIds=null;
 const UPPER_EX=[
   {id:'pullups',name:'Pull-Ups',unit:'reps',kind:'reps'},
@@ -258,7 +279,7 @@ function buildAfterSaveMessage(entry,before,after){let parts=[];if(entry.exercis
 function fmtMinSec(v){const mins=Math.floor(v);const secs=Math.round((v-mins)*60);return secs>0?`${mins}:${secs.toString().padStart(2,'0')}`:`${mins}`}
 function weekStats(start,end){const all=sessions().filter(s=>inRange(s.date,start,end));let stats={sessions:all.length,upper:0,power:0,conditioning:0,runCount:0,runMiles:0,cycling:0,swimming:0};all.forEach(s=>{if(s.type==='upper'){stats.upper+=totalExerciseVolume(s.exercises)}if(s.type==='power'){stats.power+=totalExerciseVolume(s.exercises)}if(s.type==='conditioning'){stats.conditioning++;if((s.conditioning?.run?.distance||0)>0){stats.runCount++;stats.runMiles+=s.conditioning.run.distance}stats.cycling+=s.conditioning?.cycling?.value||0;stats.swimming+=s.conditioning?.swimming?.value||0}});return stats}
 function totalExerciseVolume(exs){return Object.values(exs||{}).reduce((sum,e)=>sum+(e.total||0),0)}
-function renderAll(){renderDashMini();renderDashboard();renderHistory();renderWeeklyCompare();renderSuggestions()}
+function renderAll(){renderDashMini();renderDashboard();renderCalendar();renderHistory();renderWeeklyCompare();renderSuggestions()}
 function renderDashMini(){const p=profile();const w=weekStats(startOfWeek(isoToday()),addDays(startOfWeek(isoToday()),6));byId('dashMini').innerHTML=`<div class="mini-label">Current Athlete</div><div class="big-number">${p.name||'ATHLETE'}</div><div class="small">${p.age?`Age ${p.age} · `:''}${p.weight?`${p.weight} · `:''}${p.sport||'Sport not set'}</div><div class="grid three" style="margin-top:16px"><div><div class="mini-label">Week</div><div class="metric green">${w.sessions}</div><div class="small">sessions</div></div><div><div class="mini-label">Runs</div><div class="metric sky">${w.runCount}/3</div><div class="small">${w.runMiles?w.runMiles.toFixed(2)+' mi':'this week'}</div></div><div><div class="mini-label">Power</div><div class="metric amber">${w.power}</div><div class="small">reps/sec</div></div></div>`}
 function renderDashboard(){const p=profile();const w=weekStats(startOfWeek(isoToday()),addDays(startOfWeek(isoToday()),6));const runMsg=w.runCount<3?`Carlos needs ${3-w.runCount} more run${3-w.runCount>1?'s':''} this week.`:'Run goal completed this week.';byId('dashboardCoach').innerHTML=`${p.name||'The athlete'} has <b>${w.sessions}</b> session(s) this week. ${runMsg} ${smartNextWorkout()}`;byId('weekCards').innerHTML=`${card('Upper Volume',w.upper,'reps/sec','green')}${card('Power Volume',w.power,'reps/sec','amber')}${card('Runs',w.runCount+'/3',w.runMiles.toFixed(2)+' mi this week','sky')}${card('Cycling/Swim',Math.round(w.cycling+w.swimming),'minutes','red')}`;const prs=Object.values(calculatePRs()).sort((a,b)=>(b.bestTotal||0)-(a.bestTotal||0)).slice(0,8);byId('prCards').innerHTML=prs.length?prs.map(pr=>card(pr.name,pr.isTime?fmtMinSec(pr.bestTotal)+'/mi':(pr.bestTotal||pr.bestRound),pr.dateTotal||pr.dateRound,'green')).join(''):'<div class="empty">No PRs yet. Log the first workout.</div>'}
 function card(label,val,sub,color){return`<div class="summary-card"><div class="mini-label">${label}</div><div class="metric ${color||''}">${val}</div><div class="small">${sub||''}</div></div>`}
@@ -266,6 +287,14 @@ function smartNextWorkout(){const recent=sessions().slice().sort((a,b)=>b.date.l
 function renderHistory(){const all=sessions().slice().sort((a,b)=>b.date.localeCompare(a.date)||b.id-a.id);if(!all.length){byId('historyList').innerHTML='<div class="empty">No sessions logged yet.</div>';return}byId('historyList').innerHTML=all.map(s=>`<div class="history-item"><div><div class="h-date">${s.date}</div><div class="small">${s.notes?'Notes saved':'No notes'}</div></div><div class="h-type">${s.type}</div><div class="chips">${sessionChips(s)}</div><div class="row-actions" style="margin-top:0"><button class="btn ghost small-btn" onclick="editSession(${s.id})">Edit</button><button class="btn danger small-btn" onclick="deleteSession(${s.id})">Delete</button></div></div>`).join('')}
 function sessionChips(s){if(s.exercises)return Object.values(s.exercises).map(e=>`<span class="chip">${e.name}: <b>${e.total}</b> ${e.unit}${e.bestLoad?` · ${e.bestLoad} lb`:''}</span>`).join('');if(s.conditioning)return Object.values(s.conditioning).filter(c=>(c.distance||c.value)>0).map(c=>c.distance!=null?`<span class="chip">${c.name}: <b>${c.distance}</b> mi${c.time>0?` · ${fmtMinSec(c.time)} min`:''}${c.pace>0?` · ${fmtMinSec(c.pace)}/mi`:''}</span>`:`<span class="chip">${c.name}: <b>${c.value}</b> ${c.unit}</span>`).join('');return''}
 
+function shiftCalMonth(dir){calViewMonth+=dir;if(calViewMonth<0){calViewMonth=11;calViewYear--}if(calViewMonth>11){calViewMonth=0;calViewYear++}renderCalendar()}
+function renderCalendar(){const monthNames=['January','February','March','April','May','June','July','August','September','October','November','December'];byId('calMonthLabel').textContent=`${monthNames[calViewMonth]} ${calViewYear}`;
+  const dayFlags={};sessions().forEach(s=>{if(!s.date)return;const d=s.date;if(!dayFlags[d])dayFlags[d]={run:false,work:false};const isRun=s.type==='conditioning'&&(s.conditioning?.run?.distance||0)>0;if(isRun)dayFlags[d].run=true;else dayFlags[d].work=true});
+  const first=new Date(calViewYear,calViewMonth,1);const startOffset=(first.getDay()+6)%7;const daysInMonth=new Date(calViewYear,calViewMonth+1,0).getDate();const today=isoToday();
+  let html=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d=>`<div class="cal-dow">${d}</div>`).join('');
+  for(let i=0;i<startOffset;i++)html+='<div class="cal-day empty"></div>';
+  for(let day=1;day<=daysInMonth;day++){const dateStr=`${calViewYear}-${String(calViewMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;const flag=dayFlags[dateStr];let cls='cal-day';if(dateStr===today)cls+=' today';if(flag){if(flag.run&&flag.work)cls+=' has-both';else if(flag.run)cls+=' has-run';else if(flag.work)cls+=' has-work'}html+=`<div class="${cls}">${day}</div>`}
+  byId('calGrid').innerHTML=html}
 function editSession(id){const s=sessions().find(x=>x.id===id);if(!s)return;editingId=id;byId('log-date').value=s.date||isoToday();byId('workout-type').value=s.type;byId('session-notes').value=s.notes||'';let maxRounds=4;if(s.exercises){maxRounds=Math.max(1,...Object.values(s.exercises).map(e=>Math.max((e.rounds||[]).length,(e.loads||[]).length,1)));}
 byId('round-count').value=Math.min(8,Math.max(1,maxRounds));editPowerIds=s.type==='power'&&s.exercises?Object.keys(s.exercises):null;renderWorkoutForm();
 if(s.type==='power'&&editPowerIds){document.querySelectorAll('.power-check').forEach(cb=>{cb.checked=editPowerIds.includes(cb.value);cb.closest('.check-card')?.classList.toggle('active',cb.checked)});renderPowerRounds();}
