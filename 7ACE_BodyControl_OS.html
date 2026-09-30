@@ -34,14 +34,17 @@ h1{font-family:Barlow Condensed,sans-serif;font-size:clamp(38px,6vw,76px);line-h
 .nav-home-link{color:var(--red2);text-decoration:none;font-family:Barlow Condensed,sans-serif;font-weight:800;letter-spacing:.08em;font-size:14px;margin-right:6px;border:1px solid var(--line);border-radius:6px;padding:6px 10px;transition:.2s}.nav-home-link:hover{border-color:var(--red);color:var(--white);background:rgba(255,30,30,.08)}
 .cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}.cal-month-label{font-family:Barlow Condensed,sans-serif;font-weight:800;letter-spacing:.02em;font-size:19px;color:var(--white)}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}.cal-dow{font-family:Barlow Condensed,sans-serif;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);text-align:center;padding:4px 0}
-.cal-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:8px;background:var(--deep);border:1px solid var(--line);font-family:Barlow Condensed,sans-serif;font-weight:600;font-size:16px;color:var(--text);position:relative;cursor:pointer;transition:.15s}
+.cal-day{min-height:76px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:4px;padding:8px 4px 6px;border-radius:8px;background:var(--deep);border:1px solid var(--line);font-family:Barlow Condensed,sans-serif;font-weight:600;font-size:15px;color:var(--text);position:relative;cursor:pointer;transition:.15s}
 .cal-day:not(.empty):hover{border-color:rgba(255,30,30,.4);background:rgba(255,30,30,.05)}
 .cal-day.today{border-color:var(--gold);font-weight:800}
-.cal-day.selected{background:rgba(255,30,30,.12);border-color:var(--red)}
-.cal-day.has-run:after,.cal-day.has-work:after,.cal-day.has-both:after{content:"";position:absolute;bottom:6px;width:5px;height:5px;border-radius:50%}
-.cal-day.has-run:after{background:var(--sky)}
-.cal-day.has-work:after{background:var(--red2)}
-.cal-day.has-both:after{background:linear-gradient(90deg,var(--sky),var(--red2))}
+.cal-day.selected{background:rgba(255,30,30,.14);border-color:var(--red)}
+.cal-day.has-run{background:rgba(56,189,248,.09);border-color:rgba(56,189,248,.35)}
+.cal-day.has-work{background:rgba(255,30,30,.09);border-color:rgba(255,30,30,.35)}
+.cal-day.has-both{background:linear-gradient(160deg,rgba(56,189,248,.1),rgba(255,30,30,.1));border-color:var(--gold)}
+.cal-day-tags{display:flex;flex-direction:column;gap:2px;width:100%;align-items:center}
+.cal-day-tag{font-size:9px;font-weight:800;letter-spacing:.04em;padding:1px 6px;border-radius:4px;line-height:1.5;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.cal-day-tag.run{background:rgba(56,189,248,.22);color:var(--sky)}
+.cal-day-tag.work{background:rgba(255,30,30,.22);color:var(--red2)}
 .cal-day-detail-card{margin-top:14px;background:transparent;border:none;box-shadow:none;padding:0}
 .day-entry{border-bottom:1px solid var(--line);padding:12px 2px}.day-entry:last-child{border-bottom:none}
 .day-entry-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.day-entry-top .chips{flex:1}.day-entry-top .h-type{flex-shrink:0}
@@ -300,11 +303,13 @@ function sessionChips(s){if(s.exercises)return Object.values(s.exercises).map(e=
 
 function shiftCalMonth(dir){calViewMonth+=dir;if(calViewMonth<0){calViewMonth=11;calViewYear--}if(calViewMonth>11){calViewMonth=0;calViewYear++}renderCalendar()}
 function renderCalendar(){const monthNames=['January','February','March','April','May','June','July','August','September','October','November','December'];byId('calMonthLabel').textContent=`${monthNames[calViewMonth]} ${calViewYear}`;
-  const dayFlags={};sessions().forEach(s=>{if(!s.date)return;const d=s.date;if(!dayFlags[d])dayFlags[d]={run:false,work:false};const isRun=s.type==='conditioning'&&(s.conditioning?.run?.distance||0)>0;if(isRun)dayFlags[d].run=true;else dayFlags[d].work=true});
+  const dayFlags={};sessions().forEach(s=>{if(!s.date)return;const d=s.date;if(!dayFlags[d])dayFlags[d]={run:false,work:false,labels:[]};const isRun=s.type==='conditioning'&&(s.conditioning?.run?.distance||0)>0;if(isRun)dayFlags[d].run=true;else dayFlags[d].work=true;
+    let label,cls;if(s.type==='upper'){label='Upper';cls='work'}else if(s.type==='power'){label='Power';cls='work'}else if(isRun){label=`Run ${s.conditioning.run.distance}mi`;cls='run'}else{label='Cardio';cls='work'}
+    if(!dayFlags[d].labels.some(l=>l.label===label))dayFlags[d].labels.push({label,cls})});
   const first=new Date(calViewYear,calViewMonth,1);const startOffset=(first.getDay()+6)%7;const daysInMonth=new Date(calViewYear,calViewMonth+1,0).getDate();const today=isoToday();
   let html=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d=>`<div class="cal-dow">${d}</div>`).join('');
   for(let i=0;i<startOffset;i++)html+='<div class="cal-day empty" onclick="clearCalDay()"></div>';
-  for(let day=1;day<=daysInMonth;day++){const dateStr=`${calViewYear}-${String(calViewMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;const flag=dayFlags[dateStr];let cls='cal-day';if(dateStr===today)cls+=' today';if(dateStr===calSelectedDate)cls+=' selected';if(flag){if(flag.run&&flag.work)cls+=' has-both';else if(flag.run)cls+=' has-run';else if(flag.work)cls+=' has-work'}html+=`<div class="${cls}" onclick="showCalDay('${dateStr}')">${day}</div>`}
+  for(let day=1;day<=daysInMonth;day++){const dateStr=`${calViewYear}-${String(calViewMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;const flag=dayFlags[dateStr];let cls='cal-day';if(dateStr===today)cls+=' today';if(dateStr===calSelectedDate)cls+=' selected';let tagsHtml='';if(flag){if(flag.run&&flag.work)cls+=' has-both';else if(flag.run)cls+=' has-run';else if(flag.work)cls+=' has-work';tagsHtml=`<div class="cal-day-tags">${flag.labels.slice(0,2).map(l=>`<span class="cal-day-tag ${l.cls}">${l.label}</span>`).join('')}${flag.labels.length>2?`<span class="cal-day-tag work">+${flag.labels.length-2}</span>`:''}</div>`}html+=`<div class="${cls}" onclick="showCalDay('${dateStr}')">${day}${tagsHtml}</div>`}
   byId('calGrid').innerHTML=html;renderCalDayDetail()}
 function showCalDay(dateStr){calSelectedDate=calSelectedDate===dateStr?null:dateStr;renderCalendar()}
 function clearCalDay(){calSelectedDate=null;renderCalendar()}
