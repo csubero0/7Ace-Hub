@@ -34,7 +34,10 @@ h1{font-family:Barlow Condensed,sans-serif;font-size:clamp(38px,6vw,76px);line-h
 .nav-home-link{color:var(--red2);text-decoration:none;font-family:Barlow Condensed,sans-serif;font-weight:800;letter-spacing:.08em;font-size:14px;margin-right:6px;border:1px solid var(--line);border-radius:6px;padding:6px 10px;transition:.2s}.nav-home-link:hover{border-color:var(--red);color:var(--white);background:rgba(255,30,30,.08)}
 .cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}.cal-month-label{font-family:Barlow Condensed,sans-serif;font-weight:900;letter-spacing:.14em;text-transform:uppercase;font-size:15px;color:var(--white)}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}.cal-dow{font-family:Barlow Condensed,sans-serif;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);text-align:center;padding:4px 0}
-.cal-day{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:8px;background:var(--deep);border:1px solid var(--line);font-family:Barlow Condensed,sans-serif;font-weight:700;font-size:13px;color:var(--text);position:relative}
+.cal-day{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:8px;background:var(--deep);border:1px solid var(--line);font-family:Barlow Condensed,sans-serif;font-weight:700;font-size:13px;color:var(--text);position:relative;cursor:pointer;transition:.15s}
+.cal-day:not(.empty):hover{transform:translateY(-2px);border-color:var(--red)}
+.cal-day.selected{outline:2px solid var(--white);outline-offset:1px}
+.cal-day-detail-card{margin-top:14px}
 .cal-day.empty{background:transparent;border-color:transparent}
 .cal-day.today{border-color:var(--gold)}
 .cal-day.has-run{background:rgba(56,189,248,.16);border-color:rgba(56,189,248,.4);color:var(--white)}
@@ -120,6 +123,7 @@ h1{font-family:Barlow Condensed,sans-serif;font-size:clamp(38px,6vw,76px);line-h
       <div class="cal-grid" id="calGrid"></div>
       <div class="cal-legend"><span><i class="cal-dot cal-dot-run"></i>Run</span><span><i class="cal-dot cal-dot-work"></i>Workout</span><span><i class="cal-dot cal-dot-both"></i>Both</span></div>
     </div>
+    <div id="calDayDetail"></div>
   </section>
   <section id="tab-history" class="panel">
     <div class="card">
@@ -149,7 +153,7 @@ h1{font-family:Barlow Condensed,sans-serif;font-size:clamp(38px,6vw,76px);line-h
 const STORAGE_KEY='7ace_bodycontrol_tracker_only_v1';
 const PROFILE_KEY='7ace_bodycontrol_profile_v1';
 let editingId=null;
-let calViewYear=parseInt(isoToday().slice(0,4)),calViewMonth=parseInt(isoToday().slice(5,7))-1;
+let calViewYear=parseInt(isoToday().slice(0,4)),calViewMonth=parseInt(isoToday().slice(5,7))-1,calSelectedDate=null;
 let editPowerIds=null;
 const UPPER_EX=[
   {id:'pullups',name:'Pull-Ups',unit:'reps',kind:'reps'},
@@ -296,8 +300,12 @@ function renderCalendar(){const monthNames=['January','February','March','April'
   const first=new Date(calViewYear,calViewMonth,1);const startOffset=(first.getDay()+6)%7;const daysInMonth=new Date(calViewYear,calViewMonth+1,0).getDate();const today=isoToday();
   let html=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d=>`<div class="cal-dow">${d}</div>`).join('');
   for(let i=0;i<startOffset;i++)html+='<div class="cal-day empty"></div>';
-  for(let day=1;day<=daysInMonth;day++){const dateStr=`${calViewYear}-${String(calViewMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;const flag=dayFlags[dateStr];let cls='cal-day';if(dateStr===today)cls+=' today';if(flag){if(flag.run&&flag.work)cls+=' has-both';else if(flag.run)cls+=' has-run';else if(flag.work)cls+=' has-work'}html+=`<div class="${cls}">${day}</div>`}
-  byId('calGrid').innerHTML=html}
+  for(let day=1;day<=daysInMonth;day++){const dateStr=`${calViewYear}-${String(calViewMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;const flag=dayFlags[dateStr];let cls='cal-day';if(dateStr===today)cls+=' today';if(dateStr===calSelectedDate)cls+=' selected';if(flag){if(flag.run&&flag.work)cls+=' has-both';else if(flag.run)cls+=' has-run';else if(flag.work)cls+=' has-work'}html+=`<div class="${cls}" onclick="showCalDay('${dateStr}')">${day}</div>`}
+  byId('calGrid').innerHTML=html;renderCalDayDetail()}
+function showCalDay(dateStr){calSelectedDate=calSelectedDate===dateStr?null:dateStr;renderCalendar()}
+function renderCalDayDetail(){const box=byId('calDayDetail');if(!calSelectedDate){box.innerHTML='';return}const daySessions=sessions().filter(s=>s.date===calSelectedDate);const label=new Date(calSelectedDate+'T00:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+  if(!daySessions.length){box.innerHTML=`<div class="card cal-day-detail-card"><div class="section-title">${label}</div><div class="empty">Nothing logged this day.</div></div>`;return}
+  box.innerHTML=`<div class="card cal-day-detail-card"><div class="section-title">${label}</div>${daySessions.map(s=>`<div class="history-item"><div><div class="h-date">${s.date}</div><div class="small">${s.notes?'Notes saved':'No notes'}</div></div><div class="h-type">${s.type}</div><div class="chips">${sessionChips(s)}</div><div class="row-actions" style="margin-top:0"><button class="btn ghost small-btn" onclick="editSession(${s.id})">Edit</button></div></div>${s.notes?`<p class="notice" style="margin-top:-2px;margin-bottom:10px">"${s.notes}"</p>`:''}`).join('')}</div>`}
 function editSession(id){const s=sessions().find(x=>x.id===id);if(!s)return;editingId=id;byId('log-date').value=s.date||isoToday();byId('workout-type').value=s.type;byId('session-notes').value=s.notes||'';let maxRounds=4;if(s.exercises){maxRounds=Math.max(1,...Object.values(s.exercises).map(e=>Math.max((e.rounds||[]).length,(e.loads||[]).length,1)));}
 byId('round-count').value=Math.min(8,Math.max(1,maxRounds));editPowerIds=s.type==='power'&&s.exercises?Object.keys(s.exercises):null;renderWorkoutForm();
 if(s.type==='power'&&editPowerIds){document.querySelectorAll('.power-check').forEach(cb=>{cb.checked=editPowerIds.includes(cb.value);cb.closest('.check-card')?.classList.toggle('active',cb.checked)});renderPowerRounds();}
