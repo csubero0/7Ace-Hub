@@ -63,6 +63,7 @@ h1{font-family:Barlow Condensed,sans-serif;font-size:clamp(38px,6vw,76px);line-h
   <div class="tabs">
     <button class="tab active" onclick="showTab('dashboard')">Dashboard</button>
     <button class="tab" onclick="showTab('log')">Log Workout</button>
+    <button class="tab" onclick="showTab('calendar')">Calendar</button>
     <button class="tab" onclick="showTab('history')">History</button>
     <button class="tab" onclick="showTab('compare')">Weekly Compare</button>
     <button class="tab" onclick="showTab('backup')">Backup</button>
@@ -90,16 +91,6 @@ h1{font-family:Barlow Condensed,sans-serif;font-size:clamp(38px,6vw,76px);line-h
     <div class="grid four" id="weekCards"></div>
     <div class="section-title">Personal Records</div>
     <div class="grid four" id="prCards"></div>
-    <div class="section-title">Activity Calendar</div>
-    <div class="card">
-      <div class="cal-header">
-        <button class="btn ghost small-btn" onclick="shiftCalMonth(-1)">&larr;</button>
-        <div class="cal-month-label" id="calMonthLabel"></div>
-        <button class="btn ghost small-btn" onclick="shiftCalMonth(1)">&rarr;</button>
-      </div>
-      <div class="cal-grid" id="calGrid"></div>
-      <div class="cal-legend"><span><i class="cal-dot cal-dot-run"></i>Run</span><span><i class="cal-dot cal-dot-work"></i>Workout</span><span><i class="cal-dot cal-dot-both"></i>Both</span></div>
-    </div>
   </section>
 
   <section id="tab-log" class="panel">
@@ -118,6 +109,18 @@ h1{font-family:Barlow Condensed,sans-serif;font-size:clamp(38px,6vw,76px);line-h
     </div>
   </section>
 
+  <section id="tab-calendar" class="panel">
+    <div class="section-title">Activity Calendar</div>
+    <div class="card">
+      <div class="cal-header">
+        <button class="btn ghost small-btn" onclick="shiftCalMonth(-1)">&larr;</button>
+        <div class="cal-month-label" id="calMonthLabel"></div>
+        <button class="btn ghost small-btn" onclick="shiftCalMonth(1)">&rarr;</button>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+      <div class="cal-legend"><span><i class="cal-dot cal-dot-run"></i>Run</span><span><i class="cal-dot cal-dot-work"></i>Workout</span><span><i class="cal-dot cal-dot-both"></i>Both</span></div>
+    </div>
+  </section>
   <section id="tab-history" class="panel">
     <div class="card">
       <div class="section-title">Session History</div>
