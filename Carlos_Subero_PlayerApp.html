@@ -1,0 +1,1873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Carlos Subero · 7ACE Lab</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #060810;
+  --surface:  #0C0F1A;
+  --card:     #111622;
+  --border:   #1C2440;
+  --blue:     #1E90FF;
+  --blue-dim: #1E90FF22;
+  --gold:     #E8A020;
+  --gold-dim: #E8A02018;
+  --green:    #00D68F;
+  --green-dim:#00D68F15;
+  --red:      #E74C3C;
+  --purple:   #9B59B6;
+  --purple-dim:#9B59B618;
+  --teal:     #1ABC9C;
+  --text:     #E2E8F4;
+  --muted:    #6B7A99;
+  --subtle:   #1C2440;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;overscroll-behavior:none}
+
+/* ── NAV ── */
+.app{display:flex;flex-direction:column;height:100vh;max-width:480px;margin:0 auto}
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:14px 18px 10px;border-bottom:1px solid var(--border);flex-shrink:0}
+.top-logo{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:var(--blue)}
+.top-dupr{font-size:11px;color:var(--muted);font-weight:600;letter-spacing:1px}
+.top-dupr span{color:var(--green);font-size:14px;font-weight:700}
+.top-right{display:flex;align-items:center;gap:10px}
+.palette-btn{width:26px;height:26px;border-radius:50%;border:2px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;background:var(--card);transition:border-color .15s}
+.palette-btn:hover{border-color:var(--blue)}
+.color-panel{position:fixed;top:56px;right:10px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;z-index:200;display:none;box-shadow:0 8px 32px #00000060;min-width:220px}
+.color-panel.open{display:block}
+.color-panel-title{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+.theme-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:12px}
+.theme-swatch{width:36px;height:36px;border-radius:8px;cursor:pointer;border:2px solid transparent;transition:all .15s;position:relative}
+.theme-swatch.active::after{content:'✓';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;font-weight:700;text-shadow:0 1px 3px #000}
+.theme-swatch:hover{transform:scale(1.1);border-color:#ffffff44}
+.color-divider{height:1px;background:var(--border);margin:10px 0}
+.custom-label{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.custom-row{display:flex;gap:8px;align-items:center}
+.custom-input{flex:1;background:var(--card);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--text);font-family:monospace;font-size:12px;outline:none}
+.custom-apply{padding:6px 12px;background:var(--blue);border:none;border-radius:6px;color:#fff;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;cursor:pointer}
+
+.content{flex:1;overflow-y:auto;padding:0 0 80px}
+
+.bottom-nav{display:flex;position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:var(--surface);border-top:1px solid var(--border);z-index:100}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 4px;cursor:pointer;border:none;background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:9px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;gap:4px;transition:color .15s}
+.nav-btn.active{color:var(--blue)}
+.nav-btn .icon{font-size:20px;line-height:1}
+.nav-btn.active .icon{filter:drop-shadow(0 0 4px var(--blue))}
+
+/* ── PAGES ── */
+.page{display:none;padding:0}
+.page.active{display:block}
+
+/* ── HOME ── */
+.hero{background:linear-gradient(160deg,#060810 0%,#0a1428 60%,#060d1f 100%);padding:24px 18px 20px;border-bottom:1px solid var(--border);position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-40px;right:-40px;width:200px;height:200px;background:radial-gradient(circle,#1E90FF18 0%,transparent 70%);pointer-events:none}
+.hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.hero-stats-col{display:flex;flex-direction:column;gap:6px;align-items:flex-end;flex-shrink:0}
+.hero-stat{text-align:right}
+.hero-stat-num{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;line-height:1;color:var(--blue)}
+.hero-stat-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px}
+/* Analytics */
+.analytics-tabs{display:flex;gap:1px;background:var(--border);margin:0 18px 14px;border-radius:8px;overflow:hidden}
+.atab{flex:1;padding:9px 4px;text-align:center;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);cursor:pointer;background:var(--card);border:none;font-family:'DM Sans',sans-serif;transition:all .15s}
+.atab.active{background:var(--blue);color:#fff}
+.analytics-panel{display:none;padding:0 18px}
+.analytics-panel.active{display:block}
+/* Calendar heatmap */
+.cal-month-label{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;color:var(--text);margin-bottom:8px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:16px}
+.cal-day-name{font-size:9px;color:var(--muted);text-align:center;padding:2px 0;font-weight:700}
+.cal-day{height:32px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;cursor:pointer;position:relative;transition:transform .1s}
+.cal-day:hover{transform:scale(1.1)}
+.cal-day.empty{background:transparent;cursor:default}
+.cal-day.no-sess{background:var(--card);color:var(--muted)}
+.cal-day.has-sess-1{background:#1E90FF30;color:var(--blue)}
+.cal-day.has-sess-2{background:#1E90FF60;color:#fff}
+.cal-day.has-sess-3{background:#1E90FF;color:#fff}
+.cal-day.today{outline:2px solid var(--gold);outline-offset:1px}
+.cal-legend{display:flex;gap:8px;align-items:center;margin-bottom:12px}
+.cal-legend-item{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted)}
+.cal-legend-dot{width:10px;height:10px;border-radius:2px}
+/* Insight cards */
+.insight-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px}
+.insight-icon{font-size:22px;margin-bottom:6px}
+.insight-title{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.insight-value{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:var(--blue);line-height:1;margin-bottom:4px}
+.insight-text{font-size:12px;color:var(--muted);line-height:1.55}
+.insight-highlight{color:var(--text);font-weight:600}
+/* Compare bars */
+.compare-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.compare-label{font-size:11px;color:var(--muted);width:70px;flex-shrink:0}
+.compare-track{flex:1;height:20px;background:var(--border);border-radius:4px;overflow:hidden;position:relative}
+.compare-fill-a{height:100%;border-radius:4px;display:flex;align-items:center;padding-left:6px;font-size:10px;font-weight:700;color:#fff;position:absolute;top:0;left:0}
+.compare-fill-b{height:100%;border-radius:4px 0 0 4px;position:absolute;top:0;left:0;opacity:.5}
+.month-select{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:12px;outline:none}
+.week-row{display:flex;gap:6px;margin-bottom:12px}
+.week-day{flex:1;border-radius:8px;padding:8px 4px;text-align:center;background:var(--card);border:1px solid var(--border)}
+.week-day.active-day{border-color:var(--blue);background:var(--blue-dim)}
+.week-day-name{font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:4px}
+.week-day-num{font-size:14px;font-weight:600;color:var(--text)}
+.week-day-dot{width:6px;height:6px;border-radius:50%;background:var(--blue);margin:4px auto 0;display:none}
+.week-day.active-day .week-day-dot{display:block}
+.hero-name{font-family:'Bebas Neue',sans-serif;font-size:3.2rem;line-height:.9;color:#fff;margin-bottom:4px}
+.hero-name span{color:var(--blue)}
+.hero-tag{font-size:12px;color:var(--muted);margin-bottom:18px;font-style:italic}"
+
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border-radius:8px;overflow:hidden;margin-bottom:18px}
+.stat{background:var(--card);padding:10px 6px;text-align:center}
+.stat-num{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;line-height:1;color:var(--blue)}
+.stat-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-top:2px}
+
+.dupr-strip{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between}
+.dupr-label{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase}
+.dupr-val{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--green);line-height:1}
+.modal-overlay{position:fixed;inset:0;background:#00000080;z-index:300;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;width:280px;text-align:center}
+.modal-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;color:var(--text);margin-bottom:6px}
+.modal-sub{font-size:12px;color:var(--muted);margin-bottom:18px}
+.modal-input{width:100%;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;color:var(--green);font-family:'Bebas Neue',sans-serif;font-size:2rem;text-align:center;outline:none;letter-spacing:2px}
+.modal-input:focus{border-color:var(--green)66}
+.modal-btns{display:flex;gap:8px;margin-top:14px}
+.modal-save{flex:1;padding:11px;background:var(--green);border:none;border-radius:8px;color:#080A0E;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer}
+.modal-cancel{flex:1;padding:11px;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer}
+.dupr-trend{font-size:11px;color:var(--muted)}
+
+/* ── ZONE ROUTINE ── */
+.zone-card{margin:14px 18px 0;background:linear-gradient(135deg,var(--purple-dim),var(--card));border:1px solid #9B59B630;border-radius:10px;padding:14px 16px}
+.zone-label{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--purple);margin-bottom:8px}
+.zone-steps{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.zone-step{background:#9B59B620;border:1px solid #9B59B635;border-radius:20px;padding:4px 12px;font-size:12px;color:#C39BD3;font-weight:500}
+.zone-arrow{color:#9B59B650;font-size:12px}
+
+/* ── HOMEWORK ── */
+.hw-card{margin:12px 18px 0;background:var(--gold-dim);border:1px solid #E8A02030;border-radius:10px;padding:14px 16px}
+.hw-label{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:10px}
+.hw-item{display:flex;gap:10px;margin-bottom:8px;font-size:12px;color:#D4C49A;line-height:1.5}
+.hw-num{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--gold);flex-shrink:0;line-height:1;margin-top:1px}
+
+/* ── FOCUS AREA ── */
+.focus-card{margin:12px 18px 0;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px}
+.focus-label{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--blue);margin-bottom:10px}
+.focus-item{display:flex;align-items:flex-start;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)}
+.focus-item:last-child{border-bottom:none;padding-bottom:0}
+.focus-tag{font-size:10px;font-weight:700;color:var(--blue);min-width:80px}
+.focus-note{font-size:12px;color:var(--muted);line-height:1.5}
+
+/* ── SESSIONS ── */
+.section-head{padding:18px 18px 10px;display:flex;align-items:center;justify-content:space-between}
+.section-title{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;color:var(--text)}
+.section-count{font-size:11px;color:var(--muted);font-weight:600}
+
+.session-card{margin:0 18px 10px;background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;cursor:pointer;transition:border-color .15s}
+.session-card:hover{border-color:var(--blue)44}
+.session-header{padding:12px 14px}
+.session-date{font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.5px;margin-bottom:4px}
+.session-focus{font-size:13px;font-weight:600;color:var(--text);line-height:1.35;margin-bottom:6px}
+.session-meta{display:flex;gap:8px;align-items:center}
+.session-dur{font-size:10px;color:var(--muted);background:var(--surface);padding:2px 8px;border-radius:10px;font-weight:600}
+.session-rating{font-size:11px}
+.session-loc{font-size:10px;color:var(--muted)}
+.session-tags{display:flex;gap:4px;flex-wrap:wrap;padding:0 14px 12px}
+.tag{font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;letter-spacing:.3px}
+.tag-blue{background:#1E90FF18;color:var(--blue);border:1px solid #1E90FF28}
+.tag-gold{background:#E8A02018;color:var(--gold);border:1px solid #E8A02030}
+.tag-teal{background:#1ABC9C18;color:var(--teal);border:1px solid #1ABC9C28}
+.tag-purple{background:#9B59B618;color:#C39BD3;border:1px solid #9B59B628}
+.tag-red{background:#E74C3C18;color:var(--red);border:1px solid #E74C3C28}
+.tag-green{background:#00D68F18;color:var(--green);border:1px solid #00D68F28}
+.tag-orange{background:#E67E2218;color:#E67E22;border:1px solid #E67E2228}
+
+.session-body{display:none;border-top:1px solid var(--border);padding:14px}
+.session-body.open{display:block}
+.sBody-label{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--blue);margin-bottom:6px}
+.sBody-text{font-size:12px;color:var(--muted);line-height:1.65;margin-bottom:12px}
+.skill-row{display:flex;gap:8px;margin-bottom:6px;padding:8px 10px;background:var(--surface);border-radius:6px}
+.skill-tag-col{font-size:10px;font-weight:700;color:var(--blue);min-width:90px;flex-shrink:0;margin-top:1px}
+.skill-note-col{font-size:11px;color:var(--muted);line-height:1.55}
+.strengths-list,.work-list{list-style:none;padding:0}
+.strengths-list li,.work-list li{display:flex;gap:8px;font-size:12px;line-height:1.5;padding:4px 0;border-bottom:1px solid var(--border)}
+.strengths-list li:last-child,.work-list li:last-child{border-bottom:none}
+.strengths-list li::before{content:"✓";color:var(--green);font-weight:700;flex-shrink:0}
+.work-list li::before{content:"→";color:var(--blue);font-weight:700;flex-shrink:0}
+.next-box{background:var(--gold-dim);border:1px solid #E8A02028;border-radius:7px;padding:10px 12px;font-size:12px;color:#D4C49A;line-height:1.6;margin-top:8px}
+.private-note{background:#9B59B608;border:1px solid #9B59B625;border-radius:7px;padding:10px 12px;margin-top:8px}
+.private-lbl{font-size:9px;font-weight:700;letter-spacing:1px;color:var(--purple);text-transform:uppercase;margin-bottom:5px}
+.private-text{font-size:12px;color:#C39BD3;line-height:1.6}
+
+/* ── SKILL MAP ── */
+.skill-map{padding:6px 18px}
+.skill-bar-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.skill-bar-label{font-size:11px;color:var(--muted);width:100px;flex-shrink:0;text-align:right}
+.skill-bar-track{flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.skill-bar-fill{height:100%;border-radius:3px;transition:width .4s ease}
+.skill-bar-count{font-size:10px;font-weight:700;color:var(--muted);width:20px;text-align:right}
+.skill-status{font-size:9px;font-weight:700;letter-spacing:.5px}
+.status-over{color:var(--red)}
+.status-good{color:var(--gold)}
+.status-low{color:var(--green)}
+
+/* ── DRILL LIBRARY ── */
+.drill-search-wrap{padding:14px 18px 0}
+.drill-search{width:100%;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:9px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none}
+.drill-search:focus{border-color:var(--blue)55}
+.drill-cat{padding:14px 18px 6px}
+.drill-cat-label{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--blue)}
+.drill-item{margin:0 18px 6px;background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden;cursor:pointer}
+.drill-item-head{padding:10px 12px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.drill-item-name{font-size:13px;font-weight:600;color:var(--text);line-height:1.3}
+.drill-toggle{font-size:16px;color:var(--muted);flex-shrink:0}
+.drill-item-tags{display:flex;gap:4px;flex-wrap:wrap;padding:0 12px 10px}
+.drill-item-body{display:none;border-top:1px solid var(--border);padding:12px}
+.drill-item-body.open{display:block}
+.drill-section-lbl{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);margin-bottom:6px;margin-top:10px}
+.drill-section-lbl:first-child{margin-top:0}
+.drill-section-text{font-size:12px;color:var(--muted);line-height:1.65}
+.neuro-box{background:#1E90FF08;border:1px solid #1E90FF18;border-radius:6px;padding:10px 12px;margin-top:10px}
+.neuro-lbl{font-size:9px;font-weight:700;letter-spacing:1px;color:var(--blue);text-transform:uppercase;margin-bottom:5px}
+.neuro-text{font-size:11px;color:var(--muted);line-height:1.6}
+
+/* ── LOGGER ── */
+.logger-wrap{padding:14px 18px}
+.logger-section{margin-bottom:14px}
+.logger-label{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--blue);margin-bottom:7px;display:block}
+.logger-input{width:100%;background:var(--card);border:1px solid var(--border);border-radius:7px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none}
+.logger-input:focus{border-color:var(--blue)55}
+.logger-select{width:100%;background:var(--card);border:1px solid var(--border);border-radius:7px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;appearance:none}
+.logger-textarea{width:100%;background:var(--card);border:1px solid var(--border);border-radius:7px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;resize:vertical;min-height:80px;line-height:1.5}
+.logger-textarea:focus,.logger-select:focus{border-color:var(--blue)55}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+.drill-checklist{display:flex;flex-direction:column;gap:5px}
+.drill-chk{display:flex;align-items:flex-start;gap:8px;background:var(--card);border:1px solid var(--border);border-radius:6px;padding:8px 10px;cursor:pointer;transition:border-color .15s}
+.drill-chk.selected{border-color:var(--gold);background:var(--gold-dim)}
+.drill-chk .chk-box{width:14px;height:14px;border:1.5px solid var(--border);border-radius:3px;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:9px}
+.drill-chk.selected .chk-box{background:var(--gold);border-color:var(--gold);color:#080A0E}
+.drill-chk-name{font-size:12px;font-weight:500;color:#C0C8D8;line-height:1.3}
+.drill-search-sm{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:7px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:12px;outline:none;margin-bottom:8px}
+
+.btn-primary{width:100%;padding:13px;background:var(--blue);border:none;border-radius:8px;color:#fff;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;margin-top:8px}
+.btn-secondary{width:100%;padding:11px;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;margin-top:6px}
+
+.output-box{background:var(--card);border:1px solid var(--green)33;border-radius:8px;padding:14px;margin-top:14px;display:none}
+.output-label{font-size:10px;font-weight:700;letter-spacing:1px;color:var(--green);text-transform:uppercase;margin-bottom:8px}
+.output-text{font-family:monospace;font-size:11px;color:var(--muted);line-height:1.7;white-space:pre-wrap;word-break:break-all}
+.copy-btn{width:100%;padding:9px;background:#00D68F18;border:1px solid #00D68F35;border-radius:6px;color:var(--green);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;margin-top:8px}
+
+/* ── DRAFT ── */
+.draft-section{background:var(--gold-dim);border:1px solid #E8A02028;border-radius:8px;padding:12px;margin-top:10px}
+.draft-label{font-size:9px;font-weight:700;letter-spacing:1px;color:var(--gold);text-transform:uppercase;margin-bottom:8px}
+.draft-textarea{width:100%;background:var(--bg);border:1px solid #E8A02030;border-radius:6px;padding:7px 10px;color:var(--gold);font-family:monospace;font-size:10px;min-height:50px;resize:none;outline:none;margin-bottom:6px}
+.draft-btn-row{display:flex;gap:6px}
+.draft-btn{flex:1;padding:8px;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;cursor:pointer;border:none;text-align:center}
+.draft-save{background:var(--gold);color:#080A0E}
+.draft-load{background:transparent;border:1px solid #E8A02040;color:var(--gold)}
+.export-row{display:flex;gap:6px;padding:10px 14px 12px;border-top:1px solid var(--border)}
+.export-btn{flex:1;padding:7px 8px;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;cursor:pointer;text-align:center;border:none}
+.export-html{background:var(--blue-dim);color:var(--blue);border:1px solid #1E90FF30}
+.export-word{background:#00D68F12;color:var(--green);border:1px solid #00D68F25}
+.export-db{background:var(--gold-dim);color:var(--gold);border:1px solid #E8A02030}
+.tag-picker{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.tag-pick{font-size:10px;font-weight:700;padding:4px 10px;border-radius:12px;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--muted);transition:all .15s}
+.tag-pick.selected{background:var(--blue-dim);color:var(--blue);border-color:#1E90FF44}
+.custom-drill-item{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.custom-drill-name{font-size:12px;font-weight:600;color:var(--text)}
+.custom-drill-meta{font-size:10px;color:var(--muted);margin-top:3px}
+.custom-drill-delete{font-size:18px;color:var(--red);cursor:pointer;flex-shrink:0;line-height:1;background:none;border:none}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- TOP BAR -->
+<div class="top-bar">
+  <div class="top-logo">7ACE</div>
+  <div class="top-right">
+    <div class="top-dupr" onclick="editDUPR()" title="Tap to update DUPR">DUPR <span id="topDupr">5.06</span> ✏️</div>
+    <div class="palette-btn" onclick="toggleColorPanel()">🎨</div>
+  </div>
+</div>
+
+<!-- COLOR PANEL -->
+<div class="color-panel" id="colorPanel">
+  <div class="color-panel-title">Theme Color</div>
+  <div class="theme-grid" id="themeGrid"></div>
+  <div class="color-divider"></div>
+  <div class="custom-label">Custom Hex</div>
+  <div class="custom-row">
+    <input class="custom-input" id="customHex" placeholder="#1E90FF" maxlength="7">
+    <button class="custom-apply" onclick="applyCustomColor()">Apply</button>
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div class="content" id="content">
+
+  <!-- ── HOME PAGE ── -->
+  <div class="page active" id="page-home">
+    <div class="hero">
+      <div class="hero-brand">7ACE Development Lab · Player File</div>
+      <div class="hero-top">
+        <div>
+          <div class="hero-name">CARLOS<br><span>SUBERO</span></div>
+          <div class="hero-tag">Lake Nona, Florida · Private</div>
+        </div>
+        <div class="hero-stats-col">
+          <div class="hero-stat"><div class="hero-stat-num" id="statSessions">24</div><div class="hero-stat-lbl">Sessions</div></div>
+          <div class="hero-stat"><div class="hero-stat-num" id="statHours">52h</div><div class="hero-stat-lbl">Hrs</div></div>
+          <div class="hero-stat"><div class="hero-stat-num" id="statDupr" onclick="editDUPR()" style="cursor:pointer;color:var(--green)">5.06</div><div class="hero-stat-lbl">DUPR ✏️</div></div>
+          <div class="hero-stat"><div class="hero-stat-num">Jun 5</div><div class="hero-stat-lbl">Last</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Zone Routine -->
+    <div class="zone-card">
+      <div class="zone-label">🧠 Zone Routine</div>
+      <div class="zone-steps">
+        <div class="zone-step">Deep breath</div><div class="zone-arrow">→</div>
+        <div class="zone-step">See the ball</div><div class="zone-arrow">→</div>
+        <div class="zone-step">Execute</div><div class="zone-arrow">→</div>
+        <div class="zone-step">Next ball</div>
+      </div>
+    </div>
+
+    <!-- Next Session Priority - MAIN HOME CONTENT -->
+    <div style="margin:12px 18px 0">
+      <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--blue);margin-bottom:10px">⚡ Next Session Priority</div>
+      <div style="background:linear-gradient(135deg,#E74C3C12,var(--card));border:1px solid #E74C3C25;border-radius:10px;padding:14px 16px;margin-bottom:8px">
+        <div style="font-size:10px;font-weight:700;letter-spacing:1px;color:#E74C3C;text-transform:uppercase;margin-bottom:5px">🔴 Primary — Zone Integration</div>
+        <div style="font-size:13px;color:var(--text);line-height:1.5;margin-bottom:5px">Every rep begins with the Zone routine. The goal is not the shot — it is executing the Zone correctly on every ball.</div>
+        <div style="font-size:10px;color:var(--muted)">From Jun 5 · Mental development</div>
+      </div>
+      <div style="background:linear-gradient(135deg,#E8A02012,var(--card));border:1px solid #E8A02025;border-radius:10px;padding:14px 16px;margin-bottom:8px">
+        <div style="font-size:10px;font-weight:700;letter-spacing:1px;color:var(--gold);text-transform:uppercase;margin-bottom:5px">🟡 Secondary — Left-Side Dinking</div>
+        <div style="font-size:13px;color:var(--text);line-height:1.5;margin-bottom:5px">Twoey and BH slice isolated drill work before going live. 30 reps each. Program mechanics before competition starts.</div>
+        <div style="font-size:10px;color:var(--muted)">Underperforming vs right side · Pattern development</div>
+      </div>
+      <div style="background:linear-gradient(135deg,#1E90FF10,var(--card));border:1px solid #1E90FF20;border-radius:10px;padding:14px 16px;margin-bottom:8px">
+        <div style="font-size:10px;font-weight:700;letter-spacing:1px;color:var(--blue);text-transform:uppercase;margin-bottom:5px">🔵 Ongoing — Process Over Result</div>
+        <div style="font-size:13px;color:var(--text);line-height:1.5;margin-bottom:5px">After every miss: Was it mechanics? Selection? Timing? One word. Move on. Confía en el proceso.</div>
+        <div style="font-size:10px;color:var(--muted)">Identity work · Every session</div>
+      </div>
+    </div>
+
+    <!-- Active Homework -->
+    <div class="hw-card" style="margin:12px 18px 16px">
+      <div class="hw-label">📚 Active Homework</div>
+      <div class="hw-item"><div class="hw-num">1</div><div>Zone routine before every rep — not just before points. Make it mechanical.</div></div>
+      <div class="hw-item"><div class="hw-num">2</div><div>30 twoey shadow reps before every session. Forward → up to opposite ear.</div></div>
+      <div class="hw-item" style="margin-bottom:0"><div class="hw-num">3</div><div>After every miss: mechanics, selection, or timing. One word. Next ball.</div></div>
+    </div>
+  </div>
+
+  <!-- ── SESSIONS PAGE ── -->
+  <div class="page" id="page-sessions">
+    <div class="section-head">
+      <div class="section-title">My Sessions</div>
+      <div class="section-count" id="sessionCountLabel">24 total</div>
+    </div>
+    <div id="sessionList"></div>
+  </div>
+
+  <!-- ── ANALYTICS PAGE ── -->
+  <div class="page" id="page-skills">
+    <div class="section-head"><div class="section-title">Training Analytics</div></div>
+
+    <div class="analytics-tabs">
+      <button class="atab active" id="atab-calendar" onclick="switchAnalytics('calendar')">Calendar</button>
+      <button class="atab" id="atab-compare" onclick="switchAnalytics('compare')">Compare</button>
+      <button class="atab" id="atab-weekly" onclick="switchAnalytics('weekly')">Weekly</button>
+      <button class="atab" id="atab-insights" onclick="switchAnalytics('insights')">AI Insights</button>
+    </div>
+
+    <!-- CALENDAR VIEW -->
+    <div class="analytics-panel active" id="apanel-calendar">
+      <div class="cal-legend">
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#1E90FF30"></div>Light</div>
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#1E90FF60"></div>Moderate</div>
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#1E90FF"></div>Heavy</div>
+        <div style="margin-left:auto;font-size:10px;color:var(--muted)">Tap day for details</div>
+      </div>
+      <div id="calendarView"></div>
+      <div id="dayDetail" style="display:none;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;margin-top:8px">
+        <div id="dayDetailContent" style="font-size:13px;color:var(--muted);line-height:1.6"></div>
+      </div>
+    </div>
+
+    <!-- COMPARE VIEW -->
+    <div class="analytics-panel" id="apanel-compare">
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap">
+        <select class="month-select" id="compareMonthA" onchange="renderCompare()">
+          <option value="4">April 2026</option>
+          <option value="5" selected>May 2026</option>
+          <option value="6">June 2026</option>
+        </select>
+        <div style="font-size:14px;color:var(--muted)">vs</div>
+        <select class="month-select" id="compareMonthB" onchange="renderCompare()">
+          <option value="4" selected>April 2026</option>
+          <option value="5">May 2026</option>
+          <option value="6">June 2026</option>
+        </select>
+      </div>
+      <div id="compareView"></div>
+    </div>
+
+    <!-- WEEKLY VIEW -->
+    <div class="analytics-panel" id="apanel-weekly">
+      <div id="weeklyView"></div>
+    </div>
+
+    <!-- AI INSIGHTS -->
+    <div class="analytics-panel" id="apanel-insights">
+      <div id="insightsView"></div>
+    </div>
+
+    <div style="height:14px"></div>
+  </div>
+
+  <!-- ── DRILL LIBRARY PAGE ── -->
+  <div class="page" id="page-drills">
+    <div class="section-head"><div class="section-title">Drill Library</div><div class="section-count">33 drills</div></div>
+    <div class="drill-search-wrap">
+      <input class="drill-search" id="drillSearch" placeholder="🔍  Search by name or skill..." oninput="filterDrills(this.value)">
+    </div>
+    <div id="drillLibrary"></div>
+  </div>
+
+  <!-- ── LOGGER PAGE ── -->
+  <div class="page" id="page-logger">
+    <div class="section-head"><div class="section-title">Log a Session</div></div>
+    <div class="logger-wrap">
+
+      <div class="logger-section">
+        <span class="logger-label">Date</span>
+        <input class="logger-input" type="date" id="logDate">
+      </div>
+
+      <div class="logger-section">
+        <span class="logger-label">Time</span>
+        <div class="row2">
+          <input class="logger-input" type="time" id="logStart" onchange="calcDur()">
+          <input class="logger-input" type="time" id="logEnd" onchange="calcDur()">
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:5px" id="durDisplay">Duration: —</div>
+      </div>
+
+      <div class="logger-section">
+        <span class="logger-label">Location</span>
+        <select class="logger-select" id="logLoc">
+          <option value="">Select...</option>
+          <option>East Park · Lake Nona</option>
+          <option>Urbon · Lake Nona</option>
+          <option>Narcoossee Road Courts · Lake Nona</option>
+          <option>7ACE Lab · Home Court</option>
+          <option value="other">Other...</option>
+        </select>
+        <input class="logger-input" id="logLocOther" style="margin-top:6px;display:none" placeholder="Enter location...">
+      </div>
+
+      <div class="logger-section">
+        <span class="logger-label">Session Type</span>
+        <select class="logger-select" id="logType">
+          <option>Private Session</option>
+          <option>Lab Session</option>
+          <option>Partner Practice</option>
+          <option>Group Practice</option>
+          <option>Kitchen Dominators — $0</option>
+          <option>Single Class w/ Report — $75/hr</option>
+        </select>
+      </div>
+
+      <div class="logger-section">
+        <span class="logger-label">Who was there</span>
+        <input class="logger-input" id="logPartners" placeholder="e.g. Tristan, Coach Carlos, solo...">
+      </div>
+
+      <div class="logger-section">
+        <span class="logger-label">Drills Worked</span>
+        <input class="drill-search-sm" id="logDrillSearch" placeholder="🔍 Search drills..." oninput="filterLogDrills(this.value)">
+        <div class="drill-checklist" id="logDrillList"></div>
+      </div>
+
+      <div class="logger-section">
+        <span class="logger-label">Session Notes</span>
+        <textarea class="logger-textarea" id="logNotes" placeholder="What happened? What clicked? What needs work?"></textarea>
+      </div>
+
+      <div class="logger-section">
+        <span class="logger-label">Private Note to Coach</span>
+        <textarea class="logger-textarea" id="logPrivate" placeholder="Personal observations, frustrations, breakthroughs..."></textarea>
+      </div>
+
+      <!-- Draft system -->
+      <div class="draft-section">
+        <div class="draft-label">💾 Save / Load Draft</div>
+        <textarea class="draft-textarea" id="draftCode" placeholder="Paste draft code here to load..."></textarea>
+        <div class="draft-btn-row">
+          <button class="draft-btn draft-save" onclick="saveDraft()">Save Draft</button>
+          <button class="draft-btn draft-load" onclick="loadDraft()">Load Draft</button>
+        </div>
+        <div id="draftCodeOut" style="display:none;margin-top:8px">
+          <div style="font-size:10px;color:var(--green);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:5px">✅ Draft Code — Copy this:</div>
+          <textarea id="draftCodeText" readonly onclick="this.select()" class="draft-textarea" style="border-color:#00D68F33;color:var(--green);min-height:70px"></textarea>
+          <button class="copy-btn" onclick="copyCode('draftCodeText')">📋 Copy Code</button>
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="generateLog()">Generate Report →</button>
+      <button class="btn-secondary" onclick="clearLog()">Clear</button>
+
+      <div class="output-box" id="logOutput">
+        <div class="output-label">✅ Ready — Paste into Claude</div>
+        <div class="output-text" id="logOutputText"></div>
+        <button class="copy-btn" onclick="copyCode('logOutputText')">📋 Copy to Clipboard</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── ADD DRILL PAGE ── -->
+  <div class="page" id="page-adddrill">
+    <div class="section-head"><div class="section-title">Add a Drill</div></div>
+    <div style="padding:0 18px 14px">
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px">
+
+        <div class="logger-section">
+          <span class="logger-label">Drill Name</span>
+          <input class="logger-input" id="newDrillName" placeholder="e.g. Cross-Court Speed-Up Ladder">
+        </div>
+
+        <div class="logger-section">
+          <span class="logger-label">Category</span>
+          <select class="logger-select" id="newDrillCat">
+            <option>Dinking</option>
+            <option>Serve & Return</option>
+            <option>Transition & Reset</option>
+            <option>Drive & Drop</option>
+            <option>Volley</option>
+            <option>Lob & Overhead</option>
+            <option>Speed-Up & Counter</option>
+            <option>Counter & Reset</option>
+            <option>Volley & Hands</option>
+            <option>Mental</option>
+            <option>Other</option>
+          </select>
+        </div>
+
+        <div class="logger-section">
+          <span class="logger-label">Skill Tags</span>
+          <div class="tag-picker" id="tagPicker"></div>
+        </div>
+
+        <div class="logger-section">
+          <span class="logger-label">Structure</span>
+          <textarea class="logger-textarea" id="newDrillStructure" placeholder="How the drill is set up and run..."></textarea>
+        </div>
+
+        <div class="logger-section">
+          <span class="logger-label">Coaching Cues</span>
+          <textarea class="logger-textarea" id="newDrillCues" placeholder="Key coaching points and cues..."></textarea>
+        </div>
+
+        <div class="logger-section">
+          <span class="logger-label">Neuroscience (optional)</span>
+          <textarea class="logger-textarea" id="newDrillNeuro" placeholder="Why this drill works neurologically..."></textarea>
+        </div>
+
+        <button class="btn-primary" onclick="addDrill()">Add to My Library →</button>
+        <button class="btn-secondary" onclick="exportNewDrill()">Export Drill for Claude →</button>
+      </div>
+
+      <!-- My Custom Drills -->
+      <div style="margin-top:16px">
+        <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px">My Added Drills (<span id="customDrillCount">0</span>)</div>
+        <div id="customDrillList"><div style="font-size:12px;color:var(--muted);text-align:center;padding:20px">No drills added yet</div></div>
+      </div>
+
+      <!-- Export box -->
+      <div class="output-box" id="drillExportBox" style="margin-top:14px">
+        <div class="output-label">📋 Paste into Claude to add to the main library</div>
+        <div class="output-text" id="drillExportText"></div>
+        <button class="copy-btn" onclick="copyDrillExport()">📋 Copy</button>
+      </div>
+    </div>
+  </div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-btn active" id="nav-home" onclick="navigate('home')"><span class="icon">🏠</span>Home</button>
+  <button class="nav-btn" id="nav-sessions" onclick="navigate('sessions')"><span class="icon">📋</span>Sessions</button>
+  <button class="nav-btn" id="nav-skills" onclick="navigate('skills')"><span class="icon">📊</span>Skills</button>
+  <button class="nav-btn" id="nav-drills" onclick="navigate('drills')"><span class="icon">🏓</span>Drills</button>
+  <button class="nav-btn" id="nav-logger" onclick="navigate('logger')"><span class="icon">✏️</span>Log</button>
+  <button class="nav-btn" id="nav-adddrill" onclick="navigate('adddrill')"><span class="icon">➕</span>Add</button>
+</nav>
+
+<!-- DUPR EDIT MODAL -->
+<div class="modal-overlay" id="duprModal">
+  <div class="modal">
+    <div class="modal-title">Update DUPR</div>
+    <div class="modal-sub">Enter your latest DUPR rating</div>
+    <input class="modal-input" id="duprInput" type="number" step="0.001" min="1" max="8" placeholder="5.06">
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closeDUPR()">Cancel</button>
+      <button class="modal-save" onclick="saveDUPR()">Save</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- /app -->
+
+<script>
+// ── SESSION EXPORTS ──
+function exportSessionHTML(i, e){
+  e && e.stopPropagation();
+  const s = SESSIONS[i];
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Carlos Subero · ${s.date}</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'DM Sans',sans-serif;background:#080A0E;color:#E2E8F4;padding:20px;max-width:520px;margin:0 auto}
+.hero{background:linear-gradient(135deg,#060810,#0a1428);border:1px solid #1C244033;border-radius:12px;padding:20px;margin-bottom:14px}
+.brand{font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:#1E90FF;font-weight:700;margin-bottom:6px}
+.name{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:#fff}
+.meta{font-size:12px;color:#6B7A99;margin-top:6px;line-height:1.8}
+.meta strong{color:#A0A8B8}
+.sec{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;border-bottom:1px solid #1C2440;padding-bottom:5px;margin:14px 0 8px}
+.sec-blue{color:#1E90FF}.sec-green{color:#00D68F}.sec-gold{color:#E8A020}.sec-red{color:#E74C3C}
+.box{background:#0C0F1A;border-radius:8px;padding:12px;font-size:13px;color:#6B7A99;line-height:1.65;margin-bottom:6px}
+.box-gold{border-left:3px solid #E8A020;background:#E8A02008}
+.li{display:flex;gap:8px;font-size:12px;padding:5px 0;border-bottom:1px solid #1C2440;line-height:1.5}
+.li:last-child{border-bottom:none}
+.li-green::before{content:"✓";color:#00D68F;font-weight:700;flex-shrink:0}
+.li-blue::before{content:"→";color:#1E90FF;font-weight:700;flex-shrink:0}
+.tags{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px}
+.tag{font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px;background:#1E90FF18;color:#1E90FF;border:1px solid #1E90FF28}
+.footer{text-align:center;margin-top:20px;font-size:10px;color:#3A4050;letter-spacing:1px;text-transform:uppercase;border-top:1px solid #1C2440;padding-top:12px}
+.motto{font-size:11px;color:#1E90FF40;margin-top:3px;font-style:italic}
+</style></head><body>
+<div class="hero"><div class="brand">7ACE Development Lab · Carlos Subero · Session Report</div>
+<div class="name">Carlos Subero</div>
+<div class="meta"><strong>Date:</strong> ${s.date}<br><strong>Duration:</strong> ${s.dur} min<br><strong>Location:</strong> ${s.loc}<br><strong>Type:</strong> ${s.type}<br><strong>Rating:</strong> ${s.rating}</div></div>
+<div class="tags">${s.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+<div class="sec sec-blue">Session Focus</div><div class="box">${s.focus}</div>
+<div class="sec sec-blue">Summary</div><div class="box">${s.summary}</div>
+${s.strengths?.length?`<div class="sec sec-green">What Worked</div>${s.strengths.map(x=>`<div class="li li-green"><span></span><span>${x}</span></div>`).join('')}`:''}
+${s.work?.length?`<div class="sec sec-red">Keep Working On</div>${s.work.map(x=>`<div class="li li-blue"><span></span><span>${x}</span></div>`).join('')}`:''}
+${s.next?`<div class="sec sec-gold">Next Session Focus</div><div class="box box-gold">${s.next}</div>`:''}
+${s.private?`<div class="sec" style="color:#9B59B6">📌 Private Note</div><div class="box" style="border-left:3px solid #9B59B6;color:#C39BD3">${s.private}</div>`:''}
+<div class="footer">7ACE Development Lab · Coach Carlos Subero<div class="motto">Confía en el proceso, no en el resultado</div></div>
+</body></html>`;
+  downloadFile(`Carlos_Subero_${s.date.replace(/[, ]+/g,'_')}.html`, html, 'text/html');
+}
+
+function exportSessionWord(i, e){
+  e && e.stopPropagation();
+  const s = SESSIONS[i];
+  const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word">
+<head><meta charset="UTF-8"><style>
+body{font-family:Calibri,sans-serif;color:#172033;max-width:700px;margin:0 auto;padding:30px}
+h1{font-size:28pt;color:#1E56AA;margin-bottom:4px}
+h2{font-size:12pt;color:#1E56AA;border-bottom:2pt solid #1E90FF;padding-bottom:4px;margin:16px 0 8px;text-transform:uppercase;letter-spacing:1px}
+.meta{color:#6B7A99;font-size:10pt;line-height:1.8;margin-bottom:12px}
+.box{background:#F2F7FF;border-left:4px solid #1E90FF;padding:10px 14px;font-size:10pt;line-height:1.7;color:#2d3b55;margin-bottom:8px}
+.gold-box{background:#FFFBF0;border-left:4px solid #E8A020}
+.li{margin:4px 0;font-size:10pt}
+.li-green{color:#0b6840}.li-blue{color:#1E56AA}
+.brand{font-size:9pt;color:#7dbbff;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px}
+.footer{text-align:center;color:#8a98aa;font-size:9pt;border-top:1pt solid #e1e7f0;margin-top:20px;padding-top:10px}
+</style></head><body>
+<div class="brand">7ACE Development Lab · Session Report</div>
+<h1>Carlos Subero</h1>
+<div class="meta"><strong>Date:</strong> ${s.date} &nbsp;|&nbsp; <strong>Duration:</strong> ${s.dur} min &nbsp;|&nbsp; <strong>Rating:</strong> ${s.rating}<br>
+<strong>Location:</strong> ${s.loc} &nbsp;|&nbsp; <strong>Type:</strong> ${s.type}</div>
+<h2>Session Focus</h2><div class="box">${s.focus}</div>
+<h2>Summary</h2><div class="box">${s.summary}</div>
+${s.strengths?.length?`<h2>What Worked</h2>${s.strengths.map(x=>`<div class="li li-green">✓ ${x}</div>`).join('')}`:''}
+${s.work?.length?`<h2>Keep Working On</h2>${s.work.map(x=>`<div class="li li-blue">→ ${x}</div>`).join('')}`:''}
+${s.next?`<h2>Next Session Focus</h2><div class="box gold-box">${s.next}</div>`:''}
+<div class="footer">7ACE Development Lab · Coach Carlos Subero · Confía en el proceso, no en el resultado</div>
+</body></html>`;
+  downloadFile(`Carlos_Subero_${s.date.replace(/[, ]+/g,'_')}.doc`, html, 'application/msword');
+}
+
+function showAddToDB(i, e){
+  e && e.stopPropagation();
+  const s = SESSIONS[i];
+  const body = document.getElementById('sb'+i);
+  body.classList.add('open');
+  const existing = document.getElementById('db_paste_'+i);
+  if(existing) return existing.scrollIntoView({behavior:'smooth'});
+  const box = document.createElement('div');
+  box.id = 'db_paste_'+i;
+  box.style.cssText = 'background:#E8A02010;border:1px solid #E8A02030;border-radius:8px;padding:12px;margin-top:10px';
+  const report = `SESSION REPORT — CARLOS SUBERO · 7ACE LAB\n${'─'.repeat(44)}\nDATE: ${s.date}\nDURATION: ${s.dur} min\nLOCATION: ${s.loc}\nTYPE: ${s.type}\nRATING: ${s.rating}\n\nFOCUS: ${s.focus}\n\nSUMMARY:\n${s.summary}\n${s.strengths?.length?'\nSTRENGTHS:\n'+s.strengths.map(x=>`• ${x}`).join('\n'):''}\n${s.work?.length?'\nWORK ON:\n'+s.work.map(x=>`• ${x}`).join('\n'):''}\n${s.next?'\nNEXT SESSION:\n'+s.next:''}\n${s.private?'\nPRIVATE NOTE:\n'+s.private:''}\n${'─'.repeat(44)}\nPlease add this session to Carlos Subero's dashboard profile.`;
+  box.innerHTML = `<div style="font-size:10px;font-weight:700;letter-spacing:1px;color:#E8A020;text-transform:uppercase;margin-bottom:8px">📋 Paste this into Claude to update the dashboard</div>
+<textarea readonly onclick="this.select()" style="width:100%;background:#080A0E;border:1px solid #E8A02025;border-radius:6px;padding:8px;color:#D4C49A;font-family:monospace;font-size:10px;min-height:80px;resize:none;outline:none">${report}</textarea>
+<button onclick="copyTextArea(this)" data-target="${'db_paste_ta_'+i}" style="width:100%;margin-top:6px;padding:7px;background:#E8A02018;border:1px solid #E8A02035;border-radius:6px;color:#E8A020;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;cursor:pointer">📋 Copy to Clipboard</button>`;
+  box.querySelector('textarea').id = 'db_paste_ta_'+i;
+  body.appendChild(box);
+  box.scrollIntoView({behavior:'smooth'});
+}
+
+function copyTextArea(btn){
+  const ta = document.getElementById(btn.dataset.target);
+  ta.select();
+  navigator.clipboard.writeText(ta.value).then(()=>{
+    btn.textContent='✅ Copied!';
+    setTimeout(()=>btn.textContent='📋 Copy to Clipboard',2000);
+  });
+}
+
+function downloadFile(filename, content, type){
+  const blob = new Blob([content], {type});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+// ── ADD DRILL ──
+let customDrills = [];
+let selectedTags = new Set();
+const ALL_TAGS = ["DINK","3RD SHOT","4TH SHOT","5TH SHOT","TRANSITION","RESET","DRIVE","SERVE","RETURN","VOLLEY","LOB","OVERHEAD","COUNTER","SPEED-UP","PATTERN","ERNE","ATP","MENTAL","MOVEMENT","POSITIONING"];
+
+function buildAddDrill(){
+  const picker = document.getElementById('tagPicker');
+  picker.innerHTML = ALL_TAGS.map(t=>`
+    <div class="tag-pick" id="tp_${t}" onclick="toggleTag('${t}')">${t}</div>`).join('');
+  renderCustomDrills();
+  addDrillBuilt = true;
+}
+
+function toggleTag(t){
+  const el = document.getElementById('tp_'+t);
+  if(selectedTags.has(t)){ selectedTags.delete(t); el.classList.remove('selected'); }
+  else { selectedTags.add(t); el.classList.add('selected'); }
+}
+
+function addDrill(){
+  const name = document.getElementById('newDrillName').value.trim();
+  if(!name){ alert('Please enter a drill name.'); return; }
+  const drill = {
+    name, cat: document.getElementById('newDrillCat').value,
+    tags: [...selectedTags],
+    structure: document.getElementById('newDrillStructure').value.trim(),
+    cues: document.getElementById('newDrillCues').value.trim(),
+    neuro: document.getElementById('newDrillNeuro').value.trim()
+  };
+  customDrills.push(drill);
+  DRILLS.push(drill);
+  renderCustomDrills();
+  clearAddDrillForm();
+  alert(`✅ "${name}" added to your library!`);
+}
+
+function renderCustomDrills(){
+  const list = document.getElementById('customDrillList');
+  document.getElementById('customDrillCount').textContent = customDrills.length;
+  if(!customDrills.length){
+    list.innerHTML = '<div style="font-size:12px;color:var(--muted);text-align:center;padding:20px">No drills added yet</div>';
+    return;
+  }
+  list.innerHTML = customDrills.map((d,i)=>`
+    <div class="custom-drill-item">
+      <div>
+        <div class="custom-drill-name">${d.name}</div>
+        <div class="custom-drill-meta">${d.cat} · ${d.tags.join(', ')||'No tags'}</div>
+      </div>
+      <button class="custom-drill-delete" onclick="deleteCustomDrill(${i})">✕</button>
+    </div>`).join('');
+}
+
+function deleteCustomDrill(i){
+  const name = customDrills[i].name;
+  if(!confirm(`Remove "${name}"?`)) return;
+  const drillIdx = DRILLS.findIndex(d=>d.name===name);
+  if(drillIdx > -1) DRILLS.splice(drillIdx,1);
+  customDrills.splice(i,1);
+  renderCustomDrills();
+}
+
+function exportNewDrill(){
+  const name = document.getElementById('newDrillName').value.trim();
+  if(!name){ alert('Fill in at least the drill name first.'); return; }
+  const text = `NEW DRILL — ADD TO 7ACE LIBRARY\n${'─'.repeat(40)}\nNAME: ${name}\nCATEGORY: ${document.getElementById('newDrillCat').value}\nTAGS: ${[...selectedTags].join(', ')||'none'}\n\nSTRUCTURE:\n${document.getElementById('newDrillStructure').value.trim()||'—'}\n\nCOACHING CUES:\n${document.getElementById('newDrillCues').value.trim()||'—'}\n\nNEUROSCIENCE:\n${document.getElementById('newDrillNeuro').value.trim()||'—'}\n${'─'.repeat(40)}\nPlease add this drill to the 7ACE Drill Library and Session Logger.`;
+  document.getElementById('drillExportText').textContent = text;
+  document.getElementById('drillExportBox').style.display = 'block';
+  document.getElementById('drillExportBox').scrollIntoView({behavior:'smooth'});
+}
+
+function copyDrillExport(){
+  const text = document.getElementById('drillExportText').textContent;
+  navigator.clipboard.writeText(text).then(()=>{
+    const btn = document.querySelector('#drillExportBox .copy-btn');
+    btn.textContent='✅ Copied!';
+    setTimeout(()=>btn.textContent='📋 Copy',2000);
+  });
+}
+
+function clearAddDrillForm(){
+  ['newDrillName','newDrillStructure','newDrillCues','newDrillNeuro'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('newDrillCat').value='Dinking';
+  selectedTags.clear();
+  document.querySelectorAll('.tag-pick').forEach(el=>el.classList.remove('selected'));
+}
+
+// ── COLOR PICKER ──
+const THEMES = [
+  {name:"Electric Blue",   color:"#1E90FF"},
+  {name:"Emerald",         color:"#00C853"},
+  {name:"Gold",            color:"#E8A020"},
+  {name:"Crimson",         color:"#E53935"},
+  {name:"Purple",          color:"#9C27B0"},
+  {name:"Teal",            color:"#00BCD4"},
+  {name:"Orange",          color:"#FF6D00"},
+  {name:"Pink",            color:"#E91E63"},
+  {name:"Lime",            color:"#76FF03"},
+  {name:"Cyan",            color:"#00E5FF"},
+];
+
+let currentTheme = '#1E90FF';
+
+function buildThemeGrid(){
+  const grid = document.getElementById('themeGrid');
+  grid.innerHTML = THEMES.map((t,i) => `
+    <div class="theme-swatch ${t.color===currentTheme?'active':''}"
+         id="sw${i}"
+         style="background:${t.color}"
+         title="${t.name}"
+         onclick="applyTheme('${t.color}', ${i})">
+    </div>`).join('');
+}
+
+function applyTheme(color, idx){
+  currentTheme = color;
+  setAccentColor(color);
+  // Update active state
+  document.querySelectorAll('.theme-swatch').forEach((sw,i)=>{
+    sw.classList.toggle('active', i===idx);
+  });
+  document.getElementById('customHex').value = color;
+}
+
+function applyCustomColor(){
+  let hex = document.getElementById('customHex').value.trim();
+  if(!hex.startsWith('#')) hex = '#'+hex;
+  if(!/^#[0-9A-Fa-f]{6}$/.test(hex)){ alert('Enter a valid hex color (e.g. #FF5500)'); return; }
+  currentTheme = hex;
+  setAccentColor(hex);
+  // Clear active swatches
+  document.querySelectorAll('.theme-swatch').forEach(sw=>sw.classList.remove('active'));
+}
+
+function setAccentColor(hex){
+  // Convert hex to RGB for rgba usage
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  const dim = `rgba(${r},${g},${b},0.13)`;
+  const dimBorder = `rgba(${r},${g},${b},0.25)`;
+
+  const root = document.documentElement;
+  root.style.setProperty('--blue', hex);
+  root.style.setProperty('--blue-dim', dim);
+
+  // Update inline styles that use --blue directly
+  document.querySelectorAll('.top-logo').forEach(el=>el.style.color=hex);
+  document.querySelectorAll('.nav-btn.active').forEach(el=>el.style.color=hex);
+  document.querySelectorAll('.tag-blue').forEach(el=>{
+    el.style.background=dim;
+    el.style.color=hex;
+    el.style.borderColor=dimBorder;
+  });
+  // Update hero gradient accent
+  document.querySelectorAll('.hero::before').forEach(el=>el.style.background=`radial-gradient(circle,${dim} 0%,transparent 70%)`);
+}
+
+function toggleColorPanel(){
+  const panel = document.getElementById('colorPanel');
+  const isOpen = panel.classList.toggle('open');
+  if(isOpen) buildThemeGrid();
+}
+
+// Close panel when tapping outside
+document.addEventListener('click', function(e){
+  const panel = document.getElementById('colorPanel');
+  const btn = document.querySelector('.palette-btn');
+  if(panel.classList.contains('open') && !panel.contains(e.target) && !btn.contains(e.target)){
+    panel.classList.remove('open');
+  }
+});
+
+// ── DUPR EDITOR ──
+let currentDUPR = '5.06';
+
+function editDUPR(){
+  document.getElementById('duprInput').value = currentDUPR;
+  document.getElementById('duprModal').classList.add('open');
+  setTimeout(()=>document.getElementById('duprInput').focus(), 100);
+}
+
+function closeDUPR(){
+  document.getElementById('duprModal').classList.remove('open');
+}
+
+function saveDUPR(){
+  const val = parseFloat(document.getElementById('duprInput').value);
+  if(isNaN(val) || val < 1 || val > 8){
+    alert('Please enter a valid DUPR between 1.000 and 8.000');
+    return;
+  }
+  currentDUPR = val.toFixed(3);
+  // Update all DUPR displays
+  document.getElementById('topDupr').textContent = currentDUPR;
+  document.getElementById('duprVal').textContent = currentDUPR;
+  document.getElementById('statDupr').textContent = currentDUPR;
+  closeDUPR();
+  // Brief flash to confirm
+  const val_el = document.getElementById('duprVal');
+  val_el.style.transform = 'scale(1.15)';
+  val_el.style.transition = 'transform .2s';
+  setTimeout(()=>val_el.style.transform='scale(1)', 300);
+}
+
+// Close modal on overlay tap
+document.getElementById('duprModal').addEventListener('click', function(e){
+  if(e.target === this) closeDUPR();
+});
+
+// Enter key saves
+document.addEventListener('keydown', function(e){
+  if(e.key==='Enter' && document.getElementById('duprModal').classList.contains('open')) saveDUPR();
+  if(e.key==='Escape' && document.getElementById('duprModal').classList.contains('open')) closeDUPR();
+});
+
+// ── NAVIGATION ──
+function navigate(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  document.getElementById('nav-'+page).classList.add('active');
+  document.getElementById('content').scrollTop = 0;
+  if(page==='sessions' && !sessionsBuilt) buildSessions();
+  if(page==='skills'){if(!calBuilt)renderCalendar();}
+  if(page==='drills' && !drillsBuilt) buildDrillLibrary();
+  if(page==='logger' && !loggerBuilt) buildLogger();
+  if(page==='adddrill' && !addDrillBuilt) buildAddDrill();
+}
+let sessionsBuilt=false, skillsBuilt=false, drillsBuilt=false, loggerBuilt=false, addDrillBuilt=false;
+
+// ── SESSION DATA ──
+const SESSIONS = [
+  {date:"June 5, 2026",dur:120,loc:"Urbon · Lake Nona",type:"Private Session",rating:"⚠️ Mixed",
+   focus:"3rd/4th/5th Shot Live · Drive-Drop Transition · Live Dinking · Twoey · BH Slice · Flick · Roll",
+   summary:"Two-phase session. Phase 1: live drive-drop transition — decision-making on 3rd/4th/5th based on height, drove when attackable, slowed when not, played points live. Phase 2: left-side vs. left-side dinking — didn't go well, more misses than usual. Transitioned into focused drill work on twoey, BH slice dink, flicks, rolls. Finished strong.",
+   tags:["3RD SHOT","4TH SHOT","5TH SHOT","TRANSITION","DINK","COUNTER","SPEED-UP","PATTERN","MENTAL","DRIVE"],
+   strengths:["Strong transition decision-making — drive vs. drop vs. slow down based on ball quality","Finished the session strong after the focused drill adjustment","Both same-quadrant and cross-court patterns covered"],
+   work:["Zone routine must be integrated into every drill rep — not separate from the work, part of it","Left-side live dinking consistency — twoey and BH slice need more reps under pressure","Separate result from process during practice — misses are data, not failures"],
+   next:"Design a Zone-integrated session — every rep begins with the Zone routine. No exceptions. Reframe practice from outcome-based to process-based.",
+   private:"Showing frustration with execution — results not matching expectation. Disconnect between process mindset as coach and outcome-focused mindset as player. Zone pre-shot routine must be integrated into every rep. More drills designed specifically to practice the Zone and free from result-attachment."},
+  {date:"May 26, 2026",dur:89,loc:"7ACE Lab · Home Court",type:"Lab Session",rating:"✅ Good",
+   focus:"Live Counter Work · Reaction Speed · Compact Hand Mechanics · Low Volley Pickup",
+   summary:"Late evening lab session. High-intensity live counter work — FH counters, BH counters, body counters, cross-court hip redirect with compact BH stabbing action. Closed with low volley pickup — straight arm, shoulder lifts from difficult contact points. Good rhythm, strong hand activity.",
+   tags:["COUNTER","SPEED-UP","VOLLEY","PATTERN","MENTAL","MOVEMENT"],
+   strengths:["Good rhythm and sharp hand activity throughout","Compact stabbing BH redirect developing","Low volley pickup from difficult contact points worked"],
+   work:["Compact BH redirect under increasing pace","Low volley — straight arm mechanics must hold when ball is very low","Paddle out front as default before every contact"],
+   next:"Randomize counter initiation — Coach sometimes speed-up, sometimes volley, sometimes body feed. Progress low volley with one-side focus per session.",
+   private:"Good intensity. Late evening lab work — the process mindset in action."},
+  {date:"May 26, 2026",dur:105,loc:"Urbon · Lake Nona",type:"Group Practice",rating:"✅ Good",
+   focus:"8-Player Group · Corner-to-Middle Dinking · Drive-Drop Transition · 4-Shot Sequence",
+   summary:"8-player group session. Corner-to-Middle dinking system, Drive-Drop Transition live, 4-Shot Sequence. Coaching 8 players simultaneously. Decision-making improved markedly when drill opened to free choices.",
+   tags:["DINK","3RD SHOT","4TH SHOT","5TH SHOT","TRANSITION","SPEED-UP","MENTAL","POSITIONING","MOVEMENT"],
+   strengths:["Good session energy — coaching and playing simultaneously","Drive-drop decision framework communicated well"],
+   work:["Height over net consistency","Step and get behind the ball on dinks"],
+   next:"Progress Drive-Drop Transition with consequence on 4th shot.",
+   private:"Solid job on the dinking, playing mostly on the left side, taking charge."},
+  {date:"June 2, 2026",dur:120,loc:"Narcoossee · Lake Nona",type:"Group Practice",rating:"🔥 Excellent",
+   focus:"Live Dinking 1v1/1v2/2v2 · Counter Drill · Transition Rotation",
+   summary:"4-player evening group — Carlos, Romina, Andres, Jorge. Excellent energy. Live dinking with all layers (lobs, speed-ups, flicks, rolls). Live transition rotation — consequence format (mistake = rotate out). Best group competitive energy of the program so far.",
+   tags:["DINK","COUNTER","SPEED-UP","LOB","PATTERN","TRANSITION","5TH SHOT","RESET","MENTAL","MOVEMENT"],
+   strengths:["Excellent energy — competitive spirit throughout 120 min","Worked all layers in dinking phase","Aggressive and effective on height","Dinking command from the left side"],
+   work:["Flick and roll patterns from left side — more deliberate drilling","Zone routine integration under competitive group pressure"],
+   next:"Continue rotation consequence format. Add speed-up height constraint.",
+   private:"Worked very well on all shots, dinking was aggressive, had some good speed-ups on balls with height. Transitioned well, mostly consistent on 3rds."},
+  {date:"May 18, 2026",dur:75,loc:"East Park · Lake Nona",type:"Group Practice",rating:"✅ Good",
+   focus:"7-Player Group · Reset Warm-Up · 3rd Shot Drop Live · Volleys · Lob Chase · KD Battle",
+   summary:"7-player morning group. Reset warm-up, 3rd shot drop live (no drives), mid-court volley quadrant system, lob chase with kitchen return emphasis, KD Battle closing. Covered underworked areas — lobs and volleys featured intentionally.",
+   tags:["RESET","3RD SHOT","4TH SHOT","VOLLEY","LOB","OVERHEAD","TRANSITION","DINK","ERNE","ATP","MENTAL","MOVEMENT"],
+   strengths:["Solid dinking — stayed low, used BH well (twoey and slice)","Good patterns in 3rd shot drop reset drill"],
+   work:["Serve and return — still underworked","Continue lob and volley integration in group sessions"],
+   next:"Feature lobs and volleys again. Progress 3rd shot drop with consequence.",
+   private:"Did a good job during the game phase. Dinking strong, staying low, BH well-used. Finished points well in the drill offensive side."},
+  {date:"May 13, 2026",dur:90,loc:"Urbon · Lake Nona",type:"Group Practice",rating:"✅ Good",
+   focus:"Corner-to-Middle Dinking · Drive-Drop Transition · KD Battle",
+   summary:"8-player group. Corner-to-Middle dinking system, Drive-Drop Transition one ball live, KD Battle closing. 6 players from the regular roster plus 2 guests.",
+   tags:["DINK","3RD SHOT","4TH SHOT","TRANSITION","SPEED-UP","MENTAL","MOVEMENT","PATTERN"],
+   strengths:["Corner-to-Middle patterns executed well","KD Battle competitive energy high"],
+   work:["5th shot aggression — continue recognizing height and committing"],
+   next:"Progress Corner-to-Middle to include speed-up consequence.",
+   private:""},
+  {date:"May 11, 2026",dur:90,loc:"East Park · Lake Nona",type:"Group Practice",rating:"✅ Good",
+   focus:"7-Player Group · 2-Ball Focus Dinking · 7-Station Rotation · Reset Progression · Lob Chase · ATP",
+   summary:"7-player group. 2-Ball Same-Quadrant dinking, 7-station rotation across the court, baseline-to-kitchen reset progression, lob chase, ATP drill for Arielle/Denise/Andres/Jared. Full coverage session.",
+   tags:["DINK","RESET","LOB","OVERHEAD","ATP","TRANSITION","MOVEMENT","MENTAL","PATTERN","ERNE"],
+   strengths:["Strong station rotation coverage","ATP drill exposure — beginning to read opportunities"],
+   work:["ATP execution timing — read the angle before the ball reaches the post","Continue reset quality under increasing pace"],
+   next:"Continue ATP exposure in group sessions. Introduce consequence in lob chase.",
+   private:""},
+  {date:"May 6, 2026",dur:90,loc:"Urbon · Lake Nona",type:"Group Practice",rating:"✅ Good",
+   focus:"8-Player Group · Serve & Return · 4-Shot Sequence · 6-Shot Progression · Kitchen Live",
+   summary:"8-player group. Serve and return drills, 4-shot sequence, 6-shot progression, live kitchen play. One of the only sessions with serve as a dedicated focus.",
+   tags:["SERVE","RETURN","3RD SHOT","4TH SHOT","TRANSITION","DINK","MOVEMENT","MENTAL"],
+   strengths:["Serve and return exposure — rare in the program","4-shot sequence building the point correctly"],
+   work:["Serve depth and direction need deliberate targeting","Return quality and immediate repositioning"],
+   next:"Continue serve and return as a warm-up in every session.",
+   private:""},
+  {date:"May 5, 2026",dur:60,loc:"Narcoossee · Lake Nona",type:"Partner Practice",rating:"✅ Good",
+   focus:"Live Dinking · Speed-Ups · Counters · Flick Offense · 1v2 Defense · Lobs",
+   summary:"Evening session with Andres and Romina — live dinking 1v1 and 1v2. Carlos on offense against two players, working flick offense and speed-up patterns. Lob integration included.",
+   tags:["DINK","SPEED-UP","COUNTER","LOB","PATTERN","MENTAL","5TH SHOT"],
+   strengths:["Flick offense developing well — finding the right ball","1v2 format building left-side offensive identity"],
+   work:["Lob recognition from the kitchen — when to deploy","Counter composure after the speed-up — stay in the point"],
+   next:"Continue 1v2 format. Add cross-court hip speed-up pattern.",
+   private:""},
+  {date:"May 5, 2026",dur:60,loc:"Narcoossee · Lake Nona",type:"Kitchen Dominators — $0",rating:"✅ Good",
+   focus:"Kitchen Dominators · Serve & Return · 3rd/4th Shot · Cross-Court Drives · Transition",
+   summary:"Kitchen Dominators session — Carlos, Andres, Romina. Free play format, no structured drilling. Good competitive dinking, 3rd/4th shot sequences, cross-court drives.",
+   tags:["DINK","SERVE","RETURN","3RD SHOT","4TH SHOT","DRIVE","TRANSITION","MENTAL"],
+   strengths:["Good competitive dinking — kitchen discipline under game conditions","Cross-court drives finding the court"],
+   work:["Drive consistency — height over the net","3rd shot selection — drive vs. drop decision"],
+   next:"Drive with specific depth targets next session.",
+   private:""},
+  {date:"May 4, 2026",dur:160,loc:"Narcoossee · Lake Nona",type:"Private Session",rating:"✅ Good",
+   focus:"BH Drive Conditioning · FH Drive · Transition Attack · 4th Shot Defense · 5th Shot Aggression · 1v2 Dinking",
+   summary:"Long session with Justin Graham (DUPR 5.315). BH drive conditioning focus — developing the lag and whip. FH drive consistency. 4th shot defense against Justin's high-quality attacks. 1v2 dinking with flick system.",
+   tags:["DRIVE","3RD SHOT","4TH SHOT","5TH SHOT","TRANSITION","DINK","SPEED-UP","COUNTER","PATTERN","MENTAL","MOVEMENT"],
+   strengths:["BH drive lag developing — partner at 5.3 level exposed real quality gaps","Flick system strong — finding the right ball reliably","1v2 offensive dinking building momentum"],
+   work:["BH drive lag insufficient — hold backside longer before releasing","FH drive trajectory — need more dip after the net","5th shot aggression calibration — which balls to attack"],
+   next:"Dedicated BH drive session — self-fed, coach-fed, live. Focus on lag and whip.",
+   private:""},
+  {date:"April 28, 2026",dur:150,loc:"Narcoossee · Lake Nona",type:"Partner Practice",rating:"✅ Good",
+   focus:"Singles · 4th Shot & Transition · Flick Game 2v2 · Kitchen Games · ISO/KD Battles · Bottle Drill",
+   summary:"Evening with Andres, Jacob. Opened with singles rotations. 4th shot and transition work with Carlos. 2v2 flick game, kitchen accuracy game (Carlos — no wall), ISO 1v1 dinking battles, ATP and Erne opportunities. Bottle placement drill — serve variant.",
+   tags:["4TH SHOT","TRANSITION","RESET","VOLLEY","SPEED-UP","COUNTER","DINK","ERNE","ATP","PATTERN","MENTAL","POSITIONING","MOVEMENT"],
+   strengths:["4th shot retention under live pressure improving","Flick game — consistent point construction","ISO battle discipline — directional dinking under pressure","Kitchen accuracy — did not go to the wall (group best)"],
+   work:["Singles tactical awareness — point construction vs. reactive","Continue ATP execution timing","Shorter grip on BH counter must be automatic"],
+   next:"Bring back kitchen accuracy game. Introduce drive development as a dedicated drill.",
+   private:""},
+  {date:"April 28, 2026",dur:90,loc:"Urbon · Lake Nona",type:"Partner Practice",rating:"✅ Good",
+   focus:"Dinking · Resets · 7-11 Game · 3rd Shot Drives/Drops · Kitchen Counters",
+   summary:"Morning session with Tristan. Dinking warm-up, reset game, 7-11 reset competitive game, 3rd shot drives and drops, kitchen counter development.",
+   tags:["DINK","RESET","3RD SHOT","COUNTER","MENTAL","MOVEMENT","PATTERN"],
+   strengths:["7-11 reset game produced quality reps under score","3rd shot drop consistency improving"],
+   work:["BH counter path — stay short, not across the body","Reset quality from the baseline — straight arm"],
+   next:"Continue 7-11 reset game as regular warm-up format.",
+   private:""},
+  {date:"April 27, 2026",dur:120,loc:"Narcoossee · Lake Nona",type:"Partner Practice",rating:"✅ Good",
+   focus:"3-Man Dinking · Reset Game · Aggressive Resets · BH Development · Flick System · All-Flick Game",
+   summary:"Evening with Tristan and Coach. 3-man dinking rotation, reset game, overhead resets from deep, BH development work, full flick system introduction and competition, All-Flick game format.",
+   tags:["DINK","RESET","OVERHEAD","COUNTER","SPEED-UP","PATTERN","MENTAL","MOVEMENT","LOB"],
+   strengths:["Flick system clicked — All-Flick game produced the best flick quality yet","Overhead reset from deep — new shot successfully introduced","3-man dinking rotation — handling both sides simultaneously"],
+   work:["BH development — consistency and path","Flick selection — right ball, not just right moment"],
+   next:"Continue All-Flick game as a regular closing drill.",
+   private:""},
+  {date:"April 27, 2026",dur:90,loc:"East Park · Lake Nona",type:"Group Practice",rating:"✅ Good",
+   focus:"8-Player Group · Serve & Return · Volleys · Drive-Drop Transition · Dinking System",
+   summary:"8-player morning group. Serve and return, volleys, drive-drop transition, dinking system. Carlos coaching and playing.",
+   tags:["SERVE","RETURN","VOLLEY","3RD SHOT","TRANSITION","DINK","MOVEMENT","MENTAL"],
+   strengths:["Volley work — coverage and compact mechanics","Serve and return baseline established in group format"],
+   work:["Return and immediate repositioning","Drive-drop decision under time pressure"],
+   next:"Add volley quadrant system to group rotation.",
+   private:""},
+  {date:"April 23, 2026",dur:90,loc:"East Park · Lake Nona",type:"Private Session",rating:"🔥 Breakthrough",
+   focus:"4th Shot Breakthrough Session · Philosophical Development · Solo and Partner",
+   summary:"Solo morning session then partner session. 4th shot philosophical breakthrough — understanding that the 4th shot is the entry point to the kitchen, not a defensive reaction. The beginning of a new offensive framework.",
+   tags:["4TH SHOT","TRANSITION","MENTAL","PATTERN","POSITIONING","RESET"],
+   strengths:["4th shot philosophical breakthrough — new framework internalized","Solo drilling produced clean rep quality","Mental clarity on the 4th shot purpose"],
+   work:["4th shot under live pressure — retain the new framework","Transition flow after the 4th — don't think, execute"],
+   next:"Apply 4th shot breakthrough in live situations — does it hold under pressure?",
+   private:""},
+  {date:"April 23, 2026",dur:90,loc:"Narcoossee · Lake Nona",type:"Partner Practice",rating:"✅ Good",
+   focus:"Partner Practice · 4th Shot Live · Transition",
+   summary:"Partner session to apply the Apr 23 morning breakthrough — live 4th shot situations and transition execution.",
+   tags:["4TH SHOT","TRANSITION","DINK","SPEED-UP","COUNTER","MENTAL"],
+   strengths:["4th shot framework held in live situation — first live confirmation","Transition flow improving from the new framework"],
+   work:["Continue building 4th shot automaticity — reduce mental overhead"],
+   next:"Continue applying 4th shot framework in every session.",
+   private:""},
+  {date:"April 21, 2026",dur:90,loc:"East Park · Lake Nona",type:"Group Practice",rating:"✅ Good",
+   focus:"Group Practice · Dinking · Speed-Ups · Various Drills",
+   summary:"Group session at East Park. Various drills with individual coaching notes delivered to multiple players.",
+   tags:["DINK","SPEED-UP","COUNTER","TRANSITION","MOVEMENT","MENTAL"],
+   strengths:["Group energy strong","Individual coaching delivered across multiple players"],
+   work:["Continue group management and personal playing balance"],
+   next:"Focus on Carlos's own skill areas in next individual session.",
+   private:""},
+  {date:"April 20, 2026",dur:90,loc:"East Park · Lake Nona",type:"Group Practice",rating:"✅ Good",
+   focus:"8-Player Station Rotation · 3rd/4th Shot · Transition · Dinking · Defense",
+   summary:"8-player group with full station rotation. 3rd/4th shot sequences, transition work, dinking patterns, defensive drills. Carlos playing and coaching simultaneously.",
+   tags:["3RD SHOT","4TH SHOT","TRANSITION","DINK","RESET","COUNTER","MOVEMENT","MENTAL","POSITIONING"],
+   strengths:["Station rotation efficiency — all areas covered in 90 min","4th shot retention improving"],
+   work:["Serve and return — still absent from the rotation","Lob defense in group setting"],
+   next:"Add serve and return to the station rotation.",
+   private:"4th shot retention — noted as a development area after this session."},
+  {date:"May 2, 2026",dur:90,loc:"7ACE Lab · Home Court",type:"Lab Session",rating:"✅ Good",
+   focus:"Lab · Drives vs Net · 3rd Shot Drop Stations · Volleys 2v1 · Dinking Patterns",
+   summary:"Lab session with Romina and Andres. Drives vs. the net, 3-station drop system, 2v1 volley patterns, dinking with pattern development.",
+   tags:["DRIVE","3RD SHOT","VOLLEY","DINK","PATTERN","TRANSITION","MOVEMENT","MENTAL"],
+   strengths:["Drive work — trajectory and dip developing","2v1 volley pattern — finding the space","Dinking pattern construction improving"],
+   work:["Drive consistency — same quality every rep","3rd shot drop cross-court trajectory"],
+   next:"Continue drive work with moving target — not just static net drill.",
+   private:""},
+  {date:"May 18, 2026",dur:180,loc:"Narcoossee · Lake Nona",type:"Partner Practice",rating:"✅ Good",
+   focus:"Serve Placement · Live Dinking 1v2 & 2v2 · Drive-Drop Transition · Hands Battles",
+   summary:"Evening session with Jacob, Romina, Arielle. Bottle placement serving drill (5 zones, scored), extended live dinking 1v2 and 2v2, drive-drop transition, winner-stays-on hands battles. High volume live play.",
+   tags:["SERVE","DINK","SPEED-UP","5TH SHOT","TRANSITION","VOLLEY","ERNE","ATP","LOB","PATTERN","MENTAL","MOVEMENT"],
+   strengths:["Serve placement quality in the bottle drill","Live dinking volume — high quality reps across formats","Hands battles — strong competitive hand speed"],
+   work:["Left-side offensive patterns — middle to line development","Two-tempo concept in live play — speed-up then reset when required"],
+   next:"Continue 1v2 format. Fast/slow reset as opening warm-up.",
+   private:"Played well on dinking from the left side. Twoey and slice BH setting up the opposing team with patterns. Good finish on the offensive side in the 3rd shot drill."},
+];
+
+// ── SKILL TAG CONFIG ──
+const TAG_COLOR = {
+  "DINK":"blue","RESET":"blue","TRANSITION":"blue","MOVEMENT":"blue","SERVE":"blue","RETURN":"blue",
+  "VOLLEY":"blue","LOB":"blue","OVERHEAD":"blue","DRIVE":"blue","COUNTER":"blue",
+  "3RD SHOT":"gold","4TH SHOT":"gold","5TH SHOT":"gold",
+  "SPEED-UP":"teal","PATTERN":"teal",
+  "ERNE":"purple","ATP":"purple",
+  "MENTAL":"red","POSITIONING":"orange"
+};
+
+// ── BUILD SESSIONS ──
+function buildSessions(){
+  const list = document.getElementById('sessionList');
+  document.getElementById('sessionCountLabel').textContent = SESSIONS.length + ' total';
+  list.innerHTML = SESSIONS.map((s,i) => `
+    <div class="session-card" id="sc${i}">
+      <div class="session-header" onclick="toggleSession(${i})">
+        <div class="session-date">${s.date}</div>
+        <div class="session-focus">${s.focus}</div>
+        <div class="session-meta">
+          <span class="session-dur">${s.dur}min</span>
+          <span class="session-rating">${s.rating}</span>
+          <span class="session-loc">📍 ${s.loc.split('·')[0].trim()}</span>
+        </div>
+      </div>
+      <div class="session-tags">
+        ${s.tags.map(t=>`<span class="tag tag-${TAG_COLOR[t]||'blue'}">${t}</span>`).join('')}
+      </div>
+      <div class="export-row">
+        <button class="export-btn export-html" onclick="exportSessionHTML(${i},event)">⬇ HTML</button>
+        <button class="export-btn export-word" onclick="exportSessionWord(${i},event)">⬇ Word</button>
+        <button class="export-btn export-db" onclick="showAddToDB(${i},event)">📋 Add to Dashboard</button>
+      </div>
+      <div class="session-body" id="sb${i}">
+        <div class="sBody-label">Session Summary</div>
+        <div class="sBody-text">${s.summary}</div>
+        ${s.strengths?.length ? `<div class="sBody-label">What Worked</div><ul class="strengths-list">${s.strengths.map(x=>`<li>${x}</li>`).join('')}</ul>` : ''}
+        ${s.work?.length ? `<div class="sBody-label" style="margin-top:8px">Keep Working On</div><ul class="work-list">${s.work.map(x=>`<li>${x}</li>`).join('')}</ul>` : ''}
+        ${s.next ? `<div class="sBody-label" style="margin-top:8px">Next Session Focus</div><div class="next-box">${s.next}</div>` : ''}
+        ${s.private ? `<div class="private-note"><div class="private-lbl">📌 Coach Note</div><div class="private-text">${s.private}</div></div>` : ''}
+      </div>
+    </div>`).join('');
+  sessionsBuilt = true;
+}
+
+function toggleSession(i){
+  const body = document.getElementById('sb'+i);
+  body.classList.toggle('open');
+}
+
+// ── ANALYTICS ENGINE ──
+const SESSION_DATES = {
+  // Map session dates to data for calendar
+  '2026-06-05': {dur:120, type:'Private', tags:['DINK','TRANSITION','COUNTER','MENTAL']},
+  '2026-06-02': {dur:120, type:'Group', tags:['DINK','COUNTER','SPEED-UP','TRANSITION','MENTAL']},
+  '2026-05-26a': {dur:89,  type:'Lab', tags:['COUNTER','SPEED-UP','VOLLEY','MENTAL']},
+  '2026-05-26b': {dur:105, type:'Group', tags:['DINK','3RD SHOT','4TH SHOT','TRANSITION','MENTAL']},
+  '2026-05-18a': {dur:75,  type:'Group', tags:['RESET','3RD SHOT','VOLLEY','LOB','DINK','MENTAL']},
+  '2026-05-18b': {dur:180, type:'Partner', tags:['SERVE','DINK','SPEED-UP','5TH SHOT','TRANSITION','VOLLEY']},
+  '2026-05-13': {dur:90,  type:'Group', tags:['DINK','3RD SHOT','TRANSITION','SPEED-UP']},
+  '2026-05-11': {dur:90,  type:'Group', tags:['DINK','RESET','LOB','ATP','TRANSITION']},
+  '2026-05-06': {dur:90,  type:'Group', tags:['SERVE','RETURN','3RD SHOT','4TH SHOT','DINK']},
+  '2026-05-05a': {dur:60, type:'Partner', tags:['DINK','SPEED-UP','COUNTER','LOB']},
+  '2026-05-05b': {dur:60, type:'KD', tags:['DINK','SERVE','RETURN','3RD SHOT','DRIVE']},
+  '2026-05-04': {dur:160, type:'Private', tags:['DRIVE','3RD SHOT','4TH SHOT','5TH SHOT','DINK','COUNTER']},
+  '2026-05-02': {dur:90,  type:'Lab', tags:['DRIVE','3RD SHOT','VOLLEY','DINK','PATTERN']},
+  '2026-04-28a': {dur:150, type:'Partner', tags:['4TH SHOT','TRANSITION','SPEED-UP','COUNTER','DINK','ATP']},
+  '2026-04-28b': {dur:90,  type:'Partner', tags:['DINK','RESET','3RD SHOT','COUNTER']},
+  '2026-04-27a': {dur:120, type:'Partner', tags:['DINK','RESET','OVERHEAD','COUNTER','SPEED-UP','PATTERN']},
+  '2026-04-27b': {dur:90,  type:'Group', tags:['SERVE','RETURN','VOLLEY','3RD SHOT','TRANSITION','DINK']},
+  '2026-04-23a': {dur:90,  type:'Private', tags:['4TH SHOT','TRANSITION','MENTAL','PATTERN']},
+  '2026-04-23b': {dur:90,  type:'Partner', tags:['4TH SHOT','TRANSITION','DINK','SPEED-UP']},
+  '2026-04-21': {dur:90,  type:'Group', tags:['DINK','SPEED-UP','COUNTER','TRANSITION']},
+  '2026-04-20': {dur:90,  type:'Group', tags:['3RD SHOT','4TH SHOT','TRANSITION','DINK','RESET']},
+};
+
+// Group by date (multiple sessions same day merge)
+const DATE_MAP = {};
+Object.entries(SESSION_DATES).forEach(([key, val]) => {
+  const date = key.replace(/[ab]$/, '');
+  if(!DATE_MAP[date]) DATE_MAP[date] = {dur:0, sessions:0, tags:new Set(), types:[]};
+  DATE_MAP[date].dur += val.dur;
+  DATE_MAP[date].sessions++;
+  val.tags.forEach(t => DATE_MAP[date].tags.add(t));
+  DATE_MAP[date].types.push(val.type);
+});
+
+function getMonthData(year, month) {
+  return Object.entries(DATE_MAP)
+    .filter(([d]) => {
+      const dt = new Date(d);
+      return dt.getFullYear()===year && dt.getMonth()+1===month;
+    })
+    .reduce((acc,[d,v]) => { acc[d]=v; return acc; }, {});
+}
+
+function switchAnalytics(tab) {
+  document.querySelectorAll('.atab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.analytics-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('atab-'+tab).classList.add('active');
+  document.getElementById('apanel-'+tab).classList.add('active');
+  if(tab==='calendar' && !calBuilt) renderCalendar();
+  if(tab==='compare') renderCompare();
+  if(tab==='weekly') renderWeekly();
+  if(tab==='insights') renderInsights();
+}
+let calBuilt = false;
+
+function renderCalendar() {
+  const months = [
+    {year:2026, month:4, label:'April 2026'},
+    {year:2026, month:5, label:'May 2026'},
+    {year:2026, month:6, label:'June 2026'},
+  ];
+  let html = '';
+  months.forEach(({year, month, label}) => {
+    const data = getMonthData(year, month);
+    const firstDay = new Date(year, month-1, 1).getDay();
+    const daysInMonth = new Date(year, month, 0).getDate();
+    html += `<div class="cal-month-label">${label}</div>`;
+    html += '<div class="cal-grid">';
+    ['Su','Mo','Tu','We','Th','Fr','Sa'].forEach(d => {
+      html += `<div class="cal-day-name">${d}</div>`;
+    });
+    for(let i=0; i<firstDay; i++) html += '<div class="cal-day empty"></div>';
+    for(let d=1; d<=daysInMonth; d++) {
+      const dateStr = `${year}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const dayData = data[dateStr];
+      let cls = 'no-sess', title = '';
+      if(dayData) {
+        const intensity = dayData.dur >= 150 ? 3 : dayData.dur >= 90 ? 2 : 1;
+        cls = `has-sess-${intensity}`;
+        title = `${dayData.dur}min · ${dayData.types.join('/')}`;
+      }
+      const today = new Date();
+      const isToday = today.getFullYear()===year && today.getMonth()+1===month && today.getDate()===d;
+      html += `<div class="cal-day ${cls}${isToday?' today':''}" 
+        onclick="showDayDetail('${dateStr}')" title="${title}">${d}</div>`;
+    }
+    html += '</div>';
+  });
+  document.getElementById('calendarView').innerHTML = html;
+  calBuilt = true;
+}
+
+function showDayDetail(dateStr) {
+  const dayData = DATE_MAP[dateStr];
+  const detail = document.getElementById('dayDetail');
+  const content = document.getElementById('dayDetailContent');
+  if(!dayData) { detail.style.display='none'; return; }
+  const tags = [...dayData.tags].join(' · ');
+  content.innerHTML = `<strong style="color:var(--text)">${dateStr}</strong><br>
+    ${dayData.sessions} session${dayData.sessions>1?'s':''} · ${dayData.dur} min total<br>
+    Types: ${dayData.types.join(', ')}<br>
+    Skills: <span style="color:var(--blue)">${tags}</span>`;
+  detail.style.display = 'block';
+}
+
+function renderCompare() {
+  const mA = parseInt(document.getElementById('compareMonthA').value);
+  const mB = parseInt(document.getElementById('compareMonthB').value);
+  const dataA = getMonthData(2026, mA);
+  const dataB = getMonthData(2026, mB);
+  const monthNames = {4:'April',5:'May',6:'June'};
+
+  const totalDurA = Object.values(dataA).reduce((a,v)=>a+v.dur,0);
+  const totalDurB = Object.values(dataB).reduce((a,v)=>a+v.dur,0);
+  const sessA = Object.keys(dataA).length;
+  const sessB = Object.keys(dataB).length;
+
+  // Tag counts
+  const tagsA = {}, tagsB = {};
+  Object.values(dataA).forEach(v=>v.tags.forEach(t=>tagsA[t]=(tagsA[t]||0)+1));
+  Object.values(dataB).forEach(v=>v.tags.forEach(t=>tagsB[t]=(tagsB[t]||0)+1));
+  const allTags = [...new Set([...Object.keys(tagsA), ...Object.keys(tagsB)])].slice(0,10);
+  const maxTag = Math.max(...allTags.map(t=>Math.max(tagsA[t]||0, tagsB[t]||0)), 1);
+
+  let html = `
+  <div class="insight-card" style="margin-bottom:10px">
+    <div style="display:flex;justify-content:space-between;margin-bottom:12px">
+      <div style="text-align:center"><div style="font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">${monthNames[mA]}</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--blue)">${sessA}</div>
+        <div style="font-size:10px;color:var(--muted)">sessions</div></div>
+      <div style="text-align:center;align-self:center;color:var(--muted);font-size:20px">vs</div>
+      <div style="text-align:center"><div style="font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">${monthNames[mB]}</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--gold)">${sessB}</div>
+        <div style="font-size:10px;color:var(--muted)">sessions</div></div>
+    </div>
+    <div class="compare-row">
+      <div class="compare-label" style="font-size:10px">Court Time</div>
+      <div style="flex:1">
+        <div style="display:flex;justify-content:space-between;font-size:10px;font-weight:700;margin-bottom:3px">
+          <span style="color:var(--blue)">${Math.round(totalDurA/60)}h ${totalDurA%60}m</span>
+          <span style="color:var(--gold)">${Math.round(totalDurB/60)}h ${totalDurB%60}m</span>
+        </div>
+        <div style="height:8px;background:var(--border);border-radius:4px;overflow:hidden;position:relative">
+          <div style="position:absolute;height:100%;background:var(--gold);opacity:.5;width:${Math.min(100,Math.round(totalDurB/Math.max(totalDurA,totalDurB)*100))}%;border-radius:4px"></div>
+          <div style="position:absolute;height:100%;background:var(--blue);width:${Math.min(100,Math.round(totalDurA/Math.max(totalDurA,totalDurB)*100))}%;border-radius:4px;opacity:.85"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Skill Area Breakdown</div>
+  ${allTags.map(t => {
+    const a = tagsA[t]||0, b = tagsB[t]||0;
+    return `<div class="compare-row">
+      <div class="compare-label">${t}</div>
+      <div style="flex:1;position:relative">
+        <div style="height:18px;background:var(--border);border-radius:4px;overflow:hidden;position:relative">
+          <div style="position:absolute;height:100%;background:var(--gold);opacity:.5;width:${Math.round(b/maxTag*100)}%;border-radius:4px"></div>
+          <div style="position:absolute;height:100%;background:var(--blue);width:${Math.round(a/maxTag*100)}%;border-radius:4px;opacity:.85;display:flex;align-items:center;padding-left:6px">
+            ${a>0?`<span style="font-size:9px;font-weight:700;color:#fff">${a}x</span>`:''}
+          </div>
+          ${b>a?`<span style="position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:9px;font-weight:700;color:#E8A020">${b}x</span>`:''}
+        </div>
+      </div>
+    </div>`;
+  }).join('')}
+  <div style="display:flex;gap:12px;margin-top:10px;font-size:10px">
+    <div style="display:flex;align-items:center;gap:5px"><div style="width:12px;height:8px;background:var(--blue);border-radius:2px;opacity:.85"></div>${monthNames[mA]}</div>
+    <div style="display:flex;align-items:center;gap:5px"><div style="width:12px;height:8px;background:var(--gold);border-radius:2px;opacity:.5"></div>${monthNames[mB]}</div>
+  </div>`;
+
+  document.getElementById('compareView').innerHTML = html;
+}
+
+function renderWeekly() {
+  const today = new Date(2026, 5, 15); // June 15 2026
+  const dayOfWeek = today.getDay();
+  const weekStart = new Date(today);
+  weekStart.setDate(today.getDate() - dayOfWeek);
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+  let weekHtml = '<div class="week-row">';
+  for(let i=0; i<7; i++) {
+    const d = new Date(weekStart);
+    d.setDate(weekStart.getDate()+i);
+    const dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    const hasSession = !!DATE_MAP[dateStr];
+    const isToday = i === dayOfWeek;
+    weekHtml += `<div class="week-day${hasSession?' active-day':''}${isToday?' today':''}">
+      <div class="week-day-name">${days[i]}</div>
+      <div class="week-day-num">${d.getDate()}</div>
+      <div class="week-day-dot"></div>
+    </div>`;
+  }
+  weekHtml += '</div>';
+
+  // 4-week rolling trend
+  const weeks = [];
+  for(let w=3; w>=0; w--) {
+    const wStart = new Date(weekStart);
+    wStart.setDate(weekStart.getDate() - w*7);
+    let wSess=0, wDur=0, wTags=new Set();
+    for(let d=0; d<7; d++) {
+      const day = new Date(wStart);
+      day.setDate(wStart.getDate()+d);
+      const ds = `${day.getFullYear()}-${String(day.getMonth()+1).padStart(2,'0')}-${String(day.getDate()).padStart(2,'0')}`;
+      if(DATE_MAP[ds]){ wSess+=DATE_MAP[ds].sessions; wDur+=DATE_MAP[ds].dur; DATE_MAP[ds].tags.forEach(t=>wTags.add(t)); }
+    }
+    const label = w===0?'This week':w===1?'Last week':`${w*7}d ago`;
+    weeks.push({label, sessions:wSess, dur:wDur, variety:wTags.size});
+  }
+  const maxDur = Math.max(...weeks.map(w=>w.dur), 1);
+
+  let trendHtml = `<div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:10px">4-Week Rolling Volume</div>`;
+  weeks.forEach(w => {
+    const pct = Math.round(w.dur/maxDur*100);
+    trendHtml += `<div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px">
+        <span style="color:var(--text);font-weight:600">${w.label}</span>
+        <span style="color:var(--muted)">${w.sessions} sessions · ${Math.round(w.dur/60)}h${w.dur%60?w.dur%60+'m':''} · ${w.variety} skills</span>
+      </div>
+      <div style="height:10px;background:var(--border);border-radius:5px;overflow:hidden">
+        <div style="height:100%;background:var(--blue);width:${pct}%;border-radius:5px;transition:width .5s"></div>
+      </div>
+    </div>`;
+  });
+
+  // This week's skills
+  const thisWeekDate = `${weekStart.getFullYear()}-${String(weekStart.getMonth()+1).padStart(2,'0')}-${String(weekStart.getDate()).padStart(2,'0')}`;
+  let weekSkills = new Set();
+  for(let i=0; i<7; i++){
+    const d = new Date(weekStart);
+    d.setDate(weekStart.getDate()+i);
+    const ds = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    if(DATE_MAP[ds]) DATE_MAP[ds].tags.forEach(t=>weekSkills.add(t));
+  }
+  const skillsHtml = weekSkills.size ? `<div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin:14px 0 8px">This Week's Skills</div>
+  <div style="display:flex;flex-wrap:wrap;gap:5px">${[...weekSkills].map(t=>`<span class="tag tag-blue">${t}</span>`).join('')}</div>` : '';
+
+  document.getElementById('weeklyView').innerHTML = weekHtml + trendHtml + skillsHtml;
+}
+
+function renderInsights() {
+  const allSessions = Object.values(DATE_MAP);
+  const totalDur = allSessions.reduce((a,v)=>a+v.dur,0);
+  const avgDur = Math.round(totalDur / allSessions.length);
+
+  // Most trained skill
+  const tagCounts = {};
+  allSessions.forEach(v=>v.tags.forEach(t=>tagCounts[t]=(tagCounts[t]||0)+1));
+  const sortedTags = Object.entries(tagCounts).sort((a,b)=>b[1]-a[1]);
+  const topTag = sortedTags[0];
+  const leastTag = sortedTags[sortedTags.length-1];
+
+  // Longest gap
+  const dates = Object.keys(DATE_MAP).map(d=>d.replace(/[ab]$/,'')).sort();
+  let maxGap=0, maxGapDates=['',''];
+  for(let i=1; i<dates.length; i++){
+    const gap = (new Date(dates[i])-new Date(dates[i-1]))/(1000*60*60*24);
+    if(gap>maxGap){maxGap=Math.round(gap);maxGapDates=[dates[i-1],dates[i]];}
+  }
+
+  // Partner vs solo
+  const partnerSess = allSessions.filter(v=>v.types.some(t=>['Partner','Group','Private'].includes(t)));
+  const labSess = allSessions.filter(v=>v.types.includes('Lab'));
+  const partnerAvg = partnerSess.length ? Math.round(partnerSess.reduce((a,v)=>a+v.dur,0)/partnerSess.length) : 0;
+  const labAvg = labSess.length ? Math.round(labSess.reduce((a,v)=>a+v.dur,0)/labSess.length) : 0;
+
+  // Monthly breakdown
+  const monthCounts = {4:0,5:0,6:0}, monthDur = {4:0,5:0,6:0};
+  Object.entries(DATE_MAP).forEach(([d,v])=>{
+    const m = parseInt(d.split('-')[1]);
+    if(monthCounts[m]!==undefined){monthCounts[m]+=v.sessions;monthDur[m]+=v.dur;}
+  });
+
+  const html = `
+  <div class="insight-card">
+    <div class="insight-icon">🔥</div>
+    <div class="insight-title">Most Trained Area</div>
+    <div class="insight-value" style="color:var(--blue)">${topTag[0]}</div>
+    <div class="insight-text">You've worked <span class="insight-highlight">${topTag[1]} sessions</span> with ${topTag[0]} — it appears in <span class="insight-highlight">${Math.round(topTag[1]/allSessions.length*100)}%</span> of all your training sessions. High exposure means the mechanics are well-practiced. The next layer is adding it under more varied pressure conditions.</div>
+  </div>
+  <div class="insight-card">
+    <div class="insight-icon">📉</div>
+    <div class="insight-title">Most Underworked Area</div>
+    <div class="insight-value" style="color:var(--gold)">${leastTag[0]}</div>
+    <div class="insight-text"><span class="insight-highlight">${leastTag[0]}</span> has appeared in only <span class="insight-highlight">${leastTag[1]} session${leastTag[1]>1?'s':''}</span> out of ${allSessions.length} total. At your DUPR level this is a gap that opponents can exploit. Consider dedicating at least 1 session per month to this area.</div>
+  </div>
+  <div class="insight-card">
+    <div class="insight-icon">⏱️</div>
+    <div class="insight-title">Average Session Length</div>
+    <div class="insight-value">${avgDur}<span style="font-size:1rem;color:var(--muted)"> min</span></div>
+    <div class="insight-text">Your sessions average <span class="insight-highlight">${avgDur} minutes</span>. Partner and group sessions average <span class="insight-highlight">${partnerAvg}min</span> vs lab sessions at <span class="insight-highlight">${labAvg}min</span>. Longer sessions allow for more drill variety but can reduce focus quality in the final third — consider whether your longest sessions maintain full intensity throughout.</div>
+  </div>
+  <div class="insight-card">
+    <div class="insight-icon">📅</div>
+    <div class="insight-title">Longest Training Gap</div>
+    <div class="insight-value">${maxGap}<span style="font-size:1rem;color:var(--muted)"> days</span></div>
+    <div class="insight-text">Your longest break between sessions was <span class="insight-highlight">${maxGap} days</span> (${maxGapDates[0]} to ${maxGapDates[1]}). Research shows that motor skills begin to degrade after 4–5 days without practice. Keep gaps under 4 days when possible — even a 30-minute lab session maintains the neural encoding better than a full rest day.</div>
+  </div>
+  <div class="insight-card">
+    <div class="insight-icon">📊</div>
+    <div class="insight-title">Monthly Volume Trend</div>
+    <div class="insight-value" style="font-size:1.2rem;color:var(--green)">April → May → June</div>
+    <div class="insight-text">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:8px 0">
+        <div style="text-align:center;background:var(--surface);border-radius:6px;padding:8px">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:var(--blue)">${monthCounts[4]}</div>
+          <div style="font-size:9px;color:var(--muted)">Apr sessions</div>
+          <div style="font-size:10px;color:var(--muted)">${Math.round(monthDur[4]/60)}h</div>
+        </div>
+        <div style="text-align:center;background:var(--surface);border-radius:6px;padding:8px">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:var(--blue)">${monthCounts[5]}</div>
+          <div style="font-size:9px;color:var(--muted)">May sessions</div>
+          <div style="font-size:10px;color:var(--muted)">${Math.round(monthDur[5]/60)}h</div>
+        </div>
+        <div style="text-align:center;background:var(--surface);border-radius:6px;padding:8px">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:var(--blue)">${monthCounts[6]}</div>
+          <div style="font-size:9px;color:var(--muted)">Jun sessions</div>
+          <div style="font-size:10px;color:var(--muted)">${Math.round(monthDur[6]/60)}h</div>
+        </div>
+      </div>
+      ${monthDur[5]>monthDur[4]?`May was your highest volume month — <span class="insight-highlight">${Math.round((monthDur[5]-monthDur[4])/60*10)/10}h more</span> than April.`:''}
+    </div>
+  </div>
+  <div class="insight-card">
+    <div class="insight-icon">🎯</div>
+    <div class="insight-title">Training Balance Score</div>
+    <div class="insight-value" style="color:var(--gold)">${Math.round(sortedTags.length/20*100)}<span style="font-size:1rem;color:var(--muted)">%</span></div>
+    <div class="insight-text">You've touched <span class="insight-highlight">${sortedTags.length} out of 20</span> skill areas across your training history — a balance score of <span class="insight-highlight">${Math.round(sortedTags.length/20*100)}%</span>. Elite players at your level typically target 85%+ coverage. The ${(20-sortedTags.length)} untouched areas represent your highest-leverage development opportunities for the next training block.</div>
+  </div>`;
+
+  document.getElementById('insightsView').innerHTML = html;
+}
+
+function buildSkillMap(){ renderInsights(); skillsBuilt=true; }
+
+// ── DRILL LIBRARY ──
+const DRILLS = [
+  {cat:"Dinking",name:"Corner-to-Middle Offensive/Defensive Dinking System",tags:["DINK","PATTERN","POSITIONING","MENTAL"],
+   structure:"One player dinks from corner to corner across the kitchen while the other plays defense. Offensive player works to open the line via the middle. Roles switch.",
+   cues:"Move the ball with purpose. Middle dink pulls the opponent — then attack the corner. Defense: soft hands, read early, stay balanced.",
+   neuro:"The middle-to-corner sequence trains spatial pattern recognition — the brain maps the opponent's position and predicts the opening before executing the attack shot."},
+  {cat:"Dinking",name:"2-Ball Same-Quadrant Dinking",tags:["DINK","MENTAL","MOVEMENT"],
+   structure:"Two balls in play simultaneously in the same quadrant. Both players dink and track two balls at once.",
+   cues:"Eyes sharp, paddle ready, stay low. Do not reach — move your feet.",
+   neuro:"Dual-ball tracking overloads the visual cortex, forcing faster pre-movement and earlier decision-making than single-ball drilling."},
+  {cat:"Dinking",name:"1v2 Dinking System",tags:["DINK","SPEED-UP","COUNTER","PATTERN"],
+   structure:"One player vs. two defenders. Solo player dinks to both sides, looks for speed-up opportunities. Can run with or without speed-up restrictions.",
+   cues:"Solo player: own the middle, find the pattern, earn the speed-up. Defenders: cover, reset, force errors.",
+   neuro:"Playing against two defenders simultaneously forces higher cognitive load and faster processing — adaptations transfer directly to doubles match conditions."},
+  {cat:"Dinking",name:"KD Battle — Kitchen Dominators Game System",tags:["DINK","SPEED-UP","ERNE","ATP","MENTAL"],
+   structure:"Rally scoring to 11 win by 2. KD calls are mandatory (min 2 per player, max 3). Erne/ATP: +2 successful, -2 unsuccessful. Paddle-up rule after every point.",
+   cues:"Call the KD with conviction. Set up the speed-up — don't force it. Earn the Erne by dinking to the line first.",
+   neuro:"The KD call creates a declared commitment — the brain prepares the motor sequence before the opponent does, reducing reaction time through anticipatory activation."},
+  {cat:"Dinking",name:"Kitchen Accuracy Game",tags:["DINK","ERNE","ATP","MENTAL"],
+   structure:"Dinks must land inside the kitchen or the opposing team scores. Erne and ATP are permitted with consequence scoring.",
+   cues:"Placement over pace. Every ball intentional. The kitchen is the target — not the opponent's body.",
+   neuro:"Consequence scoring activates loss-aversion in the brain, elevating focus to match-pressure levels during practice."},
+  {cat:"Dinking",name:"All-Flick Game",tags:["SPEED-UP","DINK","COUNTER","PATTERN"],
+   structure:"Every speed-up in the point must be a flick. Players set up the flick through dinking patterns and execute when the right ball appears.",
+   cues:"Dink with a plan. The flick is not the first shot — it's the finish of a sequence. Build the setup before the execution.",
+   neuro:"Constraining the speed-up to the flick forces deliberate pattern construction — the brain must plan 2-3 shots ahead rather than reacting opportunistically."},
+  {cat:"Dinking",name:"Live Dinking System — 1v1 / 1v2 / 2v2",tags:["DINK","SPEED-UP","PATTERN","POSITIONING","MENTAL"],
+   structure:"Progressive live dinking with role-based structure (offensive/defensive) before opening to free play. FH quadrant first, then BH quadrant, then full live with speed-ups.",
+   cues:"Offensive side: dink with purpose, build the pattern, earn the speed-up. Defensive side: absorb, neutralize, force the error. Speed-up stage: the setup quality is visible — dink with a plan.",
+   neuro:"Constraint-based practice (defined roles) reduces decision load so mechanics can be encoded cleanly before variability is introduced."},
+  {cat:"Dinking",name:"Self-Fed Dinking Drill (+ Coach-Fed Variant)",tags:["DINK","PATTERN","MENTAL","MOVEMENT"],
+   structure:"Player self-feeds a dead ball to 3 target zones (corner, middle, short). Switch positions with progressive aggression on every rotation. Coach-fed variant adds height variation.",
+   cues:"Dead ball reps: same mechanics every time. Progressive aggression on every switch — each rotation the dink should be a little sharper.",
+   neuro:"Dead-ball self-feeding activates explicit learning — the brain encodes movement patterns precisely without the interference of incoming ball tracking."},
+  {cat:"Serve & Return",name:"Kitchen Dominators — Serve & Return System",tags:["SERVE","RETURN","3RD SHOT","4TH SHOT","TRANSITION"],
+   structure:"Serve from the kitchen line cross-court. No point on serve errors. Full rally plays out from there.",
+   cues:"Serve with direction. Return deep and immediately reposition. 3rd shot decision based on the return quality.",
+   neuro:"The cross-court underhand serve removes pace as a variable, forcing focus entirely on placement and depth — the two most trainable serve qualities."},
+  {cat:"Serve & Return",name:"4-Shot Sequence Drill",tags:["SERVE","RETURN","3RD SHOT","4TH SHOT","PATTERN"],
+   structure:"Serve → Return → 3rd Shot → 4th Shot. Full sequence drilled in isolation before adding the live continuation.",
+   cues:"Each shot sets up the next. Serve sets the return, return quality determines 3rd shot options, 3rd shot quality determines 4th shot attack or reset.",
+   neuro:"Sequential chaining trains the brain to process each shot as part of a connected sequence rather than as isolated events — builds the automatic point-construction mindset."},
+  {cat:"Serve & Return",name:"7-11 Reset Game",tags:["RESET","4TH SHOT","MENTAL"],
+   structure:"Same-court and cross-court. Points only on quality resets landing in the kitchen. Score keeps competitive consequence.",
+   cues:"Reset is not a survival shot — it is a setup. Every reset should be executed with the intention of earning the next step forward.",
+   neuro:"Score-based consequence activates the same neural arousal as match play, making the reset skill more transfer-ready than non-scored drilling."},
+  {cat:"Transition & Reset",name:"Baseline-to-Kitchen Progressive Reset Drill",tags:["RESET","TRANSITION","4TH SHOT","MOVEMENT"],
+   structure:"Three phases: (1) soft feeds from baseline building muscle memory; (2) increasing feed difficulty; (3) game-speed with live point continuation after the reset.",
+   cues:"Position first, shot second, movement third. Never reverse the sequence. Slow the arrival — do not reach the contact point still moving.",
+   neuro:"The blocked → variable → random progression is the most efficient path to pressure-resistant skill acquisition in motor learning research."},
+  {cat:"Transition & Reset",name:"Transition Control Drill",tags:["TRANSITION","RESET","5TH SHOT","MOVEMENT"],
+   structure:"Working through the transition zone — reads incoming ball height, decides to advance or hold, executes the correct shot, continues the point.",
+   cues:"Read the ball before committing to the advance. If height is there: go. If not: slow, balance, reset, build. The position decision is a reading decision.",
+   neuro:"Read-then-move habit replaces move-then-read — the former produces controlled, accurate shots; the latter produces rushed off-balance contacts."},
+  {cat:"Transition & Reset",name:"Drive-Drop Transition System — One Ball Live",tags:["3RD SHOT","4TH SHOT","5TH SHOT","TRANSITION","RESET","SPEED-UP"],
+   structure:"Live sequences: drive or drop decision based on ball quality, advance, play the 5th shot and beyond. Full point played out from the 3rd shot.",
+   cues:"Drive when height permits, drop when neutralized, advance after either. The 5th shot decision — attack if height, reset if not — is where the sequence is won or lost.",
+   neuro:"Full-sequence live drilling creates the most direct transfer to match conditions — the brain encodes the complete decision chain as a unified behavior."},
+  {cat:"Drive & Drop",name:"3-Station 3rd Shot Drop System",tags:["3RD SHOT","RESET"],
+   structure:"Three stations at different depths in the court — player moves through each and executes the drop from each location.",
+   cues:"Drop quality over pace. Low over the net, controlled arc into the kitchen. The contact is the shot — not the swing.",
+   neuro:"Multi-location blocked practice builds spatial flexibility in the motor program — the drop mechanic becomes independent of court position."},
+  {cat:"Drive & Drop",name:"Drives vs. The Net",tags:["DRIVE","3RD SHOT"],
+   structure:"Player drives into a net target — focusing on dip trajectory after the ball crosses the net. Contact and follow-through emphasized over pace.",
+   cues:"The ball must dip after crossing the net. Flat drives that stay high are gifts. Height over the net, then the dip — these are the two measurements of a quality drive.",
+   neuro:"Net-target drilling removes outcome anxiety (does the ball go in?) and replaces it with trajectory feedback (did the ball dip?) — a more useful data point for drive development."},
+  {cat:"Drive & Drop",name:"Bottle Placement Drill (+ Serve Placement Variant)",tags:["3RD SHOT","SERVE","DRIVE","MENTAL"],
+   structure:"Bottle or zone targets on the court. Drive/drop variant: hit the target. Serve variant: 5 numbered zones, +2 deep, -1 wide, -2 net.",
+   cues:"Placement with intent. Not just getting the ball in — hitting a specific target. Depth first, direction second.",
+   neuro:"Consequence scoring activates loss-aversion, elevating focus to match-pressure levels. The scoring reveals placement tendencies that verbal coaching misses."},
+  {cat:"Drive & Drop",name:"Self-Fed 3rd Shot Drop Drill (+ Coach-Fed Variant)",tags:["3RD SHOT","RESET","MENTAL"],
+   structure:"Dead ball self-feeds into the kitchen from the baseline. Multiple target zones. Coach-fed adds height variation.",
+   cues:"Program the swing path and contact point without external pressure. Every rep is encoding the correct trajectory.",
+   neuro:"Block practice creates the neural foundation — the movement pattern is encoded without interference, then the coach-fed variant introduces variability."},
+  {cat:"Drive & Drop",name:"Self-Fed Drive Drill (+ Coach-Fed Variant)",tags:["DRIVE","3RD SHOT","MENTAL","MOVEMENT"],
+   structure:"Dead ball self-feeds, driving to different court areas. Height over the net is the primary objective. Coach-fed adds height variation and angle variety.",
+   cues:"Height over the net first — not pace. A ball that dips after crossing the net is a weapon. A flat ball that stays high is a liability.",
+   neuro:"Self-fed drive work activates muscle memory encoding under low cognitive load — essential for correcting established but flawed patterns."},
+  {cat:"Volley",name:"2v1 Volley Pattern",tags:["VOLLEY","MOVEMENT","POSITIONING"],
+   structure:"One player vs. two volleyers. Solo player covers both lines. 2-player side feeds and attacks from alternating positions.",
+   cues:"Court coverage: split the middle. Do not cheat to one side before the ball is hit. Compact volleys — big swings lose control.",
+   neuro:"Coverage patterns under 2v1 pressure train the brain's spatial attention system — learning to process two threat locations simultaneously."},
+  {cat:"Volley",name:"Mid-Court Volley Quadrant System",tags:["VOLLEY","MOVEMENT","POSITIONING"],
+   structure:"Exchanges across four quadrant combinations: straight at the body, cross-court, then all four alternating patterns.",
+   cues:"Paddle out in front before the ball arrives. Read the incoming direction early. Compact swing — the volley is a redirect, not a full stroke.",
+   neuro:"Quadrant-based drilling builds pattern recognition in the visual cortex — the brain begins to anticipate ball direction from the opponent's body position rather than tracking the ball after it leaves the paddle."},
+  {cat:"Lob & Overhead",name:"Lob Chase Drill",tags:["LOB","OVERHEAD","MOVEMENT"],
+   structure:"Partner lobs, player chases and executes overhead or drop response. Emphasis on returning to the kitchen after every response.",
+   cues:"Move before the ball peaks — not after. Choose the response before you arrive at the contact point. Return to the kitchen: the recovery is not complete until you are back at the line.",
+   neuro:"Early commitment to the contact point allows the motor system to pre-program the response while the body is still moving — reducing latency and increasing accuracy."},
+  {cat:"Lob & Overhead",name:"3-Phase Overhead Progression",tags:["OVERHEAD","LOB","MOVEMENT"],
+   structure:"Phase 1: overhead from near the net. Phase 2: overhead from mid-court. Phase 3: full lob chase — move back, read the trajectory, execute, return to kitchen.",
+   cues:"Move before the ball peaks. Contact point directly above or slightly in front. Full extension without leaning back.",
+   neuro:"Progressive distance expansion trains the spatial calibration of the overhead — the brain recalibrates the timing and force requirements for each new distance."},
+  {cat:"Speed-Up & Counter",name:"Speed-Up Patterns Drill — Hip Target + Fast/Slow Reset",tags:["SPEED-UP","COUNTER","RESET","PATTERN","MENTAL"],
+   structure:"Two parts: (1) Hip target speed-up — aim at the opposite hip, prep the finish-off shot. (2) Fast/slow reset — speed-up then read the return: attack if height, reset if not.",
+   cues:"Hip target: aim at the body, not the open court. Prepare the finish-off before the speed-up lands. Fast/slow: the reset is a decision, not a failure.",
+   neuro:"The fast/slow reset trains inhibitory control — suppressing the continued attack impulse when the return ball doesn't warrant it. This is the same neural system trained in counter-punch sports."},
+  {cat:"Speed-Up & Counter",name:"Live Counter Drill — Speed-Up Reaction & Redirect",tags:["COUNTER","SPEED-UP","VOLLEY","PATTERN","MENTAL"],
+   structure:"Coach initiates speed-ups, volleys, or body feeds without warning. Player responds with compact counter — FH, BH, body, or cross-court hip redirect. Phases: isolated then randomized.",
+   cues:"Paddle out in front before the ball arrives. Compact reactions — not full swings. Cross-court hip redirect: compact stabbing BH action to turn defense into offense.",
+   neuro:"Randomized initiation trains genuine reactive inhibition — unlike prescribed drills, the brain must process the ball before selecting the response, building automatic counters."},
+  {cat:"Counter & Reset",name:"Twoey Counter Progression — Line / Middle Coverage",tags:["COUNTER","SPEED-UP","DINK","MENTAL","MOVEMENT"],
+   structure:"Phase 1: dry-path reps — left hand only, elbow at 90°, lagging open hand, upward finish toward opposite ear. Phase 2: close feeds → longer feeds → live speed-ups.",
+   cues:"Short path. Forward first, then up toward the opposite ear. Do not come around the ball. Stay compact — no casting.",
+   neuro:"Dry-path reps before the ball is introduced allow the brain to encode the correct motor pattern without triggering the ingrained rotational error pattern under stimulus."},
+  {cat:"Counter & Reset",name:"One-Hand Backhand Counter Progression",tags:["COUNTER","SPEED-UP","RESET","MENTAL","MOVEMENT"],
+   structure:"Phase 1: wrist broken inward, hand-fed close range. Phase 2: farther feeds. Phase 3: live paddle-fed counters.",
+   cues:"Wrist broken inward at setup — pre-set before the ball arrives. Stay linear through the ball. Compact finish — the wrist does the work, not the shoulder.",
+   neuro:"Pre-setting the wrist position eliminates one decision from the reaction window — the brain focuses entirely on timing and direction rather than simultaneously managing position and execution."},
+  {cat:"Counter & Reset",name:"Backhand Reset Progression Drill — Baseline to Kitchen",tags:["RESET","4TH SHOT","TRANSITION","MOVEMENT","MENTAL"],
+   structure:"Phase 1: soft feeds, muscle memory, straight-arm mechanics. Phase 2: increasing difficulty and angles. Phase 3: game-speed with live point continuation after the reset.",
+   cues:"Straight arm through contact — shoulder leads, arm stays firm. Position first, shot second, movement third. Never reverse this sequence.",
+   neuro:"The three-phase structure mirrors the optimal motor learning progression: blocked → variable → random/contextual. Each phase builds on the previous neural encoding."},
+  {cat:"Volley & Hands",name:"Low Volley Pickup Drill — Ground Ball Defense",tags:["VOLLEY","COUNTER","RESET","MOVEMENT"],
+   structure:"Coach feeds balls from above at a steep downward angle near the feet. Player digs with straight arm, shoulder lift, wrist broken inward. Both FH and BH sides.",
+   cues:"Straight arm — do not bend the elbow to scoop. The lift comes from the shoulder. Wrist broken inward creates a closed face that lifts cleanly without popping.",
+   neuro:"The steep-angle trajectory is atypical — the visual cortex has less ingrained programming for downward ball flight, making deliberate practice produce outsized improvements."},
+  {cat:"Volley & Hands",name:"Winner-Stays-On Hands Battle — Quadrant Volley System",tags:["VOLLEY","COUNTER","SPEED-UP","MENTAL","POSITIONING"],
+   structure:"Phase 1: volley-to-volley exchanges in four quadrant patterns (right-to-left, left-to-right, right-to-right, left-to-left). Phase 2: winner-stays-on competitive rotation with 3+ players.",
+   cues:"Paddle out in front. Wrist stable through contact. Compact swing — the hands battle is won by compactness and positioning, not power.",
+   neuro:"Winner-stays-on activates approach-avoidance dual motivation simultaneously — the closest simulation to competitive match pressure available in drilling."},
+  {cat:"Mental",name:"Zone Pre-Shot Routine Work",tags:["MENTAL"],
+   structure:"Integrated into any drill or live play. Before each rep or point: execute the Zone routine. Not optional — every single ball.",
+   cues:"The routine is: (1) see the target, (2) take a breath, (3) commit to the shot, (4) execute. After any outcome — reset, repeat.",
+   neuro:"Pre-shot routines activate the default mode network, allowing the brain to disengage from outcome anxiety and re-engage with present-moment execution — the physiological basis of being 'in the Zone.'"},
+  {cat:"Mental",name:"ATP Execution & Defense Drill",tags:["ATP","COUNTER","MOVEMENT"],
+   structure:"Coach feeds wide balls creating ATP angles. Player executes or defends. After the ATP: the point plays live.",
+   cues:"Read the angle before the ball reaches the post. Commit early — late ATPs lose power and control. The defensive slide must start before the opponent commits to the ATP.",
+   neuro:"Early commitment to the ATP is a pattern recognition behavior — the brain identifies the setup dink sequence and triggers the motor preparation before the ball travels wide."},
+  {cat:"Mental",name:"Progressive Ball-Size Training",tags:["COUNTER","SPEED-UP","MENTAL","VOLLEY"],
+   structure:"Start with a larger ball and progressively reduce to a smaller ball as accuracy and consistency improve.",
+   cues:"The ball size does not change the mechanics — only the target. Apply the same contact quality to every ball size.",
+   neuro:"Progressive size reduction narrows the required precision window without changing the motor program — the brain adapts by refining the existing pattern rather than learning a new one."},
+  {cat:"Mental",name:"5th Shot Aggression Drill — Offense & Defense",tags:["5TH SHOT","4TH SHOT","SPEED-UP","MENTAL","TRANSITION","RESET"],
+   structure:"Offensive side: attack the 5th shot when height is available, sustain through the 7th. Defensive side: read the 4th shot height — attack if high, quality drop if neutral, soft return if low.",
+   cues:"Offensive: errors from aggression are correctable — passive habits on high balls are not. Defensive: the 4th shot is a decision, not a reaction. Pass the ball back and make the offensive player earn the mistake.",
+   neuro:"The drill trains two opposing cognitive systems simultaneously — approach-motivation on offense, inhibitory control on defense — building a complete competitive nervous system."},
+];
+
+const DRILLS_SEARCHABLE = DRILLS;
+let selectedLogDrills = new Set();
+
+function buildDrillLibrary(){
+  renderDrills(DRILLS_SEARCHABLE);
+  drillsBuilt = true;
+}
+
+function renderDrills(list){
+  const container = document.getElementById('drillLibrary');
+  let currentCat = '';
+  let html = '';
+  list.forEach((d,i) => {
+    if(d.cat !== currentCat){
+      currentCat = d.cat;
+      html += `<div class="drill-cat"><div class="drill-cat-label">${d.cat}</div></div>`;
+    }
+    html += `
+    <div class="drill-item" id="di${i}">
+      <div class="drill-item-head" onclick="toggleDrill(${i})">
+        <div class="drill-item-name">${d.name}</div>
+        <div class="drill-toggle" id="dt${i}">＋</div>
+      </div>
+      <div class="drill-item-tags">
+        ${d.tags.map(t=>`<span class="tag tag-${TAG_COLOR[t]||'blue'}">${t}</span>`).join('')}
+      </div>
+      <div class="drill-item-body" id="db${i}">
+        <div class="drill-section-lbl">Structure</div>
+        <div class="drill-section-text">${d.structure}</div>
+        <div class="drill-section-lbl">Coaching Cues</div>
+        <div class="drill-section-text">${d.cues}</div>
+        <div class="neuro-box"><div class="neuro-lbl">Neuroscience</div><div class="neuro-text">${d.neuro}</div></div>
+      </div>
+    </div>`;
+  });
+  container.innerHTML = html;
+}
+
+function toggleDrill(i){
+  const body = document.getElementById('db'+i);
+  const toggle = document.getElementById('dt'+i);
+  const isOpen = body.classList.toggle('open');
+  toggle.textContent = isOpen ? '－' : '＋';
+}
+
+function filterDrills(q){
+  q = q.toLowerCase().trim();
+  if(!q){ renderDrills(DRILLS_SEARCHABLE); drillsBuilt=false; buildDrillLibrary(); return; }
+  const filtered = DRILLS_SEARCHABLE.filter(d =>
+    d.name.toLowerCase().includes(q) || d.tags.some(t=>t.toLowerCase().includes(q)) || d.cat.toLowerCase().includes(q)
+  );
+  renderDrills(filtered);
+}
+
+// ── LOGGER ──
+function buildLogger(){
+  const list = document.getElementById('logDrillList');
+  list.innerHTML = DRILLS.map((d,i) => `
+    <div class="drill-chk" id="ldc${i}" onclick="toggleLogDrill(${i})">
+      <div class="chk-box" id="lcb${i}"></div>
+      <div class="drill-chk-name">${d.name}</div>
+    </div>`).join('');
+  document.getElementById('logLoc').addEventListener('change', function(){
+    document.getElementById('logLocOther').style.display = this.value==='other' ? 'block' : 'none';
+  });
+  loggerBuilt = true;
+}
+
+function toggleLogDrill(i){
+  const el = document.getElementById('ldc'+i);
+  const cb = document.getElementById('lcb'+i);
+  if(selectedLogDrills.has(i)){
+    selectedLogDrills.delete(i);
+    el.classList.remove('selected');
+    cb.textContent = '';
+  } else {
+    selectedLogDrills.add(i);
+    el.classList.add('selected');
+    cb.textContent = '✓';
+  }
+}
+
+function filterLogDrills(q){
+  q = q.toLowerCase().trim();
+  DRILLS.forEach((d,i)=>{
+    const el = document.getElementById('ldc'+i);
+    if(!el) return;
+    const match = !q || d.name.toLowerCase().includes(q) || d.tags.some(t=>t.toLowerCase().includes(q));
+    el.style.display = match ? '' : 'none';
+  });
+}
+
+function calcDur(){
+  const s = document.getElementById('logStart').value;
+  const e = document.getElementById('logEnd').value;
+  if(!s||!e) return;
+  const [sh,sm]=s.split(':').map(Number);
+  const [eh,em]=e.split(':').map(Number);
+  const mins = (eh*60+em)-(sh*60+sm);
+  if(mins>0) document.getElementById('durDisplay').textContent = `Duration: ${mins} min`;
+}
+
+function generateLog(){
+  const date = document.getElementById('logDate').value;
+  const start = document.getElementById('logStart').value;
+  const end = document.getElementById('logEnd').value;
+  const locSel = document.getElementById('logLoc').value;
+  const loc = locSel==='other' ? document.getElementById('logLocOther').value : locSel;
+  const type = document.getElementById('logType').value;
+  const partners = document.getElementById('logPartners').value.trim();
+  const notes = document.getElementById('logNotes').value.trim();
+  const priv = document.getElementById('logPrivate').value.trim();
+  const drillNames = [...selectedLogDrills].map(i=>DRILLS[i].name);
+
+  let out = `SESSION REPORT — CARLOS SUBERO · 7ACE LAB\n`;
+  out += `${'─'.repeat(44)}\n`;
+  out += `DATE: ${date||'—'}\n`;
+  out += `TIME: ${start||'—'} – ${end||'—'}\n`;
+  out += `LOCATION: ${loc||'—'}\n`;
+  out += `TYPE: ${type}\n`;
+  if(partners) out += `WITH: ${partners}\n`;
+  if(drillNames.length) out += `\nDRILLS:\n${drillNames.map(d=>`  ✓ ${d}`).join('\n')}\n`;
+  if(notes) out += `\nSESSION NOTES:\n${notes}\n`;
+  if(priv) out += `\nPRIVATE NOTE:\n${priv}\n`;
+  out += `\n${'─'.repeat(44)}\nPlease update the dashboard with this session.`;
+
+  document.getElementById('logOutputText').textContent = out;
+  document.getElementById('logOutput').style.display = 'block';
+  document.getElementById('logOutput').scrollIntoView({behavior:'smooth'});
+}
+
+function clearLog(){
+  ['logDate','logStart','logEnd','logNotes','logPrivate','logPartners','logLocOther'].forEach(id=>{
+    document.getElementById(id).value='';
+  });
+  document.getElementById('logLoc').value='';
+  document.getElementById('logType').value='Private Session';
+  document.getElementById('durDisplay').textContent='Duration: —';
+  selectedLogDrills.clear();
+  document.querySelectorAll('.drill-chk').forEach(el=>el.classList.remove('selected'));
+  document.querySelectorAll('.chk-box').forEach(el=>el.textContent='');
+  document.getElementById('logOutput').style.display='none';
+  document.getElementById('draftCodeOut').style.display='none';
+}
+
+// ── DRAFT ──
+function saveDraft(){
+  const state = {
+    date: document.getElementById('logDate').value,
+    start: document.getElementById('logStart').value,
+    end: document.getElementById('logEnd').value,
+    loc: document.getElementById('logLoc').value,
+    locOther: document.getElementById('logLocOther').value,
+    type: document.getElementById('logType').value,
+    partners: document.getElementById('logPartners').value,
+    notes: document.getElementById('logNotes').value,
+    priv: document.getElementById('logPrivate').value,
+    drills: [...selectedLogDrills]
+  };
+  const code = btoa(encodeURIComponent(JSON.stringify(state)));
+  document.getElementById('draftCodeText').value = code;
+  document.getElementById('draftCodeOut').style.display = 'block';
+}
+
+function loadDraft(){
+  const code = document.getElementById('draftCode').value.trim();
+  if(!code){ alert('Paste your draft code first.'); return; }
+  try{
+    const s = JSON.parse(decodeURIComponent(atob(code)));
+    document.getElementById('logDate').value = s.date||'';
+    document.getElementById('logStart').value = s.start||'';
+    document.getElementById('logEnd').value = s.end||'';
+    document.getElementById('logLoc').value = s.loc||'';
+    document.getElementById('logLocOther').value = s.locOther||'';
+    document.getElementById('logLocOther').style.display = s.loc==='other'?'block':'none';
+    document.getElementById('logType').value = s.type||'Private Session';
+    document.getElementById('logPartners').value = s.partners||'';
+    document.getElementById('logNotes').value = s.notes||'';
+    document.getElementById('logPrivate').value = s.priv||'';
+    calcDur();
+    selectedLogDrills.clear();
+    document.querySelectorAll('.drill-chk').forEach(el=>el.classList.remove('selected'));
+    document.querySelectorAll('.chk-box').forEach(el=>el.textContent='');
+    (s.drills||[]).forEach(i=>{
+      selectedLogDrills.add(i);
+      const el=document.getElementById('ldc'+i);
+      if(el){el.classList.add('selected');document.getElementById('lcb'+i).textContent='✓';}
+    });
+    document.getElementById('draftCode').value='';
+    alert('Draft loaded ✅');
+  } catch(e){ alert('Invalid draft code.'); }
+}
+
+function copyCode(id){
+  const text = document.getElementById(id).textContent || document.getElementById(id).value;
+  navigator.clipboard.writeText(text).then(()=>{
+    const btn = document.querySelector('.copy-btn');
+    const orig = btn.textContent;
+    btn.textContent='✅ Copied!';
+    setTimeout(()=>btn.textContent=orig,2000);
+  }).catch(()=>{
+    const el = document.getElementById(id);
+    el.select && el.select();
+    document.execCommand('copy');
+  });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>7ACE · Program Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0a0a0a; --surface: #131313; --surface2: #1a1a1a; --surface3: #222;
+  --border: rgba(255,255,255,0.06); --border2: rgba(255,255,255,0.11);
+  --text: #f0f0ee; --muted: #808078; --hint: #505050;
+  --accent: #e8f040; --accent-dim: rgba(232,240,64,0.08); --accent-dim2: rgba(232,240,64,0.04);
+  --red: #ff3b3b; --red-dim: rgba(255,59,59,0.08);
+  --blue: #5cb8ff; --blue-dim: rgba(92,184,255,0.08);
+  --green: #5fe0a0; --green-dim: rgba(95,224,160,0.08);
+  --gold: #c8a96e; --gold-dim: rgba(200,169,110,0.08);
+  --radius: 10px; --radius-lg: 16px; --radius-xl: 22px;
+  --font: 'Inter', sans-serif; --font-display: 'Space Grotesk', sans-serif;
+}
+body { background: var(--bg); color: var(--text); font-family: var(--font); font-size: 15px; line-height: 1.6; min-height: 100vh; }
+
+/* ── NAV ── */
+.nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; height: 56px; background: rgba(10,10,10,0.92); border-bottom: 0.5px solid var(--border2); backdrop-filter: blur(20px); display: flex; align-items: center; padding: 0 24px; gap: 24px; }
+.nav-logo { font-family: var(--font-display); font-weight: 700; font-size: 15px; color: var(--text); display: flex; align-items: center; gap: 8px; }
+.nav-logo-accent { color: var(--accent); }
+.nav-badge { font-size: 9px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); border: 0.5px solid rgba(200,169,110,0.35); padding: 2px 8px; border-radius: 99px; }
+.nav-tabs { display: flex; gap: 2px; margin-left: auto; }
+.nav-tab { font-size: 12px; font-weight: 500; color: var(--muted); padding: 6px 14px; border-radius: 8px; cursor: pointer; border: none; background: none; transition: all 0.15s; }
+.nav-tab:hover { color: var(--text); background: var(--surface2); }
+.nav-tab.active { color: var(--accent); background: var(--accent-dim); }
+
+/* ── LAYOUT ── */
+.app { display: grid; grid-template-columns: 280px 1fr; min-height: 100vh; padding-top: 56px; }
+.sidebar { background: var(--surface); border-right: 0.5px solid var(--border2); padding: 24px 16px; position: sticky; top: 56px; height: calc(100vh - 56px); overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+.main { padding: 32px; overflow-y: auto; }
+
+/* ── SIDEBAR ITEMS ── */
+.sidebar-label { font-size: 10px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--hint); padding: 4px 10px; margin-top: 8px; }
+.sidebar-label:first-child { margin-top: 0; }
+.sidebar-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: var(--radius); cursor: pointer; border: none; background: none; width: 100%; text-align: left; color: var(--muted); font-size: 13px; font-family: var(--font); transition: all 0.15s; }
+.sidebar-item:hover { background: var(--surface2); color: var(--text); }
+.sidebar-item.active { background: var(--accent-dim); color: var(--accent); }
+.sidebar-item-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: 0.6; flex-shrink: 0; }
+.week-badge { font-size: 10px; font-weight: 600; margin-left: auto; padding: 2px 7px; border-radius: 99px; background: var(--surface3); color: var(--muted); }
+
+/* ── VIEWS ── */
+.view { display: none; }
+.view.active { display: block; }
+
+/* ── CARDS ── */
+.card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 20px 22px; margin-bottom: 14px; }
+.card-title { font-family: var(--font-display); font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+.card-sub { font-size: 12px; color: var(--muted); }
+
+/* ── HERO BANNER ── */
+.view-hero { background: var(--surface); border: 0.5px solid var(--border2); border-radius: var(--radius-xl); padding: 32px 28px; margin-bottom: 24px; position: relative; overflow: hidden; }
+.view-hero::before { content: ''; position: absolute; top: -40px; right: -40px; width: 200px; height: 200px; background: radial-gradient(circle, var(--accent-dim2) 0%, transparent 70%); pointer-events: none; }
+.view-hero-eyebrow { font-size: 10px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; }
+.view-hero-title { font-family: var(--font-display); font-size: 26px; font-weight: 700; color: var(--text); line-height: 1.1; margin-bottom: 10px; }
+.view-hero-sub { font-size: 13px; color: var(--muted); line-height: 1.7; max-width: 520px; }
+.hero-stats { display: flex; gap: 24px; margin-top: 20px; flex-wrap: wrap; }
+.hero-stat { }
+.hero-stat-val { font-family: var(--font-display); font-size: 20px; font-weight: 700; color: var(--text); }
+.hero-stat-label { font-size: 11px; color: var(--muted); }
+
+/* ── WEEK GRID ── */
+.week-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-bottom: 20px; }
+.day-col { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; cursor: pointer; transition: border-color 0.15s; }
+.day-col:hover { border-color: var(--border2); }
+.day-col.selected { border-color: var(--accent); }
+.day-col-head { padding: 10px 10px 8px; border-bottom: 0.5px solid var(--border); }
+.day-col-name { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.day-col-date { font-size: 11px; color: var(--hint); margin-top: 1px; }
+.day-col-body { padding: 10px; }
+.intensity-dot { width: 8px; height: 8px; border-radius: 50%; margin-bottom: 6px; }
+.intensity-dot.high { background: var(--accent); }
+.intensity-dot.mod { background: var(--blue); }
+.intensity-dot.low { background: var(--green); }
+.intensity-dot.rest { background: var(--hint); }
+.day-col-type { font-size: 11px; color: var(--muted); line-height: 1.4; }
+
+/* ── SESSION DETAIL ── */
+.session-panel { background: var(--surface); border: 0.5px solid var(--border2); border-radius: var(--radius-lg); overflow: hidden; }
+.session-panel-head { padding: 20px 22px; border-bottom: 0.5px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+.session-panel-title { font-family: var(--font-display); font-size: 18px; font-weight: 600; }
+.session-meta-badges { display: flex; gap: 8px; }
+.s-badge { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 10px; border-radius: 99px; border: 0.5px solid; }
+.s-badge.high { color: var(--accent); border-color: rgba(232,240,64,0.3); background: var(--accent-dim); }
+.s-badge.mod { color: var(--blue); border-color: rgba(92,184,255,0.3); background: var(--blue-dim); }
+.s-badge.low { color: var(--green); border-color: rgba(95,224,160,0.3); background: var(--green-dim); }
+.s-badge.rest { color: var(--muted); border-color: var(--border2); background: var(--surface2); }
+.session-blocks { padding: 16px 22px; display: flex; flex-direction: column; gap: 10px; }
+.exercise-row { background: var(--surface2); border-radius: var(--radius); overflow: hidden; }
+.exercise-top { display: flex; align-items: center; gap: 14px; padding: 14px 16px; cursor: pointer; user-select: none; }
+.ex-num { font-size: 10px; font-weight: 600; color: var(--hint); min-width: 20px; }
+.ex-info { flex: 1; }
+.ex-name { font-size: 14px; font-weight: 500; color: var(--text); }
+.ex-spec { font-size: 12px; color: var(--muted); margin-top: 2px; display: flex; gap: 10px; flex-wrap: wrap; }
+.ex-toggle { color: var(--muted); font-size: 16px; transition: transform 0.2s; }
+.exercise-row.open .ex-toggle { transform: rotate(45deg); }
+.exercise-science { display: none; padding: 0 16px 14px 50px; }
+.exercise-row.open .exercise-science { display: block; }
+.sci-label { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; }
+.sci-text { font-size: 13px; color: #a0a09a; line-height: 1.75; }
+.sci-text strong { color: var(--text); font-weight: 500; }
+
+/* ── DOWNLOAD BTN ── */
+.dl-btn { display: inline-flex; align-items: center; gap: 8px; background: var(--accent); color: #0a0a0a; font-family: var(--font-display); font-size: 13px; font-weight: 600; padding: 10px 20px; border-radius: var(--radius); border: none; cursor: pointer; transition: opacity 0.15s; margin-top: 16px; }
+.dl-btn:hover { opacity: 0.88; }
+
+/* ── AI COACH VIEW ── */
+.ai-layout { display: grid; grid-template-columns: 1fr 340px; gap: 20px; align-items: start; }
+.chat-wrap { background: var(--surface); border: 0.5px solid var(--border2); border-radius: var(--radius-lg); overflow: hidden; display: flex; flex-direction: column; height: 600px; }
+.chat-head { padding: 16px 20px; border-bottom: 0.5px solid var(--border); display: flex; align-items: center; gap: 10px; }
+.chat-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--accent-dim); border: 0.5px solid rgba(232,240,64,0.2); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: var(--accent); }
+.chat-head-info { }
+.chat-head-name { font-size: 14px; font-weight: 500; }
+.chat-head-status { font-size: 11px; color: var(--green); }
+.chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.msg { max-width: 88%; }
+.msg.coach { align-self: flex-start; }
+.msg.user { align-self: flex-end; }
+.msg-bubble { padding: 11px 14px; border-radius: 12px; font-size: 13px; line-height: 1.65; }
+.msg.coach .msg-bubble { background: var(--surface2); border: 0.5px solid var(--border); color: var(--text); border-radius: 4px 12px 12px 12px; }
+.msg.user .msg-bubble { background: var(--accent-dim); border: 0.5px solid rgba(232,240,64,0.15); color: var(--text); border-radius: 12px 4px 12px 12px; }
+.msg-label { font-size: 10px; color: var(--hint); margin-bottom: 4px; font-weight: 500; }
+.chat-input-row { padding: 12px 16px; border-top: 0.5px solid var(--border); display: flex; gap: 8px; }
+.chat-input { flex: 1; background: var(--surface2); border: 0.5px solid var(--border2); border-radius: var(--radius); padding: 10px 14px; color: var(--text); font-size: 13px; font-family: var(--font); outline: none; }
+.chat-input:focus { border-color: rgba(232,240,64,0.3); }
+.chat-send { background: var(--accent); border: none; border-radius: var(--radius); padding: 10px 16px; color: #0a0a0a; font-weight: 600; font-size: 13px; cursor: pointer; transition: opacity 0.15s; white-space: nowrap; }
+.chat-send:hover { opacity: 0.85; }
+.chat-send:disabled { opacity: 0.4; cursor: not-allowed; }
+.typing-indicator { display: flex; gap: 4px; align-items: center; padding: 4px 0; }
+.typing-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--muted); animation: typingPulse 1.2s infinite; }
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typingPulse { 0%, 100% { opacity: 0.3; transform: scale(1); } 50% { opacity: 1; transform: scale(1.2); } }
+
+/* ── PERFORMANCE LOG ── */
+.perf-panel { background: var(--surface); border: 0.5px solid var(--border2); border-radius: var(--radius-lg); padding: 20px; }
+.perf-panel-title { font-family: var(--font-display); font-size: 14px; font-weight: 600; margin-bottom: 16px; }
+.log-form { display: flex; flex-direction: column; gap: 12px; }
+.log-field { }
+.log-label { font-size: 11px; color: var(--muted); font-weight: 500; margin-bottom: 5px; }
+.log-input { width: 100%; background: var(--surface2); border: 0.5px solid var(--border2); border-radius: var(--radius); padding: 8px 12px; color: var(--text); font-size: 13px; font-family: var(--font); outline: none; }
+.log-input:focus { border-color: rgba(232,240,64,0.3); }
+.log-select { width: 100%; background: var(--surface2); border: 0.5px solid var(--border2); border-radius: var(--radius); padding: 8px 12px; color: var(--text); font-size: 13px; font-family: var(--font); outline: none; }
+.log-textarea { width: 100%; background: var(--surface2); border: 0.5px solid var(--border2); border-radius: var(--radius); padding: 8px 12px; color: var(--text); font-size: 13px; font-family: var(--font); outline: none; resize: vertical; min-height: 80px; }
+.log-save-btn { width: 100%; background: var(--accent-dim); border: 0.5px solid rgba(232,240,64,0.2); border-radius: var(--radius); padding: 10px; color: var(--accent); font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font); transition: background 0.15s; }
+.log-save-btn:hover { background: rgba(232,240,64,0.14); }
+.logged-entries { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
+.log-entry { background: var(--surface2); border-radius: var(--radius); padding: 10px 12px; font-size: 12px; color: var(--muted); border-left: 2px solid var(--accent); }
+.log-entry-date { font-size: 10px; color: var(--hint); margin-bottom: 3px; }
+.log-entry-text { color: var(--text); }
+
+/* ── PROGRESS VIEW ── */
+.progress-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.prog-stat { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 18px 20px; }
+.prog-stat-val { font-family: var(--font-display); font-size: 28px; font-weight: 700; color: var(--text); }
+.prog-stat-unit { font-size: 12px; color: var(--muted); margin-left: 4px; }
+.prog-stat-label { font-size: 11px; color: var(--muted); margin-top: 4px; }
+.prog-stat-delta { font-size: 11px; color: var(--green); margin-top: 2px; }
+.week-progress-bar { background: var(--surface2); border-radius: 4px; height: 6px; margin-top: 8px; overflow: hidden; }
+.week-progress-fill { height: 100%; border-radius: 4px; background: var(--accent); transition: width 0.4s; }
+.chapter-progress { display: flex; flex-direction: column; gap: 8px; }
+.ch-prog-row { display: flex; align-items: center; gap: 12px; }
+.ch-prog-label { font-size: 12px; color: var(--muted); width: 120px; flex-shrink: 0; }
+.ch-prog-bar { flex: 1; background: var(--surface2); border-radius: 4px; height: 5px; overflow: hidden; }
+.ch-prog-fill { height: 100%; border-radius: 4px; background: var(--accent); }
+.ch-prog-pct { font-size: 11px; color: var(--muted); width: 32px; text-align: right; }
+
+/* ── UTILITIES ── */
+.section-title { font-family: var(--font-display); font-size: 13px; font-weight: 600; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 14px; }
+.divider { height: 0.5px; background: var(--border); margin: 20px 0; }
+.quick-prompts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.qp-btn { font-size: 11px; color: var(--muted); border: 0.5px solid var(--border2); background: var(--surface2); border-radius: 99px; padding: 5px 12px; cursor: pointer; transition: all 0.15s; font-family: var(--font); }
+.qp-btn:hover { color: var(--text); border-color: var(--border2); background: var(--surface3); }
+
+@media (max-width: 900px) {
+  .app { grid-template-columns: 1fr; }
+  .sidebar { position: static; height: auto; flex-direction: row; flex-wrap: wrap; overflow-x: auto; padding: 12px; }
+  .ai-layout { grid-template-columns: 1fr; }
+  .week-grid { grid-template-columns: repeat(4, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-logo"><span class="nav-logo-accent">7</span>ACE <span class="nav-badge">v2.0</span></div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="switchTab('program')">Program</button>
+    <button class="nav-tab" onclick="switchTab('coach')">AI Coach</button>
+    <button class="nav-tab" onclick="switchTab('progress')">Progress</button>
+  </div>
+</nav>
+
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-label">This Week</div>
+    <button class="sidebar-item active" onclick="selectWeek(0, this)">
+      <div class="sidebar-item-dot"></div> Week 1 · Adaptation
+      <span class="week-badge">Current</span>
+    </button>
+    <button class="sidebar-item" onclick="selectWeek(1, this)">
+      <div class="sidebar-item-dot"></div> Week 2 · Build
+    </button>
+    <button class="sidebar-item" onclick="selectWeek(2, this)">
+      <div class="sidebar-item-dot"></div> Week 3 · Peak Load
+    </button>
+    <button class="sidebar-item" onclick="selectWeek(3, this)">
+      <div class="sidebar-item-dot"></div> Week 4 · Deload
+    </button>
+    <div class="sidebar-label">Blocks</div>
+    <button class="sidebar-item" onclick="selectWeek(4, this)">
+      <div class="sidebar-item-dot"></div> Block 2 · Weeks 5–8
+    </button>
+    <button class="sidebar-item" onclick="selectWeek(5, this)">
+      <div class="sidebar-item-dot"></div> Block 3 · Weeks 9–12
+    </button>
+  </aside>
+
+  <main class="main">
+
+    <!-- ── PROGRAM VIEW ── -->
+    <div class="view active" id="view-program">
+      <div class="view-hero">
+        <div class="view-hero-eyebrow">7ACE Conditioning System · Carlos</div>
+        <div class="view-hero-title" id="week-hero-title">Week 1 — Adaptation</div>
+        <div class="view-hero-sub" id="week-hero-sub">Foundation week. Every system introduced at manageable load. Your nervous system is learning movement patterns — don't race ahead of the adaptation.</div>
+        <div class="hero-stats">
+          <div class="hero-stat"><div class="hero-stat-val" id="stat-sessions">4</div><div class="hero-stat-label">Training sessions</div></div>
+          <div class="hero-stat"><div class="hero-stat-val" id="stat-vol">Mod</div><div class="hero-stat-label">Total volume</div></div>
+          <div class="hero-stat"><div class="hero-stat-val" id="stat-focus">ATP-PC + Decel</div><div class="hero-stat-label">Primary focus</div></div>
+        </div>
+      </div>
+
+      <div class="section-title">Weekly Calendar</div>
+      <div class="week-grid" id="weekGrid"></div>
+
+      <div class="session-panel" id="sessionPanel">
+        <div class="session-panel-head">
+          <div class="session-panel-title" id="session-title">Select a day above</div>
+          <div class="session-meta-badges" id="session-badges"></div>
+        </div>
+        <div class="session-blocks" id="session-blocks">
+          <div style="color: var(--muted); font-size: 13px; padding: 8px 0;">Click any day in the calendar to load that session.</div>
+        </div>
+      </div>
+
+      <button class="dl-btn" onclick="downloadSession()" id="dl-btn" style="display:none">↓ Download this session as HTML</button>
+    </div>
+
+    <!-- ── AI COACH VIEW ── -->
+    <div class="view" id="view-coach">
+      <div class="view-hero" style="margin-bottom: 20px;">
+        <div class="view-hero-eyebrow">AI Coach</div>
+        <div class="view-hero-title">Dr. Adrian Cole</div>
+        <div class="view-hero-sub">Ask about your program, your physiology, your performance. The coach speaks in 7ACE language — everything connects back to the system you're building.</div>
+      </div>
+      <div class="ai-layout">
+        <div class="chat-wrap">
+          <div class="chat-head">
+            <div class="chat-avatar">AC</div>
+            <div class="chat-head-info">
+              <div class="chat-head-name">Coach Dr. Adrian Cole</div>
+              <div class="chat-head-status">● Online</div>
+            </div>
+          </div>
+          <div class="chat-messages" id="chatMessages">
+            <div class="msg coach">
+              <div class="msg-label">Coach Cole</div>
+              <div class="msg-bubble">Carlos. Good to have you here. This is your direct line to the science behind every session. Ask me about your program, your energy systems, your movement mechanics — anything in the 7ACE system. What's on your mind?</div>
+            </div>
+          </div>
+          <div class="chat-input-row">
+            <input class="chat-input" id="chatInput" type="text" placeholder="Ask Coach Cole anything about your training..." onkeydown="if(event.key==='Enter' && !event.shiftKey){sendMessage();}">
+            <button class="chat-send" id="chatSend" onclick="sendMessage()">Send ↗</button>
+          </div>
+        </div>
+        <div>
+          <div class="perf-panel">
+            <div class="perf-panel-title">Log Today's Session</div>
+            <div class="log-form">
+              <div class="log-field">
+                <div class="log-label">Session</div>
+                <select class="log-select" id="log-session">
+                  <option value="">Select day</option>
+                  <option>Tuesday — Feet Foundation</option>
+                  <option>Wednesday — Recovery + Hands</option>
+                  <option>Thursday — Choice Reaction</option>
+                  <option>Friday — Recovery</option>
+                  <option>Saturday — Peak Integration</option>
+                  <option>Sunday — Match Play</option>
+                </select>
+              </div>
+              <div class="log-field">
+                <div class="log-label">Energy level (1–10)</div>
+                <input class="log-input" id="log-energy" type="number" min="1" max="10" placeholder="7">
+              </div>
+              <div class="log-field">
+                <div class="log-label">Rally Wave — round posture broke</div>
+                <input class="log-input" id="log-rally" type="number" min="1" max="10" placeholder="Round 7">
+              </div>
+              <div class="log-field">
+                <div class="log-label">Weak leg wobble rating (1–5)</div>
+                <select class="log-select" id="log-wobble">
+                  <option value="">Select</option>
+                  <option value="1">1 — Stable throughout</option>
+                  <option value="2">2 — Minor wobble</option>
+                  <option value="3">3 — Moderate wobble</option>
+                  <option value="4">4 — Significant wobble</option>
+                  <option value="5">5 — Could not hold position</option>
+                </select>
+              </div>
+              <div class="log-field">
+                <div class="log-label">Notes (what broke down, what was sharp)</div>
+                <textarea class="log-textarea" id="log-notes" placeholder="e.g. Decel Box felt clean. Posture collapsed at rally wave round 6. Left ankle more unstable than right."></textarea>
+              </div>
+              <button class="log-save-btn" onclick="saveLog()">Save Session Log →</button>
+            </div>
+            <div class="logged-entries" id="loggedEntries"></div>
+          </div>
+        </div>
+      </div>
+      <div class="section-title" style="margin-top: 20px;">Quick questions</div>
+      <div class="quick-prompts">
+        <button class="qp-btn" onclick="quickPrompt('Why does my posture collapse in the final rounds of the Rally Wave?')">Why does posture collapse late in Rally Wave?</button>
+        <button class="qp-btn" onclick="quickPrompt('What should I feel in my forearms during Rapid Hands Wall? When should I be worried?')">What should I feel in my forearms?</button>
+        <button class="qp-btn" onclick="quickPrompt('My Decel Box stick feels unstable on my left leg. What is causing this and how do I fix it?')">Left leg unstable on Decel Box</button>
+        <button class="qp-btn" onclick="quickPrompt('Am I ready to progress from Week 1 to Week 2? What are the performance markers I should hit first?')">Am I ready to progress to Week 2?</button>
+        <button class="qp-btn" onclick="quickPrompt('Explain the difference between the Blast, Burn, and Base energy systems and how they show up in a real pickleball point.')">Blast, Burn, Base — explain again</button>
+        <button class="qp-btn" onclick="quickPrompt('My ankle wobbles badly in the eyes-closed balance. Is this a strength problem or a neurological problem?')">Ankle wobble — strength or neuro?</button>
+      </div>
+    </div>
+
+    <!-- ── PROGRESS VIEW ── -->
+    <div class="view" id="view-progress">
+      <div class="view-hero">
+        <div class="view-hero-eyebrow">Progress Tracking</div>
+        <div class="view-hero-title">Your Training Data</div>
+        <div class="view-hero-sub">Every session logged feeds back into your program. The AI coach reads this data to adjust load, flag recovery deficits, and tell you when to push and when to pull back.</div>
+      </div>
+
+      <div class="section-title">Current Block Overview</div>
+      <div class="progress-grid">
+        <div class="prog-stat">
+          <div><span class="prog-stat-val" id="pg-sessions">0</span><span class="prog-stat-unit">sessions</span></div>
+          <div class="prog-stat-label">Logged this block</div>
+          <div class="prog-stat-delta">+0 this week</div>
+          <div class="week-progress-bar"><div class="week-progress-fill" style="width:0%" id="pg-bar"></div></div>
+        </div>
+        <div class="prog-stat">
+          <div><span class="prog-stat-val" id="pg-energy">—</span></div>
+          <div class="prog-stat-label">Avg energy level</div>
+          <div class="prog-stat-delta" id="pg-energy-note">Log sessions to see trend</div>
+        </div>
+        <div class="prog-stat">
+          <div><span class="prog-stat-val" id="pg-rally">—</span></div>
+          <div class="prog-stat-label">Avg Rally Wave break round</div>
+          <div class="prog-stat-delta" id="pg-rally-note">Target: round 8+</div>
+        </div>
+        <div class="prog-stat">
+          <div><span class="prog-stat-val" id="pg-wobble">—</span></div>
+          <div class="prog-stat-label">Avg ankle stability rating</div>
+          <div class="prog-stat-delta" id="pg-wobble-note">Target: rating 1–2</div>
+        </div>
+      </div>
+
+      <div class="section-title">Chapter Progression</div>
+      <div class="card">
+        <div class="chapter-progress">
+          <div class="ch-prog-row"><div class="ch-prog-label">Ch1 · Energy Systems</div><div class="ch-prog-bar"><div class="ch-prog-fill" style="width:100%"></div></div><div class="ch-prog-pct">100%</div></div>
+          <div class="ch-prog-row"><div class="ch-prog-label">Ch2 · Movement</div><div class="ch-prog-bar"><div class="ch-prog-fill" style="width:70%"></div></div><div class="ch-prog-pct">70%</div></div>
+          <div class="ch-prog-row"><div class="ch-prog-label">Ch3 · Strength</div><div class="ch-prog-bar"><div class="ch-prog-fill" style="width:20%"></div></div><div class="ch-prog-pct">20%</div></div>
+          <div class="ch-prog-row"><div class="ch-prog-label">Ch4 · Speed & React</div><div class="ch-prog-bar"><div class="ch-prog-fill" style="width:10%"></div></div><div class="ch-prog-pct">10%</div></div>
+          <div class="ch-prog-row"><div class="ch-prog-label">Ch5 · Pickleball</div><div class="ch-prog-bar"><div class="ch-prog-fill" style="width:5%"></div></div><div class="ch-prog-pct">5%</div></div>
+          <div class="ch-prog-row"><div class="ch-prog-label">Ch6 · Load Mgmt</div><div class="ch-prog-bar"><div class="ch-prog-fill" style="width:0%"></div></div><div class="ch-prog-pct">0%</div></div>
+          <div class="ch-prog-row"><div class="ch-prog-label">Ch7 · Injury Prev</div><div class="ch-prog-bar"><div class="ch-prog-fill" style="width:0%"></div></div><div class="ch-prog-pct">0%</div></div>
+        </div>
+      </div>
+
+      <div class="section-title" style="margin-top: 20px;">Session Logs</div>
+      <div id="allLogs"><div class="card"><div style="color: var(--muted); font-size: 13px;">No sessions logged yet. Use the AI Coach tab to log your first session.</div></div></div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ── PROGRAM DATA ──────────────────────────────────────────────
+const WEEKS = [
+  {
+    label: "Week 1 — Adaptation",
+    sub: "Foundation week. Every system introduced at manageable load. Your nervous system is learning movement patterns — don't race ahead of the adaptation.",
+    sessions: 4, vol: "Moderate", focus: "ATP-PC + Decel",
+    days: [
+      { name:"MON", date:"Jun 16", intensity:"high", type:"Feet Foundation", exercises:[
+        { name:"Dynamic lateral shuffle", spec:"2 × 30s · moderate pace", science:"Wakes up the lateral kinetic chain — glute medius, adductors, ankle stabilizers — before you ask them to perform under load. Begins lubricating the hip joint with synovial fluid. <strong>Static stretching before training reduces power output up to 5%.</strong> Movement-based warm-up doesn't." },
+        { name:"Hip circles + ankle circles", spec:"2 × 10 reps · each direction", science:"Hip circles activate the glute medius — the primary muscle preventing knee valgus during lateral cuts. Ankle circles increase synovial fluid and activate proprioceptors: sensory receptors that tell your brain where your foot is in space. <strong>Cold proprioceptors = slow, inaccurate foot placement.</strong>" },
+        { name:"Pogos", spec:"2 × 20 reps · minimal ground contact", science:"Rapid stiff-legged hops that load the Achilles tendon elastically. The Achilles functions like a spring — stores energy on landing, releases on push-off. <strong>Cold Achilles tendons are less compliant, less elastic, and more injury-prone.</strong> Pogos prime the stretch-shortening cycle." },
+        { name:"Mini-band lateral steps", spec:"2 × 15 reps · band at ankles", science:"Forces the glute medius to fire with every lateral step. This muscle is chronically underactivated. <strong>The band is the forcing mechanism.</strong> Two sets of 15 gets it firing. Once firing, it protects the knee and powers clean lateral change of direction all session." },
+        { name:"Rally Wave", spec:"2 × 10 rounds · 8s max feet + 45s recovery", science:"ATP-PC replenishment drill. 8 seconds burns your phosphocreatine (The Blast). <strong>The 45-second rest isn't a break — it's the training stimulus.</strong> You're teaching your body to restore explosive fuel quickly. Short the rest to 10s and you're training lactate tolerance — a different adaptation entirely." },
+        { name:"Visual React Cone", spec:"3 × 8 reps · 40s rest · 3 cones", science:"Trains the <strong>Read link</strong> in the reaction chain. Partner signals a cone — you don't move until you see it. Trains visual cue recognition before movement. Most players move on anticipation. This builds actual perception-to-first-step compression." },
+        { name:"Deceleration Box", spec:"3 × 4 cones · 2s single-leg stick · 5-yard square", science:"Burst to cone, brake, hold single-leg stick for 2 seconds. The stick trains <strong>eccentric braking</strong> — quad and glute absorbing full body weight on one leg. If you wobble, that wobble reveals your exact injury risk location. Don't suppress it — learn from it." },
+        { name:"Rapid Hands Wall Series", spec:"3 × 20s · 45s rest · chest height", science:"Rapid alternating palm contacts against wall. Flexor digitorum and flexor carpi accumulate lactate quickly under repeated contraction. <strong>The 45s rest mirrors the between-point recovery window</strong>, training forearm lactate clearance in match rhythm. Limiting factor in final 5s: the pump." },
+        { name:"Ankle proprioception — eyes closed", spec:"3 × 30s each leg · fully eyes closed", science:"Removing vision forces ankle proprioceptors to do all stabilization without visual compensation. With eyes open, brain uses visual anchors. Eyes closed, it relies on mechanoreceptors in the ankle capsule and Golgi tendon organs. <strong>Trains the sensors that make your foot communicate fast under match stress.</strong>" },
+        { name:"Rotator cuff band ER", spec:"2 × 15 reps · 3-count slow eccentric", science:"External rotators (infraspinatus, teres minor) decelerate your arm after every punch volley and overhead. They work eccentrically — force while lengthening, the highest-stress action type. <strong>The slow 3-count eccentric builds tensile strength in the posterior capsule tendon tissue</strong> — the structure most at risk in pickleball overhead mechanics." }
+      ]},
+      { name:"TUE", date:"Jun 17", intensity:"mod", type:"Court + Hands", exercises:[
+        { name:"Pickleball practice — 60 min", spec:"Dinking focus · kitchen line", science:"Apply Chapter 2 mechanics consciously. Keep hips low in dink stance. Hip flexors and glute medius maintain the low position — when they fatigue, hips rise and contact point elevates. <strong>That's a postural endurance problem, not a focus problem.</strong>" },
+        { name:"Rapid Hands Wall Series", spec:"3 × 20s · 45s rest", science:"Forearm lactate endurance drill performed at end of court session to train the specific fatigue conditions of a real match — hands work when you're already tired. <strong>Training fresh hands is incomplete preparation for match hand battles.</strong>" },
+        { name:"Y-T-W shoulder circuit", spec:"2 sets × 10 reps · each position · light weight", science:"Scapular stabilizers (lower trap, serratus anterior, rhomboids) support the shoulder in every overhead and punch volley. <strong>These small muscles fatigue faster than you expect.</strong> 2 sets at slow tempo is enough to build durability without overloading them." },
+        { name:"Forearm flexor stretch", spec:"3 × 30s each side", science:"After rapid hand work, flexor digitorum and flexor carpi shorten under sustained contraction. Stretching restores resting length and promotes blood flow to clear residual lactate. Do not skip this after any hand-intensive session." }
+      ]},
+      { name:"WED", date:"Jun 18", intensity:"high", type:"Choice Reaction", exercises:[
+        { name:"Ladder to Random Call", spec:"3 × 8 reps · 45s rest · randomize cone direction", science:"After the ladder pattern, partner calls a random cone direction. You must process the unpredictable stimulus and select the correct movement response. <strong>This is choice reaction — the actual demand of pickleball.</strong> Remove the randomness and it collapses into simple reaction, which doesn't transfer to match speed." },
+        { name:"Ladder to Live Ball", spec:"3 × 6 reps · 60s rest", science:"Complete a ladder pattern, immediately react to a partner-fed live ball. The cognitive load of tracking a ball after a movement pattern is the specific adaptation. <strong>You are training all four links of the reaction chain simultaneously: Read → Decide → Organize → Finish.</strong>" },
+        { name:"5-10-5 Pro Agility", spec:"4 × 2 reps · pure first-step quality", science:"5 yards right, 10 yards left, 5 yards right. Trains first-step explosive quality in both directions equally. The goal isn't just speed — it's the deceleration and direction change at each cone. <strong>Where your time gets stolen is in the decel, not the sprint.</strong>" },
+        { name:"Split Squat Hold + Pulse", spec:"3 × (30s hold + 10 pulses) each side", science:"Hip flexors and glute medius sustain the low kitchen position. This drill directly overloads those muscles under single-leg load. <strong>Your weaker leg will shake more — that shaking is the strength being built.</strong> Stay in the discomfort. The wobble is the workout." }
+      ]},
+      { name:"THU", date:"Jun 19", intensity:"low", type:"Active Recovery", exercises:[
+        { name:"25-min easy walk or Zone 2 bike", spec:"Low intensity · nasal breathing", science:"Zone 2 aerobic work clears residual metabolic waste from Tuesday and Wednesday without adding new training stress. <strong>The aerobic base (The Base) performs recovery work even on off-days.</strong> A stronger aerobic base means faster clearance between training sessions — and between points in a match." },
+        { name:"Hip flexor + quad mobility", spec:"3 × 40s each · static stretch is okay here", science:"Thursday is the one day static stretching is appropriate — you're not about to train. Sustained hip flexor stretching restores resting length shortened by three days of low dink stance, split squats, and lateral movement." },
+        { name:"Ankle alphabet trace", spec:"Full alphabet each foot · standing on opposite leg", science:"Low-intensity proprioception maintenance. Drawing the alphabet with your foot while standing on the other leg keeps the ankle mechanoreceptors engaged without loading the joint. Maintains the neural adaptation built in the eyes-closed balance drills." },
+        { name:"Contrast shower", spec:"3 rounds · 90s warm → 30s cold", science:"Temperature cycling creates a peripheral vascular pump: warm dilates blood vessels, cold constricts them. The alternating cycle mechanically pushes blood through recovering tissue and accelerates clearance of inflammatory byproducts. <strong>This is physiology, not comfort.</strong>" }
+      ]},
+      { name:"FRI", date:"Jun 20", intensity:"high", type:"Peak Integration", exercises:[
+        { name:"Full dynamic warm-up", spec:"12 min · all 4 warm-up drills in sequence", science:"All four warm-up components together: lateral shuffle (lateral chain), hip + ankle circles (joint lubrication), pogos (Achilles loading), mini-band steps (glute medius activation). By the end, every system pickleball uses is warm and ready." },
+        { name:"Rally Wave", spec:"3 × 10 rounds · max quality", science:"Added one set vs. Monday. Same protocol — 8s max feet + 45s recovery — but three sets now. Track posture quality in the final rounds of set 3. <strong>If it collapses in round 7 of set 3, your aerobic base is the limiting factor, not your fitness level.</strong> Different problem, different fix." },
+        { name:"Ladder to Random Call", spec:"3 × 8 reps · hardest pattern this week", science:"Use the most complex ladder pattern you've run this week. More complex patterns increase cognitive load during the approach, which makes the choice reaction demand at the cone more similar to real match conditions where your brain is already processing movement." },
+        { name:"Deceleration Box", spec:"3 × 4 cones · stick 2s", science:"Friday version: same protocol, higher fatigue state. The stick is harder when your legs are carrying accumulated session load. <strong>That's intentional — you need deceleration control when you're tired, not just when you're fresh.</strong>" },
+        { name:"Rapid Hands Wall Series", spec:"3 × 20s · 45s rest", science:"Hands finisher after full foot-speed session. By this point your central nervous system is carrying meaningful load. Hand speed under CNS fatigue is exactly the condition of the third game of a competitive match. Train it here." },
+        { name:"5-10-5 × 4 — record split times", spec:"Record and compare to Monday", science:"Your benchmark. Compare Friday times to any early-week data. <strong>If Friday times are slower than Monday, you are accumulating fatigue faster than your aerobic base can clear it</strong> — a direct signal to invest more in Zone 2 work and sleep." }
+      ]},
+      { name:"SAT", date:"Jun 21", intensity:"mod", type:"Match Play", exercises:[
+        { name:"Pre-match dynamic warm-up in shade", spec:"Full sequence · out of direct sun", science:"Heat load during warm-up reduces the thermal reserve available during play. Orlando heat is a real performance variable. <strong>Warming up in direct sun pre-fatigues your thermoregulatory system before the first point is played.</strong>" },
+        { name:"Electrolyte preload", spec:"30 min before play · sodium + potassium", science:"Hydration deficit begins the moment you start losing fluid. Preloading electrolytes 30 minutes before play means you begin with a full reservoir. <strong>Even mild dehydration impairs choice reaction time</strong> — the exact skill you trained all week." },
+        { name:"Apply split step on every return", spec:"No exceptions · this is skill training", science:"The split step converts passive positioning into active elastic energy. If you stop doing it consciously during match play, it will not become automatic. <strong>Saturday is where the week's training either wires in as instinct or stays as drill-only behavior.</strong>" },
+        { name:"Post-match: log performance observations", spec:"Where did feet break down? Where did hands slow?", science:"Structured reflection turns performance experience into training data. The questions are: Which round did your posture break? Did your hands slow before or after 90 seconds of rally? <strong>Answers to these questions change next week's training emphasis.</strong>" }
+      ]},
+      { name:"SUN", date:"Jun 22", intensity:"rest", type:"Full Rest", exercises:[
+        { name:"Zero structured training", spec:"Mandatory · no substitutions", science:"<strong>Adaptation happens during recovery, not during training.</strong> Sunday rest closes the supercompensation loop — your body rebuilds slightly above where it started. Train again before recovery completes and you accumulate fatigue without adaptation. This is the science. Respect it." },
+        { name:"8–9 hours sleep", spec:"Non-negotiable recovery target", science:"During deep sleep, growth hormone release peaks and myofibrillar protein synthesis accelerates — this is when muscle tissue rebuilds from the week's eccentric loading. <strong>Skipping sleep doesn't just make you tired. It physically prevents the adaptation from completing.</strong>" },
+        { name:"Review one 7ACE chapter section", spec:"No physical effort · mental consolidation", science:"Motor learning research shows that deliberate cognitive review of a physical skill accelerates its consolidation. Reading about the split step or the deceleration box on a rest day creates neural scaffolding that strengthens the physical pattern built during training." }
+      ]}
+    ]
+  },
+  {
+    label: "Week 2 — Build",
+    sub: "Load increases. Volume adds one set across primary drills. Quality must hold — if form breaks, it means the load jumped ahead of your adaptation.",
+    sessions: 4, vol: "High", focus: "Increased sets + Reaction",
+    days: [
+      { name:"MON", date:"Jun 23", intensity:"high", type:"Feet Foundation +1", exercises:[
+        { name:"Full warm-up sequence", spec:"12 min · all 4 drills", science:"Same warm-up, but today your body arrives with one week of adaptation built in. The lateral shuffle should feel smoother. The pogos should feel more elastic. <strong>If something still feels stiff, that's a recovery signal — don't force through it.</strong>" },
+        { name:"Rally Wave", spec:"3 × 10 rounds · 8s max + 45s rest", science:"Added one full set versus Week 1. Same rest interval. The additional set extends the total phosphocreatine replenishment demand. <strong>If posture collapses earlier this week than last week, your recovery between Week 1 and Week 2 was insufficient.</strong> That's data, not failure." },
+        { name:"Burst & Recover", spec:"3 × 8 reps · 45s rest · 5–10 yard bursts", science:"Explicit ATP-PC drill. Maximum effort 5–10 yard sprint, stop completely, breathe 45 seconds. The breathing protocol during rest is not passive — exhale fully to drop heart rate faster. <strong>Faster heart rate recovery means faster phosphocreatine recovery.</strong>" },
+        { name:"Deceleration Box", spec:"3 × 4 cones · 2s single-leg stick", science:"One additional set versus Week 1. The eccentric braking demand accumulates. By the third set your quad and glute are genuinely fatigued — this is exactly where the single-leg wobble exposes remaining instability." },
+        { name:"Ankle circuit", spec:"3 × 30s eyes-closed + lateral hops + alphabet", science:"Full ankle proprioception circuit. Three components now run together. The lateral hops (3×10 each direction, 1s stick landing) add a dynamic load component to the ankle mechanoreceptor training." },
+        { name:"Rotator cuff band ER", spec:"3 × 15 reps · 3-count eccentric", science:"One additional set. Eccentric tendon load increases. <strong>This is the most important prehab progression in the program.</strong> A single additional set per week on the posterior capsule compresses years of injury risk." }
+      ]},
+      { name:"TUE", date:"Jun 24", intensity:"mod", type:"Court + Prehab", exercises:[
+        { name:"Pickleball practice", spec:"Full practice · apply movement principles", science:"All 7ACE movement cues apply: split step on every ball, stay low through the kitchen line, decelerate before the shot (not during it). <strong>Practice without conscious application of principles is physical activity, not training.</strong>" },
+        { name:"Full rotator cuff protocol", spec:"Band ER 3×15 + Y-T-W 2 sets", science:"Complete shoulder maintenance session. The Y-T-W recruits scapular stabilizers that support every overhead. The ER drill protects the posterior capsule from the cumulative load of punch volleys and hand battles." },
+        { name:"Forearm wrist series", spec:"Curls 3×20 each · pronation/supination 3×15 · squeeze holds 3×30s", science:"Grip endurance and paddle stability work. The squeeze holds — 3×30 seconds of sustained grip force — directly train the specific demand of a sustained hand battle. <strong>Most players train hand speed. Few train hand endurance. The difference shows in game 3.</strong>" }
+      ]},
+      { name:"WED", date:"Jun 25", intensity:"high", type:"Choice Reaction + Strength", exercises:[
+        { name:"Ladder to Random Call", spec:"3 × 8 reps · 45s rest · randomize completely", science:"Week 2 randomness must be fully random — no repeated directions twice in a row, no patterns the brain can detect. <strong>Predictability is the enemy of choice reaction training.</strong> Use colored cards instead of called directions if that helps remove patterns." },
+        { name:"Split Squat Hold + Pulse", spec:"3 × (30s + 10 pulses) · add light dumbbells", science:"Week 2 progression: bodyweight gave you the pattern, now load begins. Light dumbbells add approximately 10–15% increase in demand on the hip flexors, glute, and quad. <strong>The rear leg (hip flexor) is working isometrically — this is where you'll feel Week 2's difficulty first.</strong>" },
+        { name:"Rotational Band Press", spec:"3 × 12 each side · 2s hold at extension", science:"Core stability under force transfer. Press band out while resisting torso rotation. The 2-second hold at full extension creates an isometric challenge at the moment of highest rotational torque — mimicking the exact demand of a counter-attack punch volley at the kitchen." },
+        { name:"Dink Stance Hold", spec:"3 × 45s · do not let hips rise", science:"Week 2: hold extended to 45 seconds versus Week 1's 30s. The hip flexors and glute medius fatigue at approximately 25–30 seconds. <strong>The final 15 seconds is the adaptation — staying in the position when your body wants to rise is exactly what trains kitchen endurance.</strong>" }
+      ]},
+      { name:"THU", date:"Jun 26", intensity:"low", type:"Recovery", exercises:[
+        { name:"Contrast shower", spec:"3 rounds · 90s warm / 30s cold", science:"Same protocol as Week 1. Week 2 recovery is more important than Week 1 because you're carrying more accumulated load. The vascular pump is clearing higher volumes of inflammatory byproducts." },
+        { name:"Mobility session", spec:"Hip flexor + thoracic rotation + foam roller", science:"Thoracic rotation is often missed. Split squat and dink stance demand thoracic extension and rotation stability. Foam roller on the thoracic spine restores range restricted by three days of athletic posture and tension." },
+        { name:"25-min walk", spec:"Easy pace · nasal breathing only", science:"Zone 2 active recovery. The aerobic base processes the accumulated training stress from Mon–Wed without adding new glycolytic demand." }
+      ]},
+      { name:"FRI", date:"Jun 27", intensity:"high", type:"Peak Session", exercises:[
+        { name:"Rally Wave + Burst circuit", spec:"3×10 Rally Wave · 3×8 Burst & Recover", science:"Both ATP-PC drills together in the same session for the first time. This is Week 2's defining challenge. <strong>Total phosphocreatine demand is highest today. Monitor posture in the final Rally Wave sets — it will tell you how your aerobic recovery base is handling the week's load.</strong>" },
+        { name:"5-10-5 Agility", spec:"4 × 2 · record and compare to last week", science:"Performance benchmark. Week 2 times should equal or improve Week 1. If they're slower, you're not recovering adequately between Monday and Friday — investigate sleep and Thursday recovery quality." },
+        { name:"Rapid Hands Wall Series", spec:"3 × 20s · 45s rest", science:"Same protocol. Hands finisher. By Friday of Week 2 you should notice less pump developing in the final 5 seconds of each 20-second set. That reduction in pump is measurable forearm lactate adaptation. <strong>That is the system working.</strong>" }
+      ]},
+      { name:"SAT", date:"Jun 28", intensity:"mod", type:"Match Play", exercises:[
+        { name:"Match play · apply all protocols", spec:"Breathing between points · forearm shake · electrolyte preload", science:"Week 2 match play test: are the Week 2 drills showing up in your movement? The split step should feel more automatic. The deceleration before shots should feel more controlled. <strong>If the court game hasn't changed, the training hasn't transferred yet — that's information to bring to the AI Coach.</strong>" }
+      ]},
+      { name:"SUN", date:"Jun 29", intensity:"rest", type:"Full Rest", exercises:[
+        { name:"Full rest · 8–9 hours sleep", spec:"Review exam material", science:"Week 2 supercompensation window. The body rebuilds from higher load this week — needs the full window. <strong>Review Chapter 2 assessment material tonight. Understanding the mechanics you're training accelerates the physical adaptation.</strong>" }
+      ]}
+    ]
+  },
+  {
+    label: "Week 3 — Peak Load",
+    sub: "Highest volume of the 4-week block. Every primary drill runs at maximum sets. This is where the training stress peaks before the deload restores and rebuilds.",
+    sessions: 5, vol: "Max", focus: "Full circuit · Peak stress",
+    days: [
+      { name:"MON", date:"Jun 30", intensity:"high", type:"Full Ch1+2 Circuit", exercises:[
+        { name:"Burst & Recover", spec:"3 × 8 reps · 45s rest", science:"Peak load on ATP-PC replenishment. Third set now. If quality is holding, your phosphocreatine system has meaningfully adapted from Week 1. If it's not holding, this week will expose the gap — and that's the point." },
+        { name:"Rally Wave", spec:"3 × 10 rounds · 8s max + 45s recovery", science:"Full three-set Rally Wave alongside Burst & Recover. Total explosive volume today is the highest of the block. <strong>Monitor your posture in the final round of set 3 — this is your aerobic base diagnostic at peak load.</strong>" },
+        { name:"Deceleration Box", spec:"4 × 4 cones · 2s stick", science:"Week 3 adds a fourth set to the Decel Box. By set 4 the eccentric braking muscles are genuinely fatigued. This is the highest single-leg stability demand of the block. Trust the adaptation you've built — the wobble is smaller this week than Week 1." }
+      ]},
+      { name:"TUE", date:"Jul 1", intensity:"high", type:"Court + Strength", exercises:[
+        { name:"Pickleball practice", spec:"Full intensity", science:"Week 3 court practice is high intensity — not a recovery day. You're carrying peak load into match-quality practice. This is training the performance expression of everything built in Weeks 1–2." },
+        { name:"Ch3 Strength Block — post practice", spec:"Split Squat 3×10 · Rotational Press 3×12 · Wrist series 3×20", science:"<strong>Strength work immediately after court practice trains the muscles in a pre-fatigued state.</strong> This is intentional. Late-match strength failure happens when muscles are already tired. Training strength post-practice is the closest simulation." }
+      ]},
+      { name:"WED", date:"Jul 2", intensity:"high", type:"Ch4 Full Circuit", exercises:[
+        { name:"All four Ch4 drills · max effort", spec:"Ladder to Random Call · Visual React Cone · Decel Box · Ankle Circuit", science:"Every Chapter 4 drill in one session at maximum effort. This is peak choice reaction and agility demand. <strong>The sequence matters: ladder drills first (highest CNS demand), then cone work, then deceleration, then ankle stability.</strong> CNS fatigue cascades through the sequence — the ankle work at the end trains stability under accumulated fatigue." },
+        { name:"Dink Stance Hold", spec:"3 × 60s · no hip rise", science:"Week 3 progression: 60-second hold versus Week 1's 30s and Week 2's 45s. Two full minutes of total kitchen stance endurance. The hip flexors and glute medius have had three weeks to adapt. <strong>If you can hold 60 seconds without hips rising, your kitchen endurance has doubled from Week 1.</strong>" }
+      ]},
+      { name:"THU", date:"Jul 3", intensity:"mod", type:"Court Only", exercises:[
+        { name:"Pickleball practice only", spec:"No extra conditioning · prehab maintenance", science:"Thursday Week 3 is the one moderate island in a week of peaks. The nervous system needs one day without additional conditioning stress. <strong>Do not add training here out of habit. This is load management science — the absence of stimulus is the protocol.</strong>" }
+      ]},
+      { name:"FRI", date:"Jul 4", intensity:"high", type:"Ch5 Full Circuit", exercises:[
+        { name:"3rd Ball Sprint drill", spec:"3 × 8 reps · 30s rest", science:"Serve simulation. After a hypothetical third ball drive, immediately sprint from baseline toward the transition zone. <strong>The serve is the start of the point, not a pause before it.</strong> Training the serve-to-sprint connection removes the dead feet that create late positioning." },
+        { name:"Serve + Reset Sprint", spec:"3 × 10 serves · no dead feet", science:"Serve from baseline, immediately shuffle to cover the centerline while moving forward one step. <strong>Set feet in athletic ready position before the return arrives.</strong> This is the footwork chain that separates players who react to the return from players who are already positioned for it." },
+        { name:"Full Rapid Hands series", spec:"3 × 20s + partner volley sustain 90s × 3", science:"Highest hand endurance demand of the block. The 90-second partner volley sustain runs past the forearm lactate threshold (which kicks in at 60–90 seconds of continuous exchange). <strong>Surviving and maintaining quality past that threshold is the specific Week 3 hand adaptation.</strong>" }
+      ]},
+      { name:"SAT", date:"Jul 5", intensity:"mod", type:"Tournament / Competitive Play", exercises:[
+        { name:"Tournament or competitive match play", spec:"This is the Week 3 performance test", science:"Week 3 Saturday is performance output day. Everything built this week goes to the court. <strong>Don't train around the tournament — train for it and then let the body express what it has.</strong> Log everything: which game did your feet slow, when did your hands pump, which points did your posture break." }
+      ]},
+      { name:"SUN", date:"Jul 6", intensity:"rest", type:"Full Rest — Mandatory", exercises:[
+        { name:"Mandatory complete rest", spec:"Body needs full window before deload begins", science:"The transition from Week 3 peak load to Week 4 deload requires a complete Sunday. <strong>Week 4 will feel lighter — that's not weakness, that's the supercompensation window opening.</strong> Your body rebuilds during this window. Everything you built in Weeks 1–3 is consolidated here." }
+      ]}
+    ]
+  },
+  {
+    label: "Week 4 — Deload",
+    sub: "Volume drops to 60% of Week 3. Intensity stays. This is not easy week — it is the week your body rebuilds above where it started. Supercompensation happens here.",
+    sessions: 3, vol: "Low", focus: "Supercompensation · Rebuild",
+    days: [
+      { name:"MON", date:"Jul 7", intensity:"mod", type:"Reduced Volume", exercises:[
+        { name:"Rally Wave", spec:"2 × 8 rounds · same 8s + 45s protocol", science:"Volume cut to 60% of Week 3. Same rest interval. Same intensity on each rep. <strong>The deload is a volume reduction, not an intensity reduction.</strong> Each burst should still be maximum effort — just fewer of them. This distinction is physiologically critical." },
+        { name:"Deceleration Box", spec:"2 × 4 cones · 2s stick", science:"Reduced from 4 sets (Week 3) to 2. The neuromuscular patterns are consolidated — they don't need peak volume to maintain. Two high-quality sets with full recovery preserves the adaptation without adding new stress." }
+      ]},
+      { name:"TUE", date:"Jul 8", intensity:"mod", type:"Court + Light Strength", exercises:[
+        { name:"Pickleball practice", spec:"Quality over quantity · no extra conditioning", science:"Deload court practice: play well, move well, apply all principles. <strong>Deload week is when the physical work from Weeks 1–3 converts to on-court performance expression.</strong> You should feel faster and more controlled this week than last — that's supercompensation." },
+        { name:"Maintenance prehab only", spec:"Rotator cuff ER 2×15 · Y-T-W 1 set", science:"Minimum effective dose for shoulder health maintenance. Not enough to create new adaptation stress, exactly enough to maintain the tendon resilience built over three weeks." }
+      ]},
+      { name:"WED", date:"Jul 9", intensity:"low", type:"Active Recovery", exercises:[
+        { name:"Mobility session", spec:"Full sequence · 30 min", science:"Deload week's full mobility session restores tissue length shortened by three weeks of high-load training. Hip flexors, thoracic spine, Achilles, ankle. This is maintenance of the joint range that powers the performance you've built." }
+      ]},
+      { name:"THU", date:"Jul 10", intensity:"low", type:"Rest / Light Walk", exercises:[
+        { name:"Rest or 20-min easy walk", spec:"No intensity", science:"<strong>The deload works only if you actually reduce load.</strong> Thursday Week 4 is a hard rest day. The temptation to train through the deload is the most common error in periodization. Resist it." }
+      ]},
+      { name:"FRI", date:"Jul 11", intensity:"mod", type:"Benchmark Test", exercises:[
+        { name:"5-10-5 Agility — best of week", spec:"Record and compare to Week 1 and 3", science:"End-of-block benchmark. Compare to Week 1 baseline. <strong>If the 4-week periodization worked as designed, Week 4 Friday times should be faster than Week 1 Friday times</strong> — even with reduced volume this week. That improvement is the supercompensation curve expressed as measurable performance." },
+        { name:"Rally Wave posture test", spec:"2 × 10 rounds · note the round posture breaks", science:"Compare to Week 1. If you're holding posture into round 8 or 9 now versus round 6 or 7 in Week 1, your aerobic base has meaningfully developed over the block. Document this number — it is your primary conditioning fitness metric." }
+      ]},
+      { name:"SAT", date:"Jul 12", intensity:"mod", type:"Light Match Play", exercises:[
+        { name:"Light match or practice play", spec:"Apply all protocols consciously", science:"Deload Saturday is intentionally lighter than Week 3 Saturday. Competitive tournament play during a deload week would add load that prevents the supercompensation from completing. <strong>Protect this week's recovery — Block 2 starts Monday and you want to begin it fully rebuilt.</strong>" }
+      ]},
+      { name:"SUN", date:"Jul 13", intensity:"rest", type:"Block 1 Complete", exercises:[
+        { name:"Full rest — Block 1 closes tonight", spec:"Block 2 begins Monday", science:"<strong>Block 1 complete. The foundation is built.</strong> Energy systems trained. Movement mechanics reinforced. Strength introduced. Speed and reaction developed. Load managed across a full 4-week cycle. Block 2 repeats the wave at higher baseline load — same principles, higher ceiling." }
+      ]}
+    ]
+  },
+  {
+    label: "Block 2 — Weeks 5–8",
+    sub: "Same 4-week wave structure. Higher baseline volume. New progressions: rear-foot elevated split squats, extended dink stance holds, band resistance upgrades. Block 2 builds on the foundation Block 1 established.",
+    sessions: 5, vol: "High+", focus: "Progressive overload",
+    days: [
+      { name:"MON", date:"Jul 14", intensity:"high", type:"Block 2 Opens", exercises:[
+        { name:"Full warm-up sequence", spec:"12 min · all 4 drills", science:"Block 2 begins with the same warm-up. Don't skip it because it feels routine. <strong>The warm-up is not for beginners — it is the non-negotiable preparation that keeps elite athletes training without interruption.</strong>" },
+        { name:"Burst & Recover", spec:"3 × 8 · reduce rest by 5s to 40s", science:"Block 2 progression: rest interval drops from 45s to 40s. The work interval stays the same — 8 seconds maximum effort. Shorter rest increases the phosphocreatine replenishment demand. <strong>Do not reduce rest further unless quality is fully maintained at 40 seconds for 2 full weeks.</strong>" },
+        { name:"Rally Wave", spec:"3 × 10 · 40s rest", science:"Same reduction. 40s rest instead of 45s. You are now training the Blast system under slightly higher lactate accumulation, which better simulates match conditions where recovery between points is compressed by game pace." },
+        { name:"Decel Box + single-leg lateral hops", spec:"3×4 box · 3×10 hops", science:"Decel Box stays the same, but now pairs with lateral hops (3×10 each direction, 1s stick). <strong>The hops add a reactive braking element that the static decel box doesn't train.</strong> Together they cover both pre-planned and reactive deceleration demands." }
+      ]},
+      { name:"TUE", date:"Jul 15", intensity:"mod", type:"Court + Hands", exercises:[
+        { name:"Pickleball practice", spec:"Block 2 movement standard", science:"Block 2 court standard: every split step is automatic, no reminders needed. Kitchen movement stays low without conscious correction. <strong>If you're still consciously cuing these in Block 2, the drills haven't transferred to automatic yet — tell Coach Cole and we adjust the protocol.</strong>" },
+        { name:"Rapid Hands Wall — extended", spec:"3 × 25s · 45s rest", science:"Block 2 hand duration: 25 seconds versus 20 seconds in Block 1. Five additional seconds past the full forearm lactate threshold. The final 5 seconds is the new adaptation being built — speed and contact quality when the pump is fully established." }
+      ]},
+      { name:"WED", date:"Jul 16", intensity:"high", type:"Choice Reaction + Strength", exercises:[
+        { name:"Ladder to Random Call", spec:"4 × 8 reps · 45s rest", science:"Block 2 adds a fourth set. Four sets of choice reaction training is where the automaticity really accelerates — your nervous system has learned the pattern and is now building speed within it." },
+        { name:"Split Squat — rear foot elevated", spec:"3 × 10 each side · bodyweight first", science:"<strong>Block 2's biggest strength progression: rear foot elevated split squat (Bulgarian split squat).</strong> Elevating the rear foot increases the hip flexor stretch and single-leg quad demand by approximately 30% versus flat split squat. Start with bodyweight. Quality before load." },
+        { name:"Rotational Band Press", spec:"3 × 15 each side · heavier band", science:"Block 2: 15 reps with increased band resistance. The core stability under rotational force demand increases. This directly mirrors the force required to redirect a hard-driven ball at the kitchen line." }
+      ]},
+      { name:"THU", date:"Jul 17", intensity:"low", type:"Recovery", exercises:[
+        { name:"Contrast shower + mobility", spec:"Same recovery protocol", science:"Block 2 recovery protocols are identical to Block 1. Recovery methodology doesn't need to progress — it just needs to be executed consistently. <strong>The athletes who recover better than everyone else aren't doing exotic things. They're doing simple things without skipping them.</strong>" }
+      ]},
+      { name:"FRI", date:"Jul 18", intensity:"high", type:"Peak + Benchmark", exercises:[
+        { name:"Full integration session", spec:"All systems · record benchmark times", science:"Block 2's first Friday benchmark. Compare to Block 1 Week 4 benchmarks. <strong>If Block 2 Week 1 Friday times match Block 1 Week 3 Friday times, your periodization is working exactly as designed.</strong> You're starting Block 2 where Block 1 peaked." }
+      ]},
+      { name:"SAT", date:"Jul 19", intensity:"mod", type:"Match / Tournament", exercises:[
+        { name:"Block 2 competitive play", spec:"Apply Block 2 standards", science:"Block 2 match play standard: every movement principle is automatic. You are now playing pickleball at the mechanical level the 7ACE system was designed to build. <strong>Notice what your opponents are doing instinctively that you are now doing by design.</strong> That gap is closing." }
+      ]},
+      { name:"SUN", date:"Jul 20", intensity:"rest", type:"Full Rest", exercises:[
+        { name:"Full rest", spec:"Block 2 Week 1 closes", science:"Same Sunday standard. Rest is part of the program, not a gap in it." }
+      ]}
+    ]
+  },
+  {
+    label: "Block 3 — Weeks 9–12",
+    sub: "Advanced progressions. Plyometric loading introduced. Hand speed training adds partner pressure. Rest intervals compress further. The athlete built in Blocks 1–2 is now refined.",
+    sessions: 5, vol: "Max+", focus: "Peak performance + refinement",
+    days: [
+      { name:"MON", date:"Aug 4", intensity:"high", type:"Block 3 Opens", exercises:[
+        { name:"Plyometric warm-up progression", spec:"Box jumps 2×8 · lateral bounds 2×10", science:"Block 3 introduces plyometric loading to the warm-up. Box jumps train the stretch-shortening cycle at higher loads than pogos. Lateral bounds add single-leg push-off force production. <strong>These are not warm-up exercises — they are training stimuli in a warm-up slot.</strong> Treat them accordingly." },
+        { name:"Burst & Recover", spec:"3 × 8 · 35s rest", science:"Rest interval drops to 35 seconds in Block 3. This is a challenging phosphocreatine demand — replenishment is incomplete at 35 seconds, so each rep begins with slightly less fuel than the previous one. <strong>This trains the Blast system to maintain quality under fuel deficit — exactly what late-match explosive play demands.</strong>" },
+        { name:"Rally Wave", spec:"3 × 10 · 35s rest", science:"Same compression. The combination of 35s rest Rally Waves and 35s rest Bursts in the same session creates the highest explosive training demand in the program. Quality must come first — if form breaks in round 5, extend rest back to 40s." }
+      ]},
+      { name:"TUE", date:"Aug 5", intensity:"high", type:"Court + Advanced Hands", exercises:[
+        { name:"Full pickleball practice", spec:"Maximum competitive quality", science:"Block 3 court practice operates at match intensity. No warmdown drills — full speed, full competition quality, every point. <strong>The conditioning base built over 8 weeks should be invisible now — it's the infrastructure, not the focus.</strong>" },
+        { name:"Partner pressure hands drill", spec:"Partner varies pace · 3 × 90s continuous", science:"Block 3 hand training adds partner variation. Partner intentionally varies speed, angle, and spin during 90-second sustained exchanges. This is chaos-level choice reaction for the hands — the exact condition of a 4.5+ kitchen battle." }
+      ]},
+      { name:"WED", date:"Aug 6", intensity:"high", type:"Full Agility + Peak Strength", exercises:[
+        { name:"Ladder to Random Call", spec:"4 × 8 · 40s rest · complex patterns only", science:"Block 3 uses only the most complex ladder patterns — in/out, crossover, Ali shuffle. The cognitive load of complex patterns plus random cone reaction is the highest choice reaction demand in the program." },
+        { name:"Bulgarian split squat", spec:"3 × 12 each · add dumbbells", science:"Block 3: rear foot elevated with dumbbell load. After 8 weeks of progression from bodyweight flat split squat, you now have the hip stability and quad strength to load this safely. <strong>The Bulgarian split squat is the single most transfer-effective strength exercise in the 7ACE system for pickleball.</strong>" }
+      ]},
+      { name:"THU", date:"Aug 7", intensity:"low", type:"Recovery + Mobility", exercises:[
+        { name:"Full recovery protocol", spec:"Contrast shower · 30 min mobility · Zone 2 walk", science:"Block 3 recovery load is highest. Three high-intensity sessions Mon–Wed demands a full Thursday recovery day. <strong>The athlete who skips recovery in Block 3 gets injured in Block 3.</strong> This is not a coincidence — it is predictable physiology." }
+      ]},
+      { name:"FRI", date:"Aug 8", intensity:"high", type:"Peak Block Session", exercises:[
+        { name:"Full circuit — all systems", spec:"Record all benchmarks", science:"Block 3 Friday benchmark. Compare to Block 1 Week 1 baseline. <strong>The difference between your Block 1 Week 1 numbers and your Block 3 Week 9 numbers is 8 weeks of 7ACE training made visible as performance data.</strong>" }
+      ]},
+      { name:"SAT", date:"Aug 9", intensity:"mod", type:"Tournament Play", exercises:[
+        { name:"Competitive tournament", spec:"Block 3 performance expression", science:"By Block 3, the physiology is built. The movement is automatic. The hand speed is trained. <strong>Now the only variable is the mental game.</strong> Chapter 7 (The Zone) becomes the primary focus at this stage — the body is ready; the mind must follow." }
+      ]},
+      { name:"SUN", date:"Aug 10", intensity:"rest", type:"Full Rest", exercises:[
+        { name:"Full rest", spec:"Block 3 Week 1 closes", science:"The system works. Rest is how you know it's working." }
+      ]}
+    ]
+  }
+];
+
+let currentWeekIdx = 0;
+let currentDayIdx = null;
+let currentExercises = [];
+
+// ── WEEK RENDER ──────────────────────────────────────────────
+function renderWeek(weekIdx) {
+  const week = WEEKS[weekIdx];
+  document.getElementById('week-hero-title').textContent = week.label;
+  document.getElementById('week-hero-sub').textContent = week.sub;
+  document.getElementById('stat-sessions').textContent = week.sessions;
+  document.getElementById('stat-vol').textContent = week.vol;
+  document.getElementById('stat-focus').textContent = week.focus;
+
+  const grid = document.getElementById('weekGrid');
+  grid.innerHTML = '';
+  week.days.forEach((day, i) => {
+    const col = document.createElement('div');
+    col.className = 'day-col';
+    col.onclick = () => selectDay(i, weekIdx);
+    col.innerHTML = `
+      <div class="day-col-head">
+        <div class="day-col-name">${day.name}</div>
+        <div class="day-col-date">${day.date}</div>
+      </div>
+      <div class="day-col-body">
+        <div class="intensity-dot ${day.intensity}"></div>
+        <div class="day-col-type">${day.type}</div>
+      </div>`;
+    grid.appendChild(col);
+  });
+
+  document.getElementById('sessionPanel').querySelector('.session-panel-title').textContent = 'Select a day above';
+  document.getElementById('session-badges').innerHTML = '';
+  document.getElementById('session-blocks').innerHTML = '<div style="color: var(--muted); font-size: 13px; padding: 8px 0;">Click any day in the calendar to load that session.</div>';
+  document.getElementById('dl-btn').style.display = 'none';
+  currentDayIdx = null;
+}
+
+function selectDay(dayIdx, weekIdx) {
+  const week = WEEKS[weekIdx];
+  const day = week.days[dayIdx];
+  currentExercises = day.exercises;
+
+  document.querySelectorAll('.day-col').forEach((c, i) => {
+    c.classList.toggle('selected', i === dayIdx);
+  });
+  currentDayIdx = dayIdx;
+
+  document.getElementById('session-title').textContent = `${day.name} — ${day.type}`;
+  const intensityLabels = { high: 'High Intensity', mod: 'Moderate', low: 'Recovery', rest: 'Rest' };
+  document.getElementById('session-badges').innerHTML = `<span class="s-badge ${day.intensity}">${intensityLabels[day.intensity]}</span><span class="s-badge mod">${day.exercises.length} exercises</span>`;
+
+  const blocksEl = document.getElementById('session-blocks');
+  blocksEl.innerHTML = day.exercises.map((ex, i) => `
+    <div class="exercise-row" onclick="toggleEx(this)">
+      <div class="exercise-top">
+        <div class="ex-num">${String(i+1).padStart(2,'0')}</div>
+        <div class="ex-info">
+          <div class="ex-name">${ex.name}</div>
+          <div class="ex-spec">${ex.spec.split(' · ').map(s => `<span>${s}</span>`).join('<span style="color:var(--hint)"> · </span>')}</div>
+        </div>
+        <div class="ex-toggle">+</div>
+      </div>
+      <div class="exercise-science">
+        <div class="sci-label">Why it works</div>
+        <div class="sci-text">${ex.science}</div>
+      </div>
+    </div>`).join('');
+
+  document.getElementById('dl-btn').style.display = 'inline-flex';
+}
+
+function toggleEx(row) { row.classList.toggle('open'); }
+
+function selectWeek(idx, btn) {
+  document.querySelectorAll('.sidebar-item').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentWeekIdx = idx;
+  renderWeek(idx);
+}
+
+// ── DOWNLOAD SESSION ─────────────────────────────────────────
+function downloadSession() {
+  if (currentDayIdx === null) return;
+  const week = WEEKS[currentWeekIdx];
+  const day = week.days[currentDayIdx];
+  const exHTML = day.exercises.map((ex, i) => `
+    <div style="background:#1a1a1a;border-radius:10px;overflow:hidden;margin-bottom:10px;">
+      <div style="padding:14px 16px;display:flex;gap:14px;align-items:flex-start;">
+        <div style="font-size:10px;font-weight:600;color:#505050;min-width:20px;padding-top:2px;">${String(i+1).padStart(2,'0')}</div>
+        <div>
+          <div style="font-size:14px;font-weight:500;color:#f0f0ee;margin-bottom:4px;">${ex.name}</div>
+          <div style="font-size:12px;color:#808078;">${ex.spec}</div>
+        </div>
+      </div>
+      <div style="padding:0 16px 14px 50px;border-top:0.5px solid rgba(255,255,255,0.06);">
+        <div style="font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#e8f040;margin:12px 0 6px;">Why it works</div>
+        <div style="font-size:13px;color:#a0a09a;line-height:1.75;">${ex.science}</div>
+      </div>
+    </div>`).join('');
+
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>7ACE · ${day.name} ${day.type}</title><link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500&display=swap" rel="stylesheet"><style>*{box-sizing:border-box;margin:0;padding:0}body{background:#0a0a0a;color:#f0f0ee;font-family:Inter,sans-serif;padding:0 0 60px}header{background:#131313;border-bottom:.5px solid rgba(255,255,255,.1);padding:36px 28px 28px}header .eyebrow{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#e8f040;margin-bottom:10px}header h1{font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:700;line-height:1.1;margin-bottom:8px}header .meta{font-size:13px;color:#808078}.main{max-width:720px;margin:0 auto;padding:24px 20px}.section-label{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#505050;margin:24px 0 12px}</style></head><body><header><div class="eyebrow">7ACE Conditioning System · ${week.label}</div><h1>${day.name} — ${day.type}</h1><div class="meta">${day.exercises.length} exercises · ${{'high':'High Intensity','mod':'Moderate','low':'Recovery','rest':'Rest'}[day.intensity]}</div></header><div class="main"><div class="section-label">Session</div>${exHTML}</div></body></html>`;
+
+  const blob = new Blob([html], {type:'text/html'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `7ACE_${day.name}_${day.type.replace(/[^a-z0-9]/gi,'_')}.html`;
+  a.click();
+}
+
+// ── AI COACH ─────────────────────────────────────────────────
+const SYSTEM_PROMPT = `You are Coach Dr. Adrian Cole — Director of Racket Sports Performance Science, PhD in Exercise Physiology, CSCS. You work with Carlos, a competitive 4.0+ pickleball player in Orlando working through the 7ACE Conditioning System v2.0.
+
+The 7ACE system uses this specific language you must always use:
+- "The Blast" = ATP-PC system (phosphocreatine, 0–10s explosive bursts)
+- "The Burn" = Glycolytic system (lactate, 10s–2min)  
+- "The Base" = Aerobic system (oxidative, 2min+, also powers recovery BETWEEN points)
+- "The Rally Wave" = 8s max feet + 45s recovery drill (ATP-PC replenishment training)
+- "The Reaction Chain" = Read → Decide → Organize → Finish
+- "Choice reaction" vs "Simple reaction" — pickleball demands choice reaction, not simple
+- "Freedom to Fail" = the 7ACE philosophy that breakdown reveals the exact boundary of current conditioning
+- "Supercompensation" = the body rebuilding above baseline during deload week
+
+Carlos has completed Chapter 1 (Energy Systems) and is partway through Chapter 2 (Movement Mechanics). He earned B+ on his Chapter 1 verbal assessment.
+
+Key principles Carlos knows:
+- ATP-PC requires 30–90s for meaningful replenishment (not 10s)
+- Rest is active recovery management, not passive downtime
+- Late-match fatigue has two distinct causes: in-match recovery management vs underdeveloped aerobic base
+- Split step converts passive positioning to active elastic energy
+- Eccentric muscle actions are highest-stress and build tendon resilience
+- Injury chain: weak aerobic base → central fatigue → degraded eccentric control
+
+Your coaching style:
+- Speak like a PhD sports scientist who has worked with ATP and WTA professionals
+- Always connect physiology to specific tactical pickleball situations
+- Use the Socratic method: ask Carlos what his model is before correcting
+- When he performs a drill wrong or has a performance problem, diagnose the mechanism — don't just give him a correction
+- Keep the teaching going — every answer should leave him knowing more than before
+- Never be vague. Be specific, mechanistic, direct.
+- Keep responses concise but complete — this is a chat interface on his phone courtside.`;
+
+let chatHistory = [];
+
+async function sendMessage() {
+  const input = document.getElementById('chatInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+
+  // Add performance logs to context
+  const logs = JSON.parse(localStorage.getItem('7ace_logs') || '[]');
+  const logContext = logs.length > 0 ? `\n\nCarlos's recent session logs:\n${logs.slice(-5).map(l => `${l.date} ${l.session}: Energy ${l.energy}/10, Rally Wave broke at round ${l.rally}, Ankle stability ${l.wobble}/5. Notes: ${l.notes}`).join('\n')}` : '';
+
+  addMsg('user', msg);
+  input.value = '';
+  chatHistory.push({ role: 'user', content: msg });
+
+  const sendBtn = document.getElementById('chatSend');
+  sendBtn.disabled = true;
+  const typingId = addTyping();
+
+  try {
+    const messages = chatHistory.length > 1
+      ? chatHistory
+      : [{ role: 'user', content: msg }];
+
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        system: SYSTEM_PROMPT + logContext,
+        messages: messages
+      })
+    });
+
+    const data = await res.json();
+    const reply = data.content?.[0]?.text || 'Something went wrong — try again.';
+
+    removeTyping(typingId);
+    addMsg('coach', reply);
+    chatHistory.push({ role: 'assistant', content: reply });
+    if (chatHistory.length > 20) chatHistory = chatHistory.slice(-20);
+  } catch(e) {
+    removeTyping(typingId);
+    addMsg('coach', 'Connection error. Check your internet and try again.');
+  }
+  sendBtn.disabled = false;
+}
+
+function addMsg(role, text) {
+  const msgs = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = `msg ${role}`;
+  div.innerHTML = `<div class="msg-label">${role === 'coach' ? 'Coach Cole' : 'Carlos'}</div><div class="msg-bubble">${text.replace(/\n/g,'<br>')}</div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  return div;
+}
+
+function addTyping() {
+  const msgs = document.getElementById('chatMessages');
+  const id = 'typing-' + Date.now();
+  const div = document.createElement('div');
+  div.className = 'msg coach'; div.id = id;
+  div.innerHTML = `<div class="msg-label">Coach Cole</div><div class="msg-bubble"><div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  return id;
+}
+
+function removeTyping(id) {
+  const el = document.getElementById(id);
+  if (el) el.remove();
+}
+
+function quickPrompt(text) {
+  document.getElementById('chatInput').value = text;
+  sendMessage();
+}
+
+// ── SESSION LOGGING ───────────────────────────────────────────
+function saveLog() {
+  const entry = {
+    date: new Date().toLocaleDateString(),
+    session: document.getElementById('log-session').value,
+    energy: document.getElementById('log-energy').value,
+    rally: document.getElementById('log-rally').value,
+    wobble: document.getElementById('log-wobble').value,
+    notes: document.getElementById('log-notes').value,
+    ts: Date.now()
+  };
+  if (!entry.session) { alert('Select a session first.'); return; }
+
+  const logs = JSON.parse(localStorage.getItem('7ace_logs') || '[]');
+  logs.push(entry);
+  localStorage.setItem('7ace_logs', JSON.stringify(logs));
+
+  renderLogs();
+  updateProgress();
+  document.getElementById('log-session').value = '';
+  document.getElementById('log-energy').value = '';
+  document.getElementById('log-rally').value = '';
+  document.getElementById('log-wobble').value = '';
+  document.getElementById('log-notes').value = '';
+}
+
+function renderLogs() {
+  const logs = JSON.parse(localStorage.getItem('7ace_logs') || '[]');
+  const el = document.getElementById('loggedEntries');
+  el.innerHTML = logs.slice(-3).reverse().map(l => `
+    <div class="log-entry">
+      <div class="log-entry-date">${l.date} · ${l.session}</div>
+      <div class="log-entry-text">Energy: ${l.energy}/10 · Rally Wave: round ${l.rally} · Ankle: ${l.wobble}/5</div>
+      ${l.notes ? `<div style="margin-top:4px;font-size:11px;color:var(--hint)">${l.notes}</div>` : ''}
+    </div>`).join('');
+
+  const allLogsEl = document.getElementById('allLogs');
+  if (logs.length === 0) {
+    allLogsEl.innerHTML = '<div class="card"><div style="color: var(--muted); font-size: 13px;">No sessions logged yet. Use the AI Coach tab to log your first session.</div></div>';
+  } else {
+    allLogsEl.innerHTML = logs.slice().reverse().map(l => `
+      <div class="card" style="margin-bottom:10px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+          <div class="card-title">${l.session}</div>
+          <div style="font-size:11px;color:var(--muted)">${l.date}</div>
+        </div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-bottom:${l.notes?'8px':'0'}">
+          <span>Energy: <strong style="color:var(--text)">${l.energy}/10</strong></span>
+          <span>Rally Wave: <strong style="color:var(--text)">Round ${l.rally}</strong></span>
+          <span>Ankle stability: <strong style="color:var(--text)">${l.wobble}/5</strong></span>
+        </div>
+        ${l.notes ? `<div style="font-size:12px;color:var(--muted);line-height:1.6">${l.notes}</div>` : ''}
+      </div>`).join('');
+  }
+}
+
+function updateProgress() {
+  const logs = JSON.parse(localStorage.getItem('7ace_logs') || '[]');
+  document.getElementById('pg-sessions').textContent = logs.length;
+  document.getElementById('pg-bar').style.width = Math.min(100, logs.length / 16 * 100) + '%';
+
+  if (logs.length > 0) {
+    const avgEnergy = (logs.reduce((s,l) => s + Number(l.energy||0), 0) / logs.length).toFixed(1);
+    const rallyLogs = logs.filter(l => l.rally);
+    const avgRally = rallyLogs.length ? (rallyLogs.reduce((s,l) => s + Number(l.rally), 0) / rallyLogs.length).toFixed(1) : '—';
+    const wobbleLogs = logs.filter(l => l.wobble);
+    const avgWobble = wobbleLogs.length ? (wobbleLogs.reduce((s,l) => s + Number(l.wobble), 0) / wobbleLogs.length).toFixed(1) : '—';
+
+    document.getElementById('pg-energy').textContent = avgEnergy;
+    document.getElementById('pg-energy-note').textContent = avgEnergy >= 7 ? '↑ Good recovery' : '↓ Check sleep + nutrition';
+    document.getElementById('pg-rally').textContent = `Rd ${avgRally}`;
+    document.getElementById('pg-rally-note').textContent = Number(avgRally) >= 8 ? '✓ Hitting target' : 'Below target — aerobic base work needed';
+    document.getElementById('pg-wobble').textContent = avgWobble + '/5';
+    document.getElementById('pg-wobble-note').textContent = Number(avgWobble) <= 2 ? '✓ Stable' : 'Ankle proprioception needs work';
+  }
+}
+
+// ── TAB SWITCHING ─────────────────────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('view-' + tab).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// ── INIT ──────────────────────────────────────────────────────
+renderWeek(0);
+renderLogs();
+updateProgress();
+</script>
+</body>
+</html>

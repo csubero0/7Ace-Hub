@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>7ACE Practice Plan Builder</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#080A0E;color:#E8EAF0;font-family:'DM Sans',sans-serif;min-height:100vh}
+.hidden{display:none!important}
+.hdr{background:#0D1117;border-bottom:2px solid #1E90FF22;padding:14px 16px;position:sticky;top:0;z-index:200}
+.hdr-row{display:flex;justify-content:space-between;align-items:center;max-width:480px;margin:0 auto}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:26px;color:#1E90FF;letter-spacing:3px}
+.sub{font-size:10px;color:#4B5563;text-transform:uppercase;letter-spacing:1px;margin-top:1px}
+.lang-btns{display:flex;gap:5px}
+.lb{background:#1C2030;border:1px solid #2A3050;color:#6B7280;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;cursor:pointer;font-family:'DM Sans',sans-serif}
+.lb.on{background:#1E90FF20;border-color:#1E90FF;color:#1E90FF}
+.wrap{max-width:480px;margin:0 auto;padding:12px 14px 100px}
+.sec{margin-bottom:16px}
+.sec-lbl{font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:2px;color:#4B5563;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.sec-lbl::after{content:'';flex:1;height:1px;background:#1C2030}
+.card{background:#161923;border:1px solid #1C2030;border-radius:12px;padding:13px}
+.card.blue{border-color:#1E90FF20}
+.card.gold{border-color:#E8A02020}
+.card.purple{border-color:#9B59B620}
+.card.green{border-color:#00D68F20}
+.card.red{border-color:#E74C3C20}
+/* DB PANEL */
+.db-panel{background:#0D1117;border:1px solid #1E90FF22;border-radius:10px;padding:11px 13px;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.db-dot{width:8px;height:8px;border-radius:50%;background:#4B5563;flex-shrink:0;transition:background .3s}
+.db-dot.connected{background:#00D68F}
+.db-dot.loading{background:#E8A020;animation:pulse 1s infinite}
+.db-info{flex:1;font-size:12px;color:#6B7280}
+.db-name{font-weight:600;color:#E8EAF0;font-size:12px}
+.db-btn{background:#1C2030;border:1px solid #2A3050;color:#9CA3AF;font-size:11px;font-weight:600;padding:5px 12px;border-radius:8px;cursor:pointer;white-space:nowrap;font-family:'DM Sans',sans-serif}
+.db-btn:hover{border-color:#1E90FF;color:#1E90FF}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+/* FIELD */
+.frow{display:flex;gap:8px}
+.field{flex:1;margin-bottom:10px}
+.field:last-child{margin-bottom:0}
+.field label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#4B5563;display:block;margin-bottom:5px}
+.field input,.field select,.field textarea{width:100%;background:#0D1117;border:1px solid #2A3050;border-radius:8px;padding:9px 11px;color:#E8EAF0;font-family:'DM Sans',sans-serif;font-size:13px;outline:none}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:#1E90FF}
+.field select option{background:#161923}
+/* PLAN TYPE TABS */
+.pt-tabs{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-bottom:0}
+.pt-tab{text-align:center;padding:9px 4px;border-radius:9px;cursor:pointer;font-size:11px;font-weight:700;letter-spacing:.3px;border:1px solid #2A3050;background:#0D1117;color:#4B5563;transition:all .2s;line-height:1.3}
+.pt-tab.on{background:#1E90FF15;border-color:#1E90FF;color:#1E90FF}
+/* FOCUS CHIPS */
+.fchip-grid{display:flex;flex-wrap:wrap;gap:5px}
+.fchip{padding:5px 11px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid #2A3050;background:#0D1117;color:#6B7280;transition:all .2s;user-select:none}
+.fchip.on{background:#1E90FF15;border-color:#1E90FF;color:#1E90FF}
+.fchip.gold.on{background:#E8A02015;border-color:#E8A020;color:#E8A020}
+.fchip.purple.on{background:#9B59B615;border-color:#9B59B6;color:#9B59B6}
+.fchip.green.on{background:#00D68F15;border-color:#00D68F;color:#00D68F}
+/* PLAYERS */
+.player-row{display:flex;align-items:center;gap:9px;padding:8px 11px;background:#0D1117;border:1px solid #1C2030;border-radius:9px;cursor:pointer;transition:all .2s;user-select:none;margin-bottom:5px}
+.player-row.sel{background:#1E90FF08;border-color:#1E90FF35}
+.player-row.sel .pcheck{background:#1E90FF;border-color:#1E90FF;color:#fff}
+.pcheck{width:15px;height:15px;border-radius:4px;border:2px solid #2A3050;display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;transition:all .2s}
+.pname{font-weight:600;font-size:13px;flex:1}
+.pdupr{font-size:11px;color:#4B5563;margin-right:4px}
+.pcat{font-size:10px;padding:2px 7px;border-radius:7px;background:#1C2030;color:#4B5563}
+.pdata-dot{width:6px;height:6px;border-radius:50%;background:#00D68F;flex-shrink:0;title:'Live data'}
+/* BUILD BTN */
+.build-btn{width:100%;background:linear-gradient(135deg,#1E90FF,#005FCC);border:none;border-radius:12px;padding:15px;color:#fff;font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:3px;cursor:pointer;transition:all .2s}
+.build-btn:hover{transform:translateY(-1px);box-shadow:0 8px 20px #1E90FF30}
+/* OUTPUT */
+.plan-hdr{background:#161923;border-left:4px solid #1E90FF;padding:15px;border-radius:12px;margin-bottom:11px}
+.plan-title{font-family:'Bebas Neue',sans-serif;font-size:21px;color:#1E90FF;letter-spacing:2px}
+.plan-meta{color:#6B7280;font-size:12px;margin-top:3px}
+.pchips{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.pchip2{background:#1C2030;border:1px solid #1E90FF22;border-radius:20px;padding:3px 10px;font-size:11px;color:#9CA3AF}
+.theme-bar{background:#E8A020;color:#080A0E;font-family:'Bebas Neue',sans-serif;font-size:14px;padding:9px 14px;border-radius:9px;margin-bottom:11px;letter-spacing:1px}
+.day-card{background:#161923;border:1px solid #1C2030;border-radius:12px;margin-bottom:10px;overflow:hidden}
+.day-hdr{padding:11px 14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #1C2030;cursor:pointer}
+.day-title{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1px}
+.day-badge{font-size:11px;color:#4B5563;background:#0D1117;padding:3px 9px;border-radius:7px}
+.day-body{padding:12px 14px}
+.block{margin-bottom:13px;padding-bottom:13px;border-bottom:1px solid #1C2030}
+.block:last-child{margin-bottom:0;padding-bottom:0;border-bottom:none}
+.block-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#4B5563;margin-bottom:6px;display:flex;justify-content:space-between}
+.block-lbl span{color:#1E90FF;font-family:'Bebas Neue',sans-serif;font-size:13px}
+.drill-name{font-weight:700;font-size:13px;color:#E8EAF0;margin-bottom:3px}
+.drill-id{font-family:'Bebas Neue',sans-serif;font-size:11px;color:#4B5563;letter-spacing:1px;margin-right:5px}
+.drill-sub{font-size:12px;color:#6B7280;line-height:1.6;margin-bottom:4px}
+.steps{list-style:none;margin:5px 0 0;padding:0}
+.steps li{display:flex;gap:7px;font-size:12px;color:#9CA3AF;margin-bottom:4px;line-height:1.5}
+.steps li .n{font-family:'Bebas Neue',sans-serif;color:#1E90FF;min-width:15px;font-size:12px}
+.cue{background:#1C2030;border-left:3px solid #E8A020;padding:7px 10px;border-radius:5px;font-size:12px;color:#E8A020;margin-top:7px;line-height:1.5}
+.mcue{background:#1C2030;border-left:3px solid #9B59B6;padding:7px 10px;border-radius:5px;font-size:12px;color:#9B59B6;margin-top:7px;line-height:1.5}
+.intel-row{padding:9px 0;border-bottom:1px solid #1C2030}
+.intel-row:last-child{border-bottom:none;padding-bottom:0}
+.iname{font-weight:700;font-size:13px}
+.idupr{font-size:11px;color:#4B5563;margin-left:5px}
+.itag{font-size:11px;margin:2px 0}
+.itag.up{color:#00D68F}
+.itag.dn{color:#E74C3C}
+.pair-note{background:#0D1117;border:1px solid #1E90FF18;border-radius:9px;padding:10px 12px;margin-bottom:11px;font-size:12px;color:#6B7280;line-height:1.7}
+.action-row{display:flex;gap:8px;margin-bottom:14px}
+.act-btn{flex:1;padding:10px;border-radius:9px;font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;border:none;cursor:pointer}
+.act-btn.pri{background:#1E90FF;color:#fff}
+.act-btn.sec{background:#1C2030;color:#6B7280;border:1px solid #2A3050}
+.plan-footer{text-align:center;font-size:11px;color:#2A3050;padding:14px 0 30px;border-top:1px solid #1C2030;margin-top:6px;font-style:italic}
+.solo-badge{display:inline-block;background:#9B59B615;border:1px solid #9B59B635;color:#9B59B6;font-size:10px;font-weight:700;padding:2px 8px;border-radius:7px;margin-left:6px;letter-spacing:.5px}
+@media print{
+  .hdr,.action-row,.build-btn,#builder-form{display:none!important}
+  #plan-output{display:block!important}
+  body{background:#fff;color:#000}
+  .day-card,.plan-hdr{border:1px solid #ddd;background:#f9f9f9}
+  .day-hdr{background:#f0f0f0}
+  .day-title{color:#1E90FF}
+  .theme-bar{background:#E8A020!important;-webkit-print-color-adjust:exact}
+  .cue{background:#fff8e6;border-left:3px solid #E8A020;color:#9B6A00}
+  .mcue{background:#f5f0ff;border-left:3px solid #9B59B6;color:#6B3DB6}
+}
+
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-row">
+    <div>
+      <div class="logo">7ACE</div>
+      <div class="sub" id="hdr-sub">Practice Plan Generator · Coach Carlos Subero</div>
+    </div>
+    <div class="lang-btns">
+      <button class="lb on" onclick="setLang('en',this)">EN</button>
+      <button class="lb" onclick="setLang('es',this)">ES</button>
+    </div>
+  </div>
+</div>
+
+<!-- BUILDER FORM -->
+<div class="wrap" id="builder-form">
+
+  <!-- DASHBOARD PANEL -->
+  <div class="db-panel">
+    <div class="db-dot" id="db-dot"></div>
+    <div class="db-info" id="db-info">No dashboard connected</div>
+    <button class="db-btn" id="db-btn" onclick="loadDashboardClick()">Load Dashboard</button>
+  </div>
+
+  <!-- PLAN TYPE -->
+  <div class="sec">
+    <div class="pt-tabs">
+      <div class="pt-tab on" id="pt-single" onclick="setPlanType('single',this)">Single Session</div>
+      <div class="pt-tab" id="pt-3day" onclick="setPlanType('3day',this)">3-Day Plan</div>
+      <div class="pt-tab" id="pt-weekly" onclick="setPlanType('weekly',this)">Weekly Plan</div>
+      <div class="pt-tab" id="pt-monthly" onclick="setPlanType('monthly',this)">Monthly Plan</div>
+    </div>
+  </div>
+
+  <!-- SESSION SETUP -->
+  <div class="sec">
+    <div class="sec-lbl" id="lbl-setup">SESSION SETUP</div>
+    <div class="card">
+      <div class="frow">
+        <div class="field">
+          <label id="lbl-date">Date</label>
+          <input type="date" id="sess-date">
+        </div>
+        <div class="field">
+          <label id="lbl-dur">Duration</label>
+          <select id="sess-dur">
+            <option value="60">60 min</option>
+            <option value="90" selected>90 min</option>
+            <option value="120">120 min</option>
+            <option value="custom">Custom…</option>
+          </select>
+        </div>
+      </div>
+      <div class="field hidden" id="custom-wrap">
+        <label>Custom Duration (min)</label>
+        <input type="number" id="custom-dur" value="90" min="20" max="240">
+      </div>
+      <div class="frow">
+        <div class="field">
+          <label id="lbl-loc">Location</label>
+          <select id="sess-loc">
+            <option value="lab">LAB (Garage)</option>
+            <option value="club" selected>Club</option>
+            <option value="indoor">Indoor</option>
+            <option value="outdoor">Outdoor</option>
+          </select>
+        </div>
+        <div class="field" id="courts-wrap">
+          <label id="lbl-courts">Courts</label>
+          <select id="sess-courts">
+            <option value="1">1 Court</option>
+            <option value="2" selected>2 Courts</option>
+            <option value="3">3 Courts</option>
+            <option value="4">4 Courts</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOCUS AREAS -->
+  <div class="sec">
+    <div class="sec-lbl" id="lbl-focus">FOCUS AREA</div>
+    <div class="card">
+      <div class="fchip-grid">
+<div class="fchip green" data-f="Warm-Up" onclick="toggleFocus(this)">Warm-Up</div>
+<div class="fchip green" data-f="Footwork" onclick="toggleFocus(this)">Footwork</div>
+<div class="fchip blue" data-f="Dinking" onclick="toggleFocus(this)">Dinking</div>
+<div class="fchip blue" data-f="Third Shot Drop" onclick="toggleFocus(this)">Third Shot Drop</div>
+<div class="fchip blue" data-f="Third Shot Drive" onclick="toggleFocus(this)">Third Shot Drive</div>
+<div class="fchip blue" data-f="Fourth Shot" onclick="toggleFocus(this)">Fourth Shot</div>
+<div class="fchip blue" data-f="Fifth Shot" onclick="toggleFocus(this)">Fifth Shot</div>
+<div class="fchip blue" data-f="Transition Zone" onclick="toggleFocus(this)">Transition Zone</div>
+<div class="fchip blue" data-f="Resets" onclick="toggleFocus(this)">Resets</div>
+<div class="fchip gold" data-f="Speed-Ups" onclick="toggleFocus(this)">Speed-Ups</div>
+<div class="fchip gold" data-f="Hands Battles" onclick="toggleFocus(this)">Hands Battles</div>
+<div class="fchip blue" data-f="Volleys" onclick="toggleFocus(this)">Volleys</div>
+<div class="fchip blue" data-f="Blocking" onclick="toggleFocus(this)">Blocking</div>
+<div class="fchip gold" data-f="Counter Attacks" onclick="toggleFocus(this)">Counter Attacks</div>
+<div class="fchip green" data-f="Serve" onclick="toggleFocus(this)">Serve</div>
+<div class="fchip green" data-f="Return" onclick="toggleFocus(this)">Return</div>
+<div class="fchip green" data-f="Lob" onclick="toggleFocus(this)">Lob</div>
+<div class="fchip green" data-f="Overhead" onclick="toggleFocus(this)">Overhead</div>
+<div class="fchip purple" data-f="ATP" onclick="toggleFocus(this)">ATP</div>
+<div class="fchip purple" data-f="Erne" onclick="toggleFocus(this)">Erne</div>
+<div class="fchip blue" data-f="Defense" onclick="toggleFocus(this)">Defense</div>
+<div class="fchip gold" data-f="Offense" onclick="toggleFocus(this)">Offense</div>
+<div class="fchip purple" data-f="Strategy" onclick="toggleFocus(this)">Strategy</div>
+<div class="fchip purple" data-f="Communication" onclick="toggleFocus(this)">Communication</div>
+<div class="fchip purple" data-f="Decision Making" onclick="toggleFocus(this)">Decision Making</div>
+<div class="fchip purple" data-f="Mental Game" onclick="toggleFocus(this)">Mental Game</div>
+<div class="fchip green" data-f="Conditioning" onclick="toggleFocus(this)">Conditioning</div>
+<div class="fchip gold" data-f="Competitive Games" onclick="toggleFocus(this)">Competitive Games</div>
+<div class="fchip gold" data-f="Pattern Play" onclick="toggleFocus(this)">Pattern Play</div>
+<div class="fchip green" data-f="Positioning" onclick="toggleFocus(this)">Positioning</div>
+<div class="fchip blue" data-f="Singles" onclick="toggleFocus(this)">Singles</div>
+<div class="fchip blue" data-f="Doubles" onclick="toggleFocus(this)">Doubles</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PLAYERS -->
+  <div class="sec">
+    <div class="sec-lbl" id="lbl-players">SELECT PLAYERS</div>
+    <div class="card" style="padding:8px">
+      <div id="player-list"></div>
+    </div>
+  </div>
+
+  <!-- NOTES -->
+  <div class="sec">
+    <div class="sec-lbl" id="lbl-notes">NOTES</div>
+    <div class="card">
+      <textarea id="sess-notes" rows="3" placeholder="Optional notes…" style="width:100%;background:#0D1117;border:1px solid #2A3050;border-radius:8px;padding:9px 11px;color:#E8EAF0;font-family:DM Sans,sans-serif;font-size:13px;resize:vertical;outline:none"></textarea>
+    </div>
+  </div>
+
+  <!-- BUILD BUTTON -->
+  <button class="build-btn" id="build-btn" onclick="buildPlan()">⚡ BUILD PLAN</button>
+
+</div>
+
+<!-- PLAN OUTPUT -->
+<div class="wrap" id="plan-output" style="display:none">
+  <div class="action-row">
+    <button class="act-btn sec" id="btn-back" onclick="document.getElementById('plan-output').style.display='none';document.getElementById('builder-form').style.display='block';window.scrollTo(0,0)">← BACK</button>
+    <button class="act-btn pri" id="btn-print" onclick="window.print()">🖨 PRINT / SAVE PDF</button>
+  </div>
+  <div id="plan-html"></div>
+</div>
+
+<script>
+const ROSTER=[
+  {name:'Carlos Subero',dupr:5.06,cat:'Private',routine:''},
+  {name:'Justin Graham',dupr:5.315,cat:'ODL',routine:''},
+  {name:'William Hsieh',dupr:5.435,cat:'ODL',routine:''},
+  {name:'Ivan Melians',dupr:5.005,cat:'ODL',routine:''},
+  {name:'Maxwell Walters-Smith',dupr:4.713,cat:'ODL',routine:''},
+  {name:'Arielle Nealy',dupr:4.642,cat:'ODL',routine:''},
+  {name:'Raynier Fernandez',dupr:4.600,cat:'ODL',routine:''},
+  {name:'Jared Gillespie',dupr:4.504,cat:'ODL',routine:''},
+  {name:'Maddy Stone-Wheatley',dupr:4.504,cat:'ODL',routine:''},
+  {name:'Jorge Mata',dupr:4.398,cat:'ODL',routine:''},
+  {name:'Andres Yanez',dupr:4.317,cat:'ODL',routine:'Deep breath → look at paddle → wiggle → play'},
+  {name:'Ethan De Los Reyes',dupr:4.307,cat:'ODL',routine:''},
+  {name:'Jacob Garcia',dupr:4.262,cat:'ZONE Kids',routine:''},
+  {name:'Diego Villarroel',dupr:4.145,cat:'ODL',routine:''},
+  {name:'Romina Casanova',dupr:4.125,cat:'ODL',routine:'Turn back to court → deep breath → hit paddle → go'},
+  {name:'Madden Mehan',dupr:4.105,cat:'ODL',routine:''},
+  {name:'Ethan Lin',dupr:3.653,cat:'ZONE Kids',routine:''},
+  {name:'Ellie Rodriguez',dupr:3.552,cat:'ZONE Kids',routine:''},
+  {name:'Hadi Mawji',dupr:3.452,cat:'ZONE Kids',routine:''},
+  {name:'Siro Paez',dupr:3.350,cat:'ODL',routine:''},
+  {name:'Kayan Mehan',dupr:3.265,cat:'ODL',routine:''},
+  {name:'Denise Kanashiro',dupr:null,cat:'ODL',routine:''},
+];
+
+// live data merged from dashboard (populated by loadDashboard)
+let liveData={};
+
+const DRILLS=[
+  {id:'DK01',name:'Corner-to-Middle Offensive Dinking',solo:false,cats:['Dinking','Offense','Decision Making'],nivel:'Intermediate',players:'2',time:'8–10',
+   como:'Both players at kitchen line.\nA dinks crosscourt to B\'s backhand corner.\nB redirects toward middle or hip of A.\nA resets or counters from compromised position.\nRotate roles every 10 reps.',
+   coaching:'Disguise redirect until last moment. Height determines aggression. Stay ready for the counter.'},
+  {id:'DK02',name:'Corner-to-Middle Defensive Dinking',solo:false,cats:['Dinking','Resets','Defense'],nivel:'Intermediate',players:'2',time:'8–10',
+   como:'B dinks crosscourt to A\'s backhand.\nA redirects defensively — soft contact, landing in kitchen.\nFocus on absorbing pace and controlling depth.\nRotate every 10 reps.',
+   coaching:'Soft hands beat stiff arms. Redirect is the weapon — disguise it.'},
+  {id:'DK03',name:'2-Ball Same-Quadrant Dinking',solo:false,cats:['Dinking','Footwork','Mental Game'],nivel:'Advanced',players:'2',time:'10',
+   como:'Two balls in play, each player managing one cross-court.\nMaintain rhythm without collision.\nIf one ball drops, pause and restart.\nProgress to alternating quadrants.',
+   coaching:'Peripheral vision is a skill — train it here. Breathe. Slow is smooth.'},
+  {id:'DK04',name:'1v2 Dinking System',solo:false,cats:['Dinking','Footwork','Defense'],nivel:'Intermediate',players:'3',time:'12',
+   como:'One player covers both crosscourt and down-the-line dinks from two opponents.\nPlayer must move laterally and control depth.\nRotate every 3 min.',
+   coaching:'Move BEFORE the ball — not after. Weight on balls of feet.'},
+  {id:'DK05',name:'Kitchen Accuracy Game',solo:true,cats:['Dinking','Decision Making'],nivel:'Beginner',players:'1–2',time:'8',
+   como:'Mark kitchen zones 1–9 with cones or tape.\nPlayer calls the number before each dink.\nHit 5 consecutive targets to advance.\nPlay to 11 targets made.',
+   coaching:'Call before you hit. Intention before execution.'},
+  {id:'DK06',name:'All-Flick Game',solo:false,cats:['Dinking','Speed-Ups','Hands Battles'],nivel:'Advanced',players:'2–4',time:'10',
+   como:'Both players in the kitchen. All shots must be flicks — no soft push dinks.\nRally to 11. Point winner stays on. Rotate challengers.',
+   coaching:'Compact swing. Contact in front. Wrist leads, not arm.'},
+  {id:'DK07',name:'Live Dinking System 1v1',solo:false,cats:['Dinking','Competitive Games'],nivel:'All',players:'2',time:'10',
+   como:'Open dinking rally — any shot legal.\nRally scoring to 11, win by 2. Best of 3.',
+   coaching:'Be patient until you create. Height determines aggression.'},
+  {id:'DK09',name:'Live Dinking System 2v2',solo:false,cats:['Dinking','Doubles','Communication','Competitive Games'],nivel:'All',players:'4',time:'12',
+   como:'Full 2v2 kitchen battle. Rally scoring to 15, win by 2.\nAll shots legal after 3 dinks. Partners communicate targets.',
+   coaching:'Talk to your partner. Middle belongs to the forehand. Stay connected.'},
+  {id:'DK10',name:'Self-Fed Dinking',solo:true,cats:['Dinking','Warm-Up'],nivel:'Beginner',players:'1',time:'5',
+   como:'Self-feed with gentle toss, dink into kitchen.\n50 reps. Focus on contact point, paddle angle, depth control.',
+   coaching:'Contact in front. Low to high swing path. Relax the grip.'},
+  {id:'DK11',name:'Coach-Fed Dinking',solo:false,cats:['Dinking'],nivel:'Beginner',players:'2',time:'8',
+   como:'Coach feeds from opposite kitchen with varied pace and placement.\nPlayer returns soft with control. 3 sets of 15 reps.',
+   coaching:'Respond, don\'t react. Stay loose.'},
+  {id:'DK12',name:'2-Tempo Same-Side Backhand Kitchen Control',solo:false,cats:['Dinking','Strategy'],nivel:'Intermediate',players:'2',time:'10',
+   como:'A dinks backhand crosscourt to B\'s forehand.\nB returns soft to A\'s backhand.\nA hits two consecutive backhands before any redirect.\n15 reps each side.',
+   coaching:'2-tempo means patience. First dink to set up, second to redirect.'},
+  {id:'SR01',name:'4-Shot Sequence',solo:false,cats:['Serve','Return','Third Shot Drop','Transition Zone'],nivel:'Beginner',players:'2',time:'15',
+   como:'Server serves deep.\nReturner returns and advances.\nServer drops or drives on 3rd shot.\nReturner volleys or resets on 4th.\n10 reps, switch.',
+   coaching:'4-shot sequence sets the tone for the point. Execute with intention.'},
+  {id:'SR02',name:'7-11 Reset Game',solo:false,cats:['Serve','Return','Resets','Strategy','Competitive Games'],nivel:'Intermediate',players:'2',time:'15',
+   como:'Server has 7 shots to win. Returner has 11.\nServer wins within 7 → server point.\nReturner survives to 11 → returner point.\nFirst to 10 wins.',
+   coaching:'Server: create early. Returner: stay alive, neutralize, wait.'},
+  {id:'TR01',name:'Baseline-to-Kitchen Progressive Reset',solo:false,cats:['Resets','Transition Zone','Third Shot Drop'],nivel:'Beginner',players:'2',time:'15',
+   como:'Player at baseline drops.\nCoach feeds 4th ball from NVZ.\nPlayer resets and takes one step forward.\nRepeat until player reaches kitchen. 3 sets.',
+   coaching:'Reset first. Advance second. Never reverse those two.'},
+  {id:'TR02',name:'Transition Control Drill',solo:false,cats:['Resets','Transition Zone','Defense'],nivel:'Intermediate',players:'2',time:'15',
+   como:'Two at baseline, two at NVZ.\nBaseline players drop or reset every shot to advance.\nNVZ players apply gentle pressure.\nRotate every 3 min.',
+   coaching:'The transition zone is where most points are lost. Own it.'},
+  {id:'TR03',name:'Drive-Drop Transition System',solo:false,cats:['Third Shot Drop','Third Shot Drive','Transition Zone','Decision Making'],nivel:'Advanced',players:'2',time:'20',
+   como:'One ball live. Server declares DRIVE or DROP before hitting.\nReturner responds to whatever comes.\n10 reps each role, switch.',
+   coaching:'Commit before you swing. Drive if they\'re at baseline. Drop if they\'re advancing.'},
+  {id:'DD01',name:'3-Station Drop System',solo:true,cats:['Third Shot Drop'],nivel:'Beginner',players:'1–2',time:'12',
+   como:'Station 1 (service line): 10 drops.\nStation 2 (mid-court): 10 drops.\nStation 3 (baseline): 10 drops.\nSelf-fed or partner-fed. Focus on arc over net.',
+   coaching:'Arc first. Pace is secondary. If it clears the net deep, you succeeded.'},
+  {id:'DD02',name:'Drives vs Net',solo:false,cats:['Third Shot Drive','Offense'],nivel:'Intermediate',players:'2',time:'10',
+   como:'Player drives 20 balls from mid-court targeting specific zones.\nPartner at NVZ calls the target before each feed.\nMeasure success rate.',
+   coaching:'Drive through the ball. Hips before hands.'},
+  {id:'DD03',name:'Bottle Placement',solo:true,cats:['Third Shot Drop'],nivel:'Beginner',players:'1',time:'10',
+   como:'Place 3 bottles in kitchen at zones 3, 5, 7.\nDrop 30 balls from mid-court aiming near bottles.\nCount hits within 1 foot.',
+   coaching:'Target gives you feedback. Trust the arc.'},
+  {id:'DD04',name:'Bottle Placement — Serve Variant',solo:true,cats:['Third Shot Drop','Serve'],nivel:'Intermediate',players:'1–2',time:'12',
+   como:'Serve deep crosscourt.\nFollow with drop aimed at bottle target.\n20 sequence reps. Track serve and drop accuracy separately.',
+   coaching:'The serve sets up the drop. Don\'t rush the serve.'},
+  {id:'DD05',name:'Self-Fed 3rd Shot Drop',solo:true,cats:['Third Shot Drop'],nivel:'Beginner',players:'1',time:'8',
+   como:'Toss ball, let it bounce, drop from mid-court.\n40 reps. Focus on low contact point and high arc.',
+   coaching:'Low contact = high arc. That\'s the formula.'},
+  {id:'DD06',name:'Coach-Fed 3rd Shot Drop',solo:false,cats:['Third Shot Drop'],nivel:'Beginner',players:'2',time:'10',
+   como:'Coach feeds from NVZ with varying spin and pace.\nDrop 3 sets of 10. Alternate backhand and forehand.',
+   coaching:'Read the spin before you contact. Adjust angle, not force.'},
+  {id:'DD07',name:'Self-Fed Drive',solo:true,cats:['Third Shot Drive'],nivel:'Beginner',players:'1',time:'8',
+   como:'Self-toss and drive 30 balls.\nAlternate forehand and backhand. Target: deep third of court.',
+   coaching:'Coil, then uncoil. Don\'t arm-swing.'},
+  {id:'DD08',name:'Coach-Fed Drive',solo:false,cats:['Third Shot Drive','Decision Making'],nivel:'Intermediate',players:'2',time:'10',
+   como:'Coach feeds from service line with pace.\nDrive 3 sets of 10 to designated zones.\nTarget body, wide sideline, down-the-line alternately.',
+   coaching:'Pick your target before the ball comes. Commit.'},
+  {id:'VL01',name:'2v1 Volley Pattern',solo:false,cats:['Volleys','Defense','Blocking'],nivel:'Intermediate',players:'3',time:'12',
+   como:'Two players at NVZ hit controlled volleys at one defender.\nDefender keeps ball in play for 20 consecutive shots.\nRotate every set.',
+   coaching:'Compact swing. Wall, not swing. Block first, attack second.'},
+  {id:'VL02',name:'Mid-Court Volley Quadrant System',solo:false,cats:['Volleys','Fourth Shot','Decision Making'],nivel:'Advanced',players:'2',time:'12',
+   como:'Mark 4 quadrants. Partner calls quadrant before each feed.\nPlayer volleys to called zone. 30 reps, track accuracy.',
+   coaching:'Read the call early. Prepare the paddle before the ball arrives.'},
+  {id:'LO01',name:'Lob Chase',solo:false,cats:['Lob','Overhead','Footwork'],nivel:'Intermediate',players:'2',time:'12',
+   como:'Player at NVZ. Partner lobs. Player sprints back, sets up, overheads or resets.\n3 sets of 8 lobs. Track overheads vs reset choices.',
+   coaching:'Turn early. Backpedal with purpose. Overhead if set; reset if not.'},
+  {id:'LO02',name:'3-Phase Overhead Progression',solo:true,cats:['Overhead','Warm-Up'],nivel:'Beginner',players:'2',time:'15',
+   como:'Phase 1 (5 min): shadow swings, arm extension, wrist snap — solo.\nPhase 2 (5 min): partner lobs easy balls, overhead.\nPhase 3 (5 min): partner lobs anywhere, player tracks and overheads.',
+   coaching:'Contact above and in front. Don\'t reach back — reach up.'},
+  {id:'SC01',name:'Speed-Up Patterns',solo:false,cats:['Speed-Ups','Counter Attacks','Hands Battles'],nivel:'Advanced',players:'2',time:'12',
+   como:'A dinks. B reads and speeds up to A\'s hip.\nA blocks or resets — fast or slow based on B\'s pace.\n20 reps each role.',
+   coaching:'Speed-up to the hip, not center. Force the awkward angle.'},
+  {id:'SC02',name:'Live Counter Drill',solo:false,cats:['Speed-Ups','Counter Attacks','Competitive Games'],nivel:'Advanced',players:'2–4',time:'15',
+   como:'Open dinking rally. Either player may speed-up at any time.\nCounter expected. Rally scoring. Point winner stays on.',
+   coaching:'Counter is the goal. Block is the fallback. Choose before the ball arrives.'},
+  {id:'CR01',name:'Twoey Counter Progression',solo:false,cats:['Counter Attacks','Hands Battles','Fourth Shot'],nivel:'Intermediate',players:'2',time:'12',
+   como:'A feeds a speed-up. B blocks once (swing 1), then counters next ball (swing 2).\nRepeat. 15 reps. Progress to live exchange after 15.',
+   coaching:'Block first, then counter. Two moves, not one.'},
+  {id:'CR02',name:'One-Hand BH Counter Progression',solo:false,cats:['Counter Attacks','Hands Battles'],nivel:'Advanced',players:'2',time:'12',
+   como:'A speed-ups to B\'s backhand. B counters with one-handed backhand (continental).\n3 sets of 10 at increasing pace.',
+   coaching:'Compact. Elbow leads. Don\'t swing through — redirect.'},
+  {id:'CR03',name:'Backhand Reset Progression',solo:false,cats:['Resets','Counter Attacks','Defense'],nivel:'Beginner',players:'2',time:'12',
+   como:'A drives at B from baseline. B resets toward kitchen softly.\nB takes one step forward after each reset. 3 sets of 8.',
+   coaching:'Soft hands beat hard blocks. Open the face. Absorb don\'t push.'},
+  {id:'HB01',name:'Low Volley Pickup',solo:false,cats:['Volleys','Hands Battles','Defense'],nivel:'Beginner',players:'2',time:'8',
+   como:'Partner feeds soft low balls below net tape.\nPlayer scoops upward with open face, landing in kitchen.\n3 sets of 10. Alternate FH and BH.',
+   coaching:'Open the paddle face early. Lift don\'t dig.'},
+  {id:'HB02',name:'Winner-Stays-On Hands Battle',solo:false,cats:['Hands Battles','Speed-Ups','Counter Attacks','Competitive Games'],nivel:'Advanced',players:'2–6',time:'15',
+   como:'Kitchen-only format. Point ends on error or winner.\nPoint scorer stays on. Next player rotates in.\nFirst to 5 straight wins = champion.',
+   coaching:'Hands battle is won before the speed-up happens. Be ready earlier.'},
+  {id:'MS01',name:'Zone Pre-Shot Routine',solo:true,cats:['Mental Game','Strategy'],nivel:'All',players:'1+',time:'5',
+   como:'Before each rep: stop, breathe, set stance, call intention.\nCoach observes and corrects routine breaks.\nRun inside any drill for 5 min.',
+   coaching:'Zero In. Own the Moment. Next. Execute. That\'s the ZONE.'},
+  {id:'MS02',name:'ATP Execution & Defense',solo:false,cats:['ATP','Offense','Decision Making'],nivel:'Advanced',players:'2',time:'12',
+   como:'Ball lands wide of sideline. Player attempts ATP.\nPartner covers the angle.\n10 ATP attempts each. Then 10 ATP defenses.',
+   coaching:'Go around the post if the ball is past the sideline.'},
+  {id:'MS03',name:'Progressive Ball-Size Training',solo:true,cats:['Mental Game','Conditioning','Hands Battles'],nivel:'Beginner',players:'1–2',time:'15',
+   como:'Begin with standard ball (5 min).\nProgress to mini ball (5 min).\nFinish with mini ball kitchen battle (5 min).',
+   coaching:'Smaller ball = sharper eyes. Make the game harder so the match feels easy.'},
+  {id:'MS04',name:'5th Shot Aggression Drill',solo:false,cats:['Fifth Shot','Decision Making','Speed-Ups','Strategy'],nivel:'Advanced',players:'2',time:'12',
+   como:'A serves, B returns, A drops, B blocks, A plays 5th ball.\nA must call HEIGHT before hitting: HIGH = attack, LOW = reset.\n15 reps.',
+   coaching:'Height determines the play. Call it before you swing.'},
+  {id:'MS05',name:'Mind Before Eyes',solo:false,cats:['Mental Game','Counter Attacks','Speed-Ups'],nivel:'Advanced',players:'2',time:'12',
+   como:'A feeds dinks. B stays in attack stance — paddle up, eyes calm.\nWhen B sees floater above net height, B attacks.\n20 reps. B must wait for the trigger.',
+   coaching:'Mind Before Eyes. Attack is default. Eyes only give permission.'},
+  {id:'MS06',name:'Mind Before Eyes: HUNT Trigger',solo:false,cats:['Mental Game','Speed-Ups','Counter Attacks'],nivel:'Advanced',players:'2',time:'10',
+   como:'Coach calls "HUNT" randomly during dinking rally.\nOn the call, player immediately speeds up next ball.\nNo HUNT = hold pattern. 15 triggers.',
+   coaching:'HUNT is the signal. Release on the word. Train the neural response.'},
+  {id:'MS07',name:'180° HUNT: Still Hands Under Momentum',solo:false,cats:['Mental Game','Counter Attacks','Footwork'],nivel:'Advanced',players:'2',time:'10',
+   como:'Player faces AWAY from court. Coach says "HUNT."\nPlayer spins 180°, lands balanced, reads ball, counters with still hands.\n12 reps.',
+   coaching:'The spin must be fast. The hands must be quiet. Two separate events.'},
+  {id:'MS08',name:'HUNT: Lateral Counter Protocol',solo:false,cats:['Mental Game','Counter Attacks','Footwork','Conditioning'],nivel:'Elite',players:'2',time:'12',
+   como:'Player moves side-to-side. Coach feeds speed-up mid-movement.\nPlayer stops, plants, and counters with quiet hands.\n10 reps each direction.',
+   coaching:'Stop before you counter. Moving hands lose. Still hands win.'},
+  {id:'MS09',name:'Micro-Reaction Wall Rally Series',solo:true,cats:['Mental Game','Hands Battles','Conditioning'],nivel:'Advanced',players:'1',time:'10',
+   como:'Rally mini ball against wall continuously.\nCoach calls "RESET" (soft redirect) or "HUNT" (attack).\nPlayer executes on call. 3 sets of 2 min.',
+   coaching:'Read before the ball tells you. Anticipate the signal.'},
+  {id:'MS10',name:'Reactive Open-Stance Mini Ball Tracking',solo:true,cats:['Mental Game','Footwork','Counter Attacks'],nivel:'Advanced',players:'1',time:'10',
+   como:'Player in open stance. Coach tosses mini ball to FH or BH side.\nPlayer hits back in open stance without closing.\n20 reps per side.',
+   coaching:'Stay open. Hips rotate, feet stay planted. Contact in front.'},
+  {id:'FW01',name:'Side-to-Side Shot Transition Footwork',solo:true,cats:['Footwork','Transition Zone'],nivel:'Beginner',players:'1–2',time:'10',
+   como:'Player starts centered. Coach calls "FH" or "BH."\nPlayer shuffles to position and hits the called shot.\n3 sets of 10. Progress to reading a bounced ball.',
+   coaching:'Shuffle, don\'t cross. Weight transfer first, swing second.'},
+];
+
+// CAT → drill IDs mapping
+const CAT_DRILLS={
+  'Warm-Up':['DK10','LO02','MS01','FW01'],
+  'Footwork':['FW01','MS07','MS08','MS10','LO01','DK03'],
+  'Dinking':['DK01','DK02','DK05','DK07','DK09','DK10','DK11','DK12','DK03','DK04','DK06'],
+  'Third Shot Drop':['DD01','DD03','DD04','DD05','DD06','TR01','SR01'],
+  'Third Shot Drive':['DD02','DD07','DD08','TR03'],
+  'Fourth Shot':['VL02','CR01','TR02','HB01'],
+  'Fifth Shot':['MS04','SC01','MS05'],
+  'Transition Zone':['TR01','TR02','TR03','SR01','FW01'],
+  'Resets':['TR01','TR02','CR03','SC01','SR02'],
+  'Speed-Ups':['SC01','SC02','DK06','MS05','MS06'],
+  'Hands Battles':['HB01','HB02','CR01','CR02','SC01','MS03'],
+  'Volleys':['VL01','VL02','HB01'],
+  'Blocking':['VL01','CR03','HB01','SC01'],
+  'Counter Attacks':['CR01','CR02','SC02','MS05','MS06','MS07','MS08'],
+  'Serve':['SR01','DD04'],
+  'Return':['SR01','SR02'],
+  'Lob':['LO01','LO02'],
+  'Overhead':['LO01','LO02'],
+  'ATP':['MS02'],
+  'Erne':['MS02'],
+  'Defense':['VL01','TR02','CR03','HB01','CR01'],
+  'Offense':['DK01','DD02','MS02','DK06','MS04'],
+  'Strategy':['DK12','MS01','MS04','SR02'],
+  'Communication':['DK09','TR02'],
+  'Decision Making':['DK05','DD08','MS04','TR03','VL02','MS02'],
+  'Mental Game':['MS01','MS03','MS05','MS06','MS07','MS08','MS09','MS10'],
+  'Conditioning':['MS08','MS09','MS03','FW01'],
+  'Competitive Games':['DK07','DK09','HB02','SC02','SR02'],
+  'Pattern Play':['DK12','MS04','SR02','TR03'],
+  'Positioning':['VL01','VL02','FW01','TR02'],
+  'Singles':['DD01','DD03','DD05','DD07','MS09','MS10','DK05'],
+  'Doubles':['DK09','TR02','VL01'],
+};
+
+</script>
+<script>
+// ── TRANSLATIONS ──────────────────────────────────────────────────────────────
+let lang='en';
+const T={
+  en:{
+    hdr_sub:'Practice Plan Generator · Coach Carlos Subero',
+    db_none:'No dashboard connected',db_connected:'Dashboard connected',
+    db_auto:'Auto-loading…',db_btn:'Load Dashboard',
+    pt_single:'Single Session',pt_3day:'3-Day Plan',pt_weekly:'Weekly Plan',pt_monthly:'Monthly Plan',
+    setup:'SESSION SETUP',date_lbl:'Date',dur_lbl:'Duration',loc_lbl:'Location',courts_lbl:'Courts',
+    focus_hdr:'FOCUS AREA (select one or more)',
+    players_hdr:'SELECT PLAYERS',notes_hdr:'NOTES',
+    build_btn:'⚡ BUILD PLAN',back_btn:'← BACK',print_btn:'🖨 PRINT / SAVE PDF',
+    warmup:'WARM-UP',skill:'SKILL FOCUS',app:'APPLICATION',game:'GAME PLAY',debrief:'DEBRIEF',
+    intel:'PLAYER INTEL',strengths:'Strengths',weaknesses:'Areas to Improve',routine_lbl:'Pre-Shot Routine',
+    pairing:'Court Pairing',theme:'SESSION THEME',
+    solo_badge:'SOLO',solo_note:'Solo session — drills adapted for individual training.',
+    footer:'7ACE Development Lab · Coach Carlos Subero · Trust the process, not the result',
+    vis_drills:'drills visible',min:'min',day:'Day',week:'Week',
+    loc_lab:'LAB (Garage)',loc_club:'Club',loc_indoor:'Indoor',loc_outdoor:'Outdoor',
+    dur_60:'60 min',dur_90:'90 min',dur_120:'120 min',dur_custom:'Custom…',
+    courts_1:'1 Court',courts_2:'2 Courts',courts_3:'3 Courts',courts_4:'4 Courts',
+    notes_ph:'Optional: pairing notes, special focus, player conditions…',
+    select_first:'Please select at least one player.',
+    how:'Steps',coaching:'Coaching Cue',
+    day_labels:['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'],
+    day_themes_3:['Technical Foundation','Live Application','Competition & Eval'],
+    week_themes:['Strength Refinement','Weakness Isolation','Game Simulation','Blend','Mental + Conditioning','Competitive Play','Recovery + Strategy'],
+    week_themes_short:['Strength','Weakness','Game Sim','Blend','Mental','Competition','Recovery'],
+    monthly_weeks:['Week 1 — Foundation','Week 2 — Pressure','Week 3 — Transition Play','Week 4 — Championship'],
+  },
+  es:{
+    hdr_sub:'Generador de Planes · Coach Carlos Subero',
+    db_none:'Sin dashboard conectado',db_connected:'Dashboard conectado',
+    db_auto:'Cargando…',db_btn:'Cargar Dashboard',
+    pt_single:'Sesión Única',pt_3day:'Plan 3 Días',pt_weekly:'Plan Semanal',pt_monthly:'Plan Mensual',
+    setup:'CONFIGURACIÓN',date_lbl:'Fecha',dur_lbl:'Duración',loc_lbl:'Lugar',courts_lbl:'Canchas',
+    focus_hdr:'ÁREA DE ENFOQUE (selecciona una o más)',
+    players_hdr:'SELECCIONAR JUGADORES',notes_hdr:'NOTAS',
+    build_btn:'⚡ CONSTRUIR PLAN',back_btn:'← VOLVER',print_btn:'🖨 IMPRIMIR / GUARDAR PDF',
+    warmup:'CALENTAMIENTO',skill:'ENFOQUE TÉCNICO',app:'APLICACIÓN',game:'JUEGO COMPETITIVO',debrief:'CIERRE',
+    intel:'PERFIL DEL JUGADOR',strengths:'Fortalezas',weaknesses:'Áreas de Mejora',routine_lbl:'Rutina Pre-Tiro',
+    pairing:'Distribución de Canchas',theme:'TEMA',
+    solo_badge:'SOLO',solo_note:'Sesión individual — drills adaptados para entrenamiento solo.',
+    footer:'7ACE Development Lab · Coach Carlos Subero · Confía en el proceso, no en el resultado',
+    vis_drills:'drills visibles',min:'min',day:'Día',week:'Semana',
+    loc_lab:'LAB (Garaje)',loc_club:'Club',loc_indoor:'Indoor',loc_outdoor:'Outdoor',
+    dur_60:'60 min',dur_90:'90 min',dur_120:'120 min',dur_custom:'Personalizado…',
+    courts_1:'1 Cancha',courts_2:'2 Canchas',courts_3:'3 Canchas',courts_4:'4 Canchas',
+    notes_ph:'Opcional: notas de parejas, enfoque especial, condiciones del jugador…',
+    select_first:'Por favor selecciona al menos un jugador.',
+    how:'Pasos',coaching:'Punto de Coaching',
+    day_labels:['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'],
+    day_themes_3:['Base Técnica','Aplicación en Vivo','Competencia y Evaluación'],
+    week_themes:['Refinamiento de Fortalezas','Aislamiento de Debilidades','Simulación de Juego','Combinación','Mental + Físico','Juego Competitivo','Recuperación + Estrategia'],
+    week_themes_short:['Fortaleza','Debilidad','Juego','Mezcla','Mental','Competencia','Recuperación'],
+    monthly_weeks:['Semana 1 — Fundamentos','Semana 2 — Presión','Semana 3 — Transición','Semana 4 — Campeonato'],
+  }
+};
+function t(k){return T[lang][k]||k;}
+
+// ── FOCUS AREA LABELS ─────────────────────────────────────────────────────────
+const FOCUS_LABELS={
+  en:{'Warm-Up':'Warm-Up','Footwork':'Footwork','Dinking':'Dinking','Third Shot Drop':'3rd Shot Drop',
+      'Third Shot Drive':'3rd Shot Drive','Fourth Shot':'4th Shot','Fifth Shot':'5th Shot',
+      'Transition Zone':'Transition','Resets':'Resets','Speed-Ups':'Speed-Ups',
+      'Hands Battles':'Hands Battles','Volleys':'Volleys','Blocking':'Blocking',
+      'Counter Attacks':'Counter Attacks','Serve':'Serve','Return':'Return',
+      'Lob':'Lob','Overhead':'Overhead','ATP':'ATP','Erne':'Erne',
+      'Defense':'Defense','Offense':'Offense','Strategy':'Strategy',
+      'Communication':'Communication','Decision Making':'Decision Making',
+      'Mental Game':'Mental Game','Conditioning':'Conditioning',
+      'Competitive Games':'Competition','Pattern Play':'Pattern Play',
+      'Positioning':'Positioning','Singles':'Singles','Doubles':'Doubles'},
+  es:{'Warm-Up':'Calentamiento','Footwork':'Juego de Pies','Dinking':'Dinkeo',
+      'Third Shot Drop':'Drop 3er Golpe','Third Shot Drive':'Drive 3er Golpe',
+      'Fourth Shot':'4° Golpe','Fifth Shot':'5° Golpe','Transition Zone':'Transición',
+      'Resets':'Resets','Speed-Ups':'Speed-Ups','Hands Battles':'Batallas de Manos',
+      'Volleys':'Voleas','Blocking':'Bloqueo','Counter Attacks':'Contra-Ataques',
+      'Serve':'Saque','Return':'Resto','Lob':'Lob','Overhead':'Smash',
+      'ATP':'ATP','Erne':'Erne','Defense':'Defensa','Offense':'Ofensiva',
+      'Strategy':'Estrategia','Communication':'Comunicación',
+      'Decision Making':'Toma de Decisiones','Mental Game':'Juego Mental',
+      'Conditioning':'Físico','Competitive Games':'Competencia',
+      'Pattern Play':'Patrones de Juego','Positioning':'Posicionamiento',
+      'Singles':'Singles','Doubles':'Dobles'}
+};
+function fl(cat){return FOCUS_LABELS[lang][cat]||cat;}
+
+// ── DASHBOARD LOADER ──────────────────────────────────────────────────────────
+let dbHandle=null,dbConnected=false;
+
+async function tryAutoLoad(){
+  if(!('showOpenFilePicker' in window))return;
+  try{
+    const stored=localStorage.getItem('7ace_db_handle');
+    if(!stored)return;
+    // File System Access persisted handle — try to re-read
+    // (Chrome requires user gesture to restore, so we just show the connect btn)
+  }catch(e){}
+}
+
+async function loadDashboardClick(){
+  if('showOpenFilePicker' in window){
+    try{
+      [dbHandle]=await window.showOpenFilePicker({types:[{description:'7ACE Dashboard',accept:{'text/html':['.html']}}]});
+      const file=await dbHandle.getFile();
+      const text=await file.text();
+      processDashboard(text,file.name);
+      localStorage.setItem('7ace_db_name',file.name);
+    }catch(e){if(e.name!=='AbortError')fallbackFilePicker();}
+  }else{fallbackFilePicker();}
+}
+
+function fallbackFilePicker(){
+  const inp=document.createElement('input');
+  inp.type='file';inp.accept='.html';
+  inp.onchange=e=>{
+    const f=e.target.files[0];if(!f)return;
+    const r=new FileReader();
+    r.onload=ev=>processDashboard(ev.target.result,f.name);
+    r.readAsText(f);
+  };
+  inp.click();
+}
+
+function processDashboard(html,fname){
+  const data=extractPlayerData(html);
+  if(!data){setDbStatus('error',fname);return;}
+  data.forEach(p=>{if(p.name)liveData[p.name]=p;});
+  dbConnected=true;
+  setDbStatus('connected',fname);
+  renderPlayers();
+}
+
+function extractPlayerData(html){
+  const patterns=[
+    /(?:const|let|var)\s+playerData\s*=\s*(\[[\s\S]*?\n\s*\]);/,
+    /playerData\s*=\s*(\[[\s\S]*?\n\s*\]);/,
+    /(?:const|let|var)\s+players\s*=\s*(\[[\s\S]*?\n\s*\]);/,
+  ];
+  for(const p of patterns){
+    const m=html.match(p);
+    if(m){try{return new Function('return '+m[1])();}catch(e){console.warn('DB parse:',e);}}
+  }
+  return null;
+}
+
+function setDbStatus(status,name){
+  const dot=document.getElementById('db-dot');
+  const info=document.getElementById('db-info');
+  const btn=document.getElementById('db-btn');
+  if(status==='connected'){
+    dot.className='db-dot connected';
+    info.innerHTML=`<div class="db-name">${name}</div><div>${t('db_connected')} · ${Object.keys(liveData).length} players loaded</div>`;
+    btn.textContent=t('db_btn');
+  }else if(status==='loading'){
+    dot.className='db-dot loading';
+    info.innerHTML=`<div>${t('db_auto')}</div>`;
+  }else if(status==='error'){
+    dot.className='db-dot';
+    info.innerHTML=`<div style="color:#E74C3C">Could not parse dashboard. Try re-saving from Claude.</div>`;
+  }else{
+    dot.className='db-dot';
+    info.innerHTML=`<div>${t('db_none')}</div>`;
+    btn.textContent=t('db_btn');
+  }
+}
+
+// ── PLAYER STATE ──────────────────────────────────────────────────────────────
+let selected=new Set();
+
+function renderPlayers(){
+  const list=document.getElementById('player-list');
+  list.innerHTML='';
+  ROSTER.forEach(p=>{
+    const isSel=selected.has(p.name);
+    const hasLive=!!liveData[p.name];
+    const cat=p.cat==='ZONE Kids'?'🟡 ZONE Kids':p.cat==='ODL'?'🔵 ODL':'⚫ Private';
+    const div=document.createElement('div');
+    div.className='player-row'+(isSel?' sel':'');
+    div.innerHTML=`<div class="pcheck">${isSel?'✓':''}</div>
+      <div class="pname">${p.name}</div>
+      ${hasLive?'<div class="pdata-dot" title="Live dashboard data"></div>':''}
+      <div class="pdupr">${p.dupr?p.dupr.toFixed(2):'–'}</div>
+      <div class="pcat">${cat}</div>`;
+    div.onclick=()=>{
+      if(selected.has(p.name)){selected.delete(p.name);div.classList.remove('sel');div.querySelector('.pcheck').textContent='';}
+      else{selected.add(p.name);div.classList.add('sel');div.querySelector('.pcheck').textContent='✓';}
+    };
+    list.appendChild(div);
+  });
+}
+
+// ── FOCUS ─────────────────────────────────────────────────────────────────────
+function toggleFocus(chip){chip.classList.toggle('on');}
+function getSelectedFocus(){return [...document.querySelectorAll('.fchip.on')].map(c=>c.dataset.f);}
+
+// ── PLAN TYPE ─────────────────────────────────────────────────────────────────
+let planType='single';
+function setPlanType(type,tab){
+  planType=type;
+  document.querySelectorAll('.pt-tab').forEach(t=>t.classList.remove('on'));
+  tab.classList.add('on');
+}
+
+// ── LOCATION ─────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('sess-loc').addEventListener('change',function(){
+    const isLab=this.value==='lab';
+    document.getElementById('courts-wrap').style.opacity=isLab?'0.4':'1';
+    if(isLab)document.getElementById('sess-courts').value='1';
+  });
+  document.getElementById('sess-dur').addEventListener('change',function(){
+    document.getElementById('custom-wrap').style.display=this.value==='custom'?'block':'none';
+  });
+  const today=new Date();
+  document.getElementById('sess-date').value=today.toISOString().slice(0,10);
+  renderPlayers();
+  tryAutoLoad();
+  applyLangUI();
+});
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function getDur(){
+  const v=document.getElementById('sess-dur').value;
+  return v==='custom'?parseInt(document.getElementById('custom-dur').value)||90:parseInt(v);
+}
+function blocks(dur){
+  const wu=Math.round(dur*.13),db=Math.round(dur*.05),gm=Math.round(dur*.21),app=Math.round(dur*.27);
+  return{wu,sk:dur-wu-db-gm-app,app,gm,db};
+}
+
+function getDrills(focuses,solo,count,level){
+  if(!focuses.length)focuses=['Dinking'];
+  let ids=[];
+  focuses.forEach(f=>{if(CAT_DRILLS[f])ids.push(...CAT_DRILLS[f]);});
+  ids=[...new Set(ids)];
+  let pool=DRILLS.filter(d=>ids.includes(d.id));
+  if(solo)pool=pool.filter(d=>d.solo||d.players.includes('1'));
+  if(!pool.length)pool=DRILLS.filter(d=>solo?d.solo:true);
+  // prefer level
+  const lv=level.toLowerCase();
+  pool.sort((a,b)=>{
+    const am=a.nivel.toLowerCase().includes(lv)?0:1;
+    const bm=b.nivel.toLowerCase().includes(lv)?0:1;
+    return am-bm;
+  });
+  return pool.slice(0,count);
+}
+
+function inferProfile(player){
+  const live=liveData[player.name];
+  if(live&&live.skills){
+    const skills=live.skills;
+    const entries=Object.entries(skills).sort((a,b)=>b[1]-a[1]);
+    const strengths=entries.slice(0,2).map(e=>e[0]);
+    const weaknesses=entries.slice(-2).map(e=>e[0]);
+    return{strengths,weaknesses,fromDashboard:true};
+  }
+  // DUPR inference
+  const d=player.dupr||4;
+  if(d<3.8)return{strengths:['Effort','Consistency'],weaknesses:['3rd Shot Drop','Reset under pressure']};
+  if(d<4.3)return{strengths:['Drive power','Baseline aggression'],weaknesses:['Speed-up reads','5th Shot decisions']};
+  if(d<5.0)return{strengths:['Shot variety','Pattern play'],weaknesses:['Counter timing','Positioning pressure']};
+  return{strengths:['Hand speed','Pattern play'],weaknesses:['Reset patience','ATP/ERNE execution']};
+}
+
+function avgDupr(players){
+  const valid=players.filter(p=>p.dupr);
+  return valid.length?valid.reduce((s,p)=>s+p.dupr,0)/valid.length:4.0;
+}
+function levelKey(dupr){
+  return dupr<3.8?'Beginner':dupr<4.5?'Intermediate':'Advanced';
+}
+
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function drillCard(d,timeMin,color){
+  const steps=d.como.split('\n').filter(s=>s.trim()).slice(0,5);
+  return`<div class="block">
+    <div class="block-lbl">${esc(d.id)} · ${esc(d.nivel)} · ${esc(d.players)} ${lang==='en'?'player(s)':'jugador(es)'}<span>${timeMin} ${t('min')}</span></div>
+    <div class="drill-name">${esc(d.name)}</div>
+    <ol class="steps">${steps.map((s,i)=>`<li><span class="n">${i+1}</span>${esc(s.replace(/^\d+\.\s*/,'').replace(/^[-•]\s*/,''))}</li>`).join('')}</ol>
+    <div class="cue">💡 ${esc(d.coaching.split('.')[0]+'.')}</div>
+  </div>`;
+}
+
+function playerIntelHTML(players){
+  return players.map(p=>{
+    const prof=inferProfile(p);
+    const live=liveData[p.name];
+    const sessions=live&&live.sessions?live.sessions.length:0;
+    return`<div class="intel-row">
+      <div class="iname">${esc(p.name)}<span class="idupr">${p.dupr?'DUPR '+p.dupr.toFixed(3):''}</span>${prof.fromDashboard?'<span style="font-size:10px;color:#00D68F;margin-left:6px">● Live data</span>':''}</div>
+      <div class="itag up">↑ ${esc(prof.strengths.join(', '))}</div>
+      <div class="itag dn">↓ ${esc(prof.weaknesses.join(', '))}</div>
+      ${p.routine?`<div class="mcue" style="margin-top:5px;padding:5px 9px">🧠 ${esc(p.routine)}</div>`:''}
+      ${sessions>0?`<div style="font-size:10px;color:#4B5563;margin-top:3px">${sessions} sessions logged</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function pairNote(players,courts){
+  if(players.length<=1)return'';
+  const sorted=[...players].sort((a,b)=>(b.dupr||4)-(a.dupr||4));
+  const groups=[];
+  for(let i=0;i<Math.min(courts,Math.ceil(sorted.length/2));i++){
+    groups.push(sorted.filter((_,idx)=>idx%courts===i));
+  }
+  const rows=groups.map((g,i)=>{
+    const names=g.map(p=>p.name).join(' + ');
+    const avg=g.reduce((s,p)=>s+(p.dupr||4),0)/g.length;
+    const desc=lang==='en'
+      ?(avg<3.8?'Cooperative drills, peer pressure builds confidence.':avg<4.5?'Structured skill work + live exchanges.':'High-pressure live formats, pattern play, advanced counters.')
+      :(avg<3.8?'Ejercicios cooperativos, la presión entre pares genera confianza.':avg<4.5?'Trabajo técnico + peloteos en vivo.':'Formatos de alta presión, patrones de juego, contra-ataques avanzados.');
+    return`<span style="color:#1E90FF">Court ${i+1}:</span> ${names} — ${desc}`;
+  });
+  return`<div class="pair-note"><strong style="color:#1E90FF">${t('pairing')}</strong><br>${rows.join('<br>')}</div>`;
+}
+
+// ── BUILD PLAN ────────────────────────────────────────────────────────────────
+function buildPlan(){
+  const players=ROSTER.filter(p=>selected.has(p.name));
+  if(!players.length){alert(t('select_first'));return;}
+  const solo=players.length===1;
+  const dur=getDur();
+  const bl=blocks(dur);
+  const focuses=getSelectedFocus();
+  const mainFocus=focuses[0]||'Dinking';
+  const loc=document.getElementById('sess-loc').value;
+  const courts=loc==='lab'?1:parseInt(document.getElementById('sess-courts').value);
+  const avg=avgDupr(players);
+  const lv=levelKey(avg);
+
+  const dateVal=document.getElementById('sess-date').value;
+  const dateStr=dateVal?new Date(dateVal+'T12:00:00').toLocaleDateString(lang==='en'?'en-US':'es-ES',{year:'numeric',month:'long',day:'numeric'}):(lang==='en'?'Today':'Hoy');
+  const locLabel=t('loc_'+loc)||loc.toUpperCase();
+  const notes=document.getElementById('sess-notes').value.trim();
+
+  const THEME_EN={
+    'Dinking':'Kitchen Control & Dinking Mastery','Third Shot Drop':'3rd Shot Drop Excellence',
+    'Third Shot Drive':'3rd Shot Drive & Pressure','Transition Zone':'Transition Zone Domination',
+    'Resets':'Reset System & Neutralization','Speed-Ups':'Speed-Up Attack & Defense',
+    'Counter Attacks':'Counter Attack Protocol','Volleys':'Volley Precision','Hands Battles':'Hands Battles & Kitchen Warfare',
+    'Serve':'Serve Excellence & Placement','Return':'Return Depth & Pressure',
+    'Lob':'Lob & Overhead Mastery','Overhead':'Overhead Control','Mental Game':'Mental Game & ZONE Training',
+    'Footwork':'Footwork & Court Movement','Strategy':'Strategy & Pattern Play',
+    'Fourth Shot':'4th Shot Mastery','Fifth Shot':'5th Shot Aggression & Decision Making',
+    'ATP':'ATP Execution','Erne':'Erne Timing & Defense','Blocking':'Blocking & Neutralization',
+    'Competitive Games':'Live Competition','Pattern Play':'Pattern Play & Sequencing',
+    'Decision Making':'Decision Training System','Conditioning':'Physical Conditioning',
+  };
+  const THEME_ES={
+    'Dinking':'Control de Cocina y Dominio del Dinkeo','Third Shot Drop':'Excelencia del Drop del 3er Golpe',
+    'Third Shot Drive':'Drive del 3er Golpe y Presión','Transition Zone':'Dominio de la Zona de Transición',
+    'Resets':'Sistema de Reset y Neutralización','Speed-Ups':'Ataque y Defensa del Speed-Up',
+    'Counter Attacks':'Protocolo de Contra-Ataque','Volleys':'Precisión en Voleas','Hands Battles':'Batallas de Manos y Cocina',
+    'Serve':'Excelencia y Colocación del Saque','Return':'Profundidad y Presión del Resto',
+    'Lob':'Dominio del Lob y Smash','Overhead':'Control del Smash','Mental Game':'Juego Mental y Entrenamiento ZONE',
+    'Footwork':'Juego de Pies y Movimiento','Strategy':'Estrategia y Patrones de Juego',
+    'Fourth Shot':'Dominio del 4° Golpe','Fifth Shot':'Agresividad y Decisión en el 5° Golpe',
+    'ATP':'Ejecución del ATP','Erne':'Tiempo del Erne y Defensa','Blocking':'Bloqueo y Neutralización',
+    'Competitive Games':'Competencia en Vivo','Pattern Play':'Patrones de Juego y Secuencias',
+    'Decision Making':'Sistema de Entrenamiento de Decisiones','Conditioning':'Acondicionamiento Físico',
+  };
+  const theme=(lang==='en'?THEME_EN:THEME_ES)[mainFocus]||(mainFocus+' Session');
+
+  if(planType==='single')renderSingle(players,solo,dur,bl,focuses,mainFocus,theme,lv,courts,loc,locLabel,dateStr,notes);
+  else if(planType==='3day')render3Day(players,solo,focuses,mainFocus,theme,lv,courts,loc,locLabel,dateStr,notes);
+  else if(planType==='weekly')renderWeekly(players,solo,focuses,mainFocus,lv,courts,loc,locLabel,dateStr,notes);
+  else renderMonthly(players,solo,focuses,mainFocus,lv,courts,loc,locLabel,dateStr,notes);
+
+  document.getElementById('builder-form').style.display='none';
+  document.getElementById('plan-output').style.display='block';
+  window.scrollTo(0,0);
+}
+
+function renderSingle(players,solo,dur,bl,focuses,mainFocus,theme,lv,courts,loc,locLabel,dateStr,notes){
+  const skillDrills=getDrills(focuses,solo,2,lv);
+  const appFocuses=focuses.length>1?[focuses[1]]:['Transition Zone'];
+  const appDrill=getDrills(appFocuses,solo,1,lv)[0]||skillDrills[0];
+  const gameDrill=getDrills(['Competitive Games'],solo,1,lv)[0];
+  const wuDrill=getDrills(['Warm-Up'],solo,1,'Beginner')[0];
+
+  let html=planHeader(players,solo,dateStr,dur,locLabel,courts,notes,theme);
+  if(!solo)html+=pairNote(players,courts);
+  html+=`<div class="day-card blue"><div class="day-hdr"><span class="day-title" style="color:#1E90FF">${t('intel')}</span></div><div class="day-body">${playerIntelHTML(players)}</div></div>`;
+  html+=dayBlock(t('warmup'),'green',bl.wu,[wuDrill],lang==='en'?'Dynamic movement + soft hands activation':'Movimiento dinámico + activación de manos');
+  html+=dayBlock(t('skill'),'blue',bl.sk,skillDrills);
+  html+=dayBlock(t('app'),'gold',bl.app,[appDrill]);
+  if(!solo&&gameDrill)html+=dayBlock(t('game'),'red',bl.gm,[gameDrill]);
+  html+=`<div class="day-card purple"><div class="day-hdr"><span class="day-title" style="color:#9B59B6">${t('debrief')}</span><span class="day-badge">${bl.db} ${t('min')}</span></div>
+    <div class="day-body"><div class="block">
+    <div class="drill-name">Z.O.N.E. Reflection</div>
+    <div class="drill-sub">${lang==='en'?'1. One thing you executed well. 2. One thing to improve next session. 3. Pre-shot routine check — are you using it under pressure?':'1. Una cosa que ejecutaste bien. 2. Una cosa a mejorar. 3. Revisión de rutina pre-tiro — ¿la usas bajo presión?'}</div>
+    <div class="mcue">🧠 ${lang==='en'?'Zero In · Own the Moment · Next · Execute':'Zero In · Own the Moment · Next · Execute'}</div>
+    </div></div></div>`;
+  html+=`<div class="plan-footer">${t('footer')}</div>`;
+  document.getElementById('plan-html').innerHTML=html;
+}
+
+function render3Day(players,solo,focuses,mainFocus,theme,lv,courts,loc,locLabel,dateStr,notes){
+  const themes3=t('day_themes_3');
+  const themes3focus=[focuses,[...focuses].reverse()||['Competitive Games'],['Competitive Games']];
+  let html=planHeader(players,solo,dateStr,null,locLabel,courts,notes,theme+' · 3-DAY PLAN');
+  if(!solo)html+=pairNote(players,courts);
+  for(let i=0;i<3;i++){
+    const dayDur=90;const bl=blocks(dayDur);
+    const foc=focuses.length>0?[focuses[i%focuses.length],...focuses]:['Dinking'];
+    const drills=getDrills(foc,solo,2,lv);
+    const appDrill=getDrills(i===2?['Competitive Games']:foc,solo,1,lv)[0];
+    html+=`<div class="day-card"><div class="day-hdr" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+      <span class="day-title">${t('day')} ${i+1} — ${esc(themes3[i])}</span>
+      <span class="day-badge">90 ${t('min')}</span></div>
+      <div class="day-body">
+      ${dayBlock(t('warmup'),'green',bl.wu,getDrills(['Warm-Up'],solo,1,'Beginner'),null,true)}
+      ${dayBlock(t('skill'),'blue',bl.sk,drills,null,true)}
+      ${appDrill?dayBlock(i===2?t('game'):t('app'),'gold',bl.app,[appDrill],null,true):''}
+      ${debrief(bl.db,true)}
+      </div></div>`;
+  }
+  html+=`<div class="plan-footer">${t('footer')}</div>`;
+  document.getElementById('plan-html').innerHTML=html;
+}
+
+function renderWeekly(players,solo,focuses,mainFocus,lv,courts,loc,locLabel,dateStr,notes){
+  const wt=t('week_themes');const wts=t('week_themes_short');
+  const dayFocuses=[focuses,['Resets','Defense','Transition Zone'],['Competitive Games'],
+    [...focuses,...['Resets']],['Mental Game','Conditioning'],['Competitive Games'],['Footwork','Strategy']];
+  let html=planHeader(players,solo,dateStr,null,locLabel,courts,notes,'WEEKLY PLAN · '+mainFocus.toUpperCase());
+  if(!solo)html+=pairNote(players,courts);
+  for(let i=0;i<7;i++){
+    const foc=dayFocuses[i]||focuses;
+    const drills=getDrills(foc,solo,2,lv);
+    const dayDur=i===6?60:90;const bl=blocks(dayDur);
+    html+=`<div class="day-card"><div class="day-hdr" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+      <span class="day-title">${t('day_labels')[i]} — ${esc(wts[i])}</span>
+      <span class="day-badge">${dayDur} ${t('min')}</span></div>
+      <div class="day-body" style="display:${i===0?'block':'none'}">
+      ${dayBlock(t('warmup'),'green',bl.wu,getDrills(['Warm-Up'],solo,1,'Beginner'),null,true)}
+      ${dayBlock(t('skill'),'blue',bl.sk,drills,null,true)}
+      ${i!==6?dayBlock(i===5?t('game'):t('app'),'gold',bl.app,[getDrills(i===5?['Competitive Games']:foc,solo,1,lv)[0]||drills[0]],null,true):''}
+      ${debrief(bl.db,true)}
+      </div></div>`;
+  }
+  html+=`<div class="plan-footer">${t('footer')}</div>`;
+  document.getElementById('plan-html').innerHTML=html;
+}
+
+function renderMonthly(players,solo,focuses,mainFocus,lv,courts,loc,locLabel,dateStr,notes){
+  const mw=t('monthly_weeks');
+  const wkFocuses=[focuses,['Resets','Defense','Counter Attacks','Third Shot Drop'],
+    ['Transition Zone','Volleys','Fourth Shot','Fifth Shot'],['Competitive Games','Strategy','Mental Game']];
+  let html=planHeader(players,solo,dateStr,null,locLabel,courts,notes,'MONTHLY PLAN · '+mainFocus.toUpperCase());
+  if(!solo)html+=pairNote(players,courts);
+  for(let w=0;w<4;w++){
+    const foc=wkFocuses[w]||focuses;
+    const drills=getDrills(foc,solo,3,lv);
+    html+=`<div class="day-card"><div class="day-hdr" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+      <span class="day-title">${esc(mw[w])}</span>
+      <span class="day-badge">${foc.slice(0,2).map(f=>fl(f)).join(' · ')}</span></div>
+      <div class="day-body" style="display:${w===0?'block':'none'}">
+      <div class="block">
+        <div class="block-lbl">${lang==='en'?'Weekly Focus Drills':'Drills de Enfoque Semanal'}</div>
+        ${drills.map(d=>`<div style="margin-bottom:10px"><div class="drill-name"><span class="drill-id">${d.id}</span>${esc(d.name)}</div>
+        <div class="drill-sub">${esc(d.coaching.split('.')[0]+'.')}</div></div>`).join('')}
+      </div>
+      <div class="block">
+        <div class="block-lbl">${lang==='en'?'Daily Structure (repeat 5–6 days)':'Estructura Diaria (repetir 5–6 días)'}</div>
+        <div class="drill-sub">${lang==='en'?'Mon/Thu: Technical focus · Tue/Fri: Live application · Wed/Sat: Competition formats · Sun: Recovery + mental review':'Lun/Jue: Enfoque técnico · Mar/Vie: Aplicación en vivo · Mié/Sáb: Formatos competitivos · Dom: Recuperación + revisión mental'}</div>
+      </div>
+      ${debrief(5,true)}
+      </div></div>`;
+  }
+  html+=`<div class="plan-footer">${t('footer')}</div>`;
+  document.getElementById('plan-html').innerHTML=html;
+}
+
+function planHeader(players,solo,dateStr,dur,locLabel,courts,notes,title){
+  const courtsStr=courts>0?` · ${courts} ${courts===1?t('courts_1').split(' ')[1]:t('courts_2').split(' ')[1]}`:'';
+  return`<div class="plan-hdr">
+    <div class="plan-title">7ACE DEVELOPMENT LAB${solo?` <span class="solo-badge">${t('solo_badge')}</span>`:''}</div>
+    <div class="plan-meta">📅 ${dateStr} ${dur?`· ⏱ ${dur} ${t('min')}`:''}· 📍 ${locLabel}${courtsStr}</div>
+    <div class="pchips">${players.map(p=>`<span class="pchip2">${esc(p.name)} <span style="color:#4B5563">${p.dupr?p.dupr.toFixed(2):''}</span></span>`).join('')}</div>
+    ${solo?`<div style="margin-top:8px;font-size:12px;color:#9B59B6">🎯 ${t('solo_note')}</div>`:''}
+    ${notes?`<div style="margin-top:8px;font-size:12px;color:#6B7280;border-top:1px solid #1C2030;padding-top:8px">📝 ${esc(notes)}</div>`:''}
+  </div>
+  <div class="theme-bar">⚡ ${t('theme')}: ${esc(title.toUpperCase())}</div>`;
+}
+
+function dayBlock(label,color,min,drills,subtitle,inline=false){
+  const colorMap={blue:'#1E90FF',gold:'#E8A020',green:'#00D68F',red:'#E74C3C',purple:'#9B59B6'};
+  const c=colorMap[color]||'#1E90FF';
+  const drillsHtml=(drills||[]).filter(Boolean).map(d=>drillCard(d,Math.round(min/(drills.length||1)),color)).join('');
+  if(inline){
+    return`<div style="margin-bottom:12px"><div class="block-lbl" style="color:${c}">${label}<span>${min} ${t('min')}</span></div>${subtitle?`<div class="drill-sub">${subtitle}</div>`:''} ${drillsHtml}</div>`;
+  }
+  return`<div class="day-card ${color}"><div class="day-hdr"><span class="day-title" style="color:${c}">${label}</span><span class="day-badge">${min} ${t('min')}</span></div><div class="day-body">${subtitle?`<div class="block"><div class="drill-sub">${subtitle}</div></div>`:''}${drillsHtml}</div></div>`;
+}
+
+function debrief(min,inline=false){
+  const html=`<div class="drill-name">Z.O.N.E. ${lang==='en'?'Reflection':'Reflexión'}</div>
+    <div class="drill-sub">${lang==='en'?'What worked · What to improve · Pre-shot routine check':'Qué funcionó · Qué mejorar · Revisión de rutina pre-tiro'}</div>
+    <div class="mcue">🧠 Zero In · Own the Moment · Next · Execute</div>`;
+  if(inline)return`<div style="margin-top:10px"><div class="block-lbl" style="color:#9B59B6">${t('debrief')}<span>${min} ${t('min')}</span></div>${html}</div>`;
+  return`<div class="day-card purple"><div class="day-hdr"><span class="day-title" style="color:#9B59B6">${t('debrief')}</span><span class="day-badge">${min} ${t('min')}</span></div><div class="day-body"><div class="block">${html}</div></div></div>`;
+}
+
+// ── LANGUAGE SWITCH ───────────────────────────────────────────────────────────
+function setLang(l,btn){
+  lang=l;
+  document.querySelectorAll('.lb').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  applyLangUI();
+}
+
+function applyLangUI(){
+  document.getElementById('hdr-sub').textContent=t('hdr_sub');
+  if(!dbConnected)setDbStatus('none','');
+  document.getElementById('db-btn').textContent=t('db_btn');
+  // Plan type tabs
+  ['single','3day','weekly','monthly'].forEach(k=>{
+    const el=document.getElementById('pt-'+k);
+    if(el)el.textContent=t('pt_'+k);
+  });
+  // Form labels
+  [['lbl-setup',t('setup')],['lbl-date',t('date_lbl')],['lbl-dur',t('dur_lbl')],
+   ['lbl-loc',t('loc_lbl')],['lbl-courts',t('courts_lbl')],['lbl-focus',t('focus_hdr')],
+   ['lbl-players',t('players_hdr')],['lbl-notes',t('notes_hdr')]
+  ].forEach(([id,txt])=>{const el=document.getElementById(id);if(el)el.textContent=txt;});
+  // Selects
+  const durSel=document.getElementById('sess-dur');
+  if(durSel){[...durSel.options].forEach(o=>{const map={'60':t('dur_60'),'90':t('dur_90'),'120':t('dur_120'),'custom':t('dur_custom')};if(map[o.value])o.text=map[o.value];});}
+  const locSel=document.getElementById('sess-loc');
+  if(locSel){[...locSel.options].forEach(o=>{const map={lab:t('loc_lab'),club:t('loc_club'),indoor:t('loc_indoor'),outdoor:t('loc_outdoor')};if(map[o.value])o.text=map[o.value];});}
+  const crtSel=document.getElementById('sess-courts');
+  if(crtSel){[...crtSel.options].forEach(o=>{const map={'1':t('courts_1'),'2':t('courts_2'),'3':t('courts_3'),'4':t('courts_4')};if(map[o.value])o.text=map[o.value];});}
+  // Focus chips
+  document.querySelectorAll('.fchip').forEach(c=>{c.textContent=fl(c.dataset.f);});
+  // Buttons
+  document.getElementById('build-btn').textContent=t('build_btn');
+  const back=document.getElementById('btn-back');if(back)back.textContent=t('back_btn');
+  const prnt=document.getElementById('btn-print');if(prnt)prnt.textContent=t('print_btn');
+  document.getElementById('sess-notes').placeholder=t('notes_ph');
+  renderPlayers();
+}
+
+</script>
+</body>
+</html>

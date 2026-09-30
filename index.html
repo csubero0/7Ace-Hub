@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>7ACE — Player Development Lab</title>
+<meta name="description" content="7ACE Player Development Lab. A pickleball performance system by Coach Carlos Subero — nutrition, body, training, mindset and practice, all tracked.">
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#080808">
+<link rel="icon" href="./icons/favicon-64.png">
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="7ACE">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@500;600;700;800;900&family=Cormorant+Garamond:ital,wght@1,400;1,500;1,600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:      #080808;
+    --deep:    #111111;
+    --panel:   #161616;
+    --red:     #ff1e1e;
+    --red2:    #ff3b3b;
+    --gold:    #c8a96e;
+    --white:   #f6f6f6;
+    --text:    rgba(255,225,225,.86);
+    --muted:   rgba(255,150,150,.62);
+  }
+
+  *,*::before,*::after{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Barlow', sans-serif;
+    font-weight:300;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+
+  h1,h2,h3,.condensed{
+    font-family:'Barlow Condensed', sans-serif;
+    color:var(--white);
+    margin:0;
+    text-transform:uppercase;
+    line-height:0.92;
+    letter-spacing:-0.01em;
+  }
+
+  p{ margin:0; }
+  a{ color:inherit; text-decoration:none; }
+
+  .wrap{
+    max-width:1240px;
+    margin:0 auto;
+    padding-left:clamp(20px,5vw,64px);
+    padding-right:clamp(20px,5vw,64px);
+  }
+
+  .tag{
+    display:inline-block;
+    font-family:'Barlow Condensed', sans-serif;
+    font-weight:700;
+    font-size:.72rem;
+    letter-spacing:.32em;
+    text-transform:uppercase;
+    color:var(--gold);
+  }
+
+  .tag::before{
+    content:'';
+    display:inline-block;
+    width:22px;
+    height:1px;
+    background:var(--gold);
+    margin-right:12px;
+    vertical-align:middle;
+  }
+
+  .pull{
+    font-family:'Cormorant Garamond', serif;
+    font-style:italic;
+    font-weight:500;
+    color:var(--text);
+  }
+
+  /* ---------- reveal ---------- */
+  .reveal{
+    opacity:0;
+    transform:translateY(28px);
+    transition:opacity .9s cubic-bezier(.16,.8,.24,1), transform .9s cubic-bezier(.16,.8,.24,1);
+  }
+  .reveal.in-view{ opacity:1; transform:translateY(0); }
+  .reveal-delay-1.in-view{ transition-delay:.08s; }
+  .reveal-delay-2.in-view{ transition-delay:.16s; }
+  .reveal-delay-3.in-view{ transition-delay:.24s; }
+  .reveal-delay-4.in-view{ transition-delay:.32s; }
+
+  @media (prefers-reduced-motion: reduce){
+    html{ scroll-behavior:auto; }
+    .reveal{ opacity:1; transform:none; transition:none; }
+    *{ animation:none !important; }
+  }
+
+  /* ---------- nav ---------- */
+  .nav{
+    position:fixed;
+    top:0; left:0; right:0;
+    z-index:100;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:22px clamp(20px,5vw,64px);
+    background:rgba(8,8,8,.72);
+    backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);
+    border-bottom:1px solid rgba(255,255,255,.05);
+  }
+  .nav-mark{
+    font-family:'Barlow Condensed', sans-serif;
+    font-weight:900;
+    font-size:1.15rem;
+    letter-spacing:.14em;
+    color:var(--white);
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .nav-mark .dot{
+    width:6px; height:6px;
+    border-radius:50%;
+    background:var(--red);
+    box-shadow:0 0 10px 2px rgba(255,30,30,.7);
+    animation:pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes pulse{
+    0%,100%{ opacity:1; transform:scale(1); }
+    50%{ opacity:.4; transform:scale(.7); }
+  }
+  .nav-link{
+    font-family:'Barlow Condensed', sans-serif;
+    font-weight:600;
+    font-size:.78rem;
+    letter-spacing:.2em;
+    text-transform:uppercase;
+    color:var(--text);
+    border-bottom:1px solid transparent;
+    padding-bottom:3px;
+    transition:border-color .3s, color .3s;
+  }
+  .nav-link:hover{ color:var(--white); border-color:var(--red); }
+  .nav-right{ display:flex; align-items:center; gap:22px; }
+  .nav-install{
+    font-family:'Barlow Condensed', sans-serif;
+    font-weight:600;
+    font-size:.78rem;
+    letter-spacing:.2em;
+    text-transform:uppercase;
+    color:var(--gold);
+    background:transparent;
+    border:1px solid rgba(200,169,110,.4);
+    padding:8px 16px;
+    cursor:pointer;
+    transition:border-color .3s, color .3s, background .3s;
+  }
+  .nav-install:hover{ border-color:var(--gold); background:rgba(200,169,110,.08); }
+
+  /* ---------- hero ---------- */
+  .hero{
+    position:relative;
+    min-height:100svh;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    padding-top:90px;
+    overflow:hidden;
+    clip-path:polygon(0 0, 100% 0, 100% 94%, 0 100%);
+    background:
+      radial-gradient(ellipse 80% 60% at 30% 20%, rgba(255,30,30,.08), transparent 60%),
+      radial-gradient(ellipse 60% 50% at 80% 80%, rgba(200,169,110,.06), transparent 60%),
+      var(--bg);
+  }
+  .hero-stripe{
+    position:absolute;
+    top:-10%;
+    right:-8%;
+    width:56%;
+    height:130%;
+    background:linear-gradient(115deg, transparent 42%, rgba(255,30,30,.14) 46%, rgba(255,30,30,.14) 47.4%, transparent 51%);
+    pointer-events:none;
+    will-change:transform;
+  }
+  .hero-stripe-2{
+    position:absolute;
+    top:-10%;
+    right:2%;
+    width:56%;
+    height:130%;
+    background:linear-gradient(115deg, transparent 48%, rgba(200,169,110,.10) 50%, transparent 53%);
+    pointer-events:none;
+    will-change:transform;
+  }
+  .hero-content{ position:relative; z-index:2; }
+  .hero-eyebrow{
+    font-family:'Barlow Condensed', sans-serif;
+    font-weight:700;
+    font-size:clamp(.7rem,1.4vw,.85rem);
+    letter-spacing:.34em;
+    color:var(--gold);
+    margin-bottom:22px;
+  }
+  .hero-title{
+    font-weight:900;
+    font-size:clamp(3rem, 9.5vw, 8.2rem);
+    letter-spacing:-0.015em;
+  }
+  .hero-title em{
+    font-style:normal;
+    color:transparent;
+    -webkit-text-stroke:1.5px var(--white);
+  }
+  .hero-sub{
+    font-family:'Cormorant Garamond', serif;
+    font-style:italic;
+    font-weight:500;
+    font-size:clamp(1.1rem,2.1vw,1.55rem);
+    color:var(--text);
+    max-width:640px;
+    margin-top:28px;
+    line-height:1.4;
+  }
+  .cta{
+    display:inline-flex;
+    align-items:center;
+    gap:12px;
+    margin-top:46px;
+    padding:17px 34px;
+    font-family:'Barlow Condensed', sans-serif;
+    font-weight:700;
+    font-size:.92rem;
+    letter-spacing:.2em;
+    text-transform:uppercase;
+    color:var(--white);
+    border:1px solid var(--red);
+    clip-path:polygon(4% 0,100% 0,96% 100%,0 100%);
+    transition:background .35s, color .35s, box-shadow .35s, transform .35s;
+  }
+  .cta:hover{
+    background:var(--red);
+    box-shadow:0 8px 30px -6px rgba(255,30,30,.55);
+    transform:translateY(-2px);
+  }
+  .cta span{ transition:transform .35s; }
+  .cta:hover span{ transform:translateX(4px); }
+
+  .scroll-cue{
+    position:absolute;
+    bottom:56px;
+    left:clamp(20px,5vw,64px);
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-family:'Barlow Condensed', sans-serif;
+    font-size:.7rem;
+    letter-spacing:.3em;
+    color:var(--muted);
+    z-index:2;
+  }
+  .scroll-cue .line{
+    width:32px; height:1px;
+    background:var(--muted);
+    position:relative;
+    overflow:hidden;
+  }
+  .scroll-cue .line::after{
+    content:'';
+    position:absolute; inset:0;
+    background:var(--red);
+    transform:translateX(-100%);
+    animation:scrollline 2.2s ease-in-out infinite;
+  }
+  @keyframes scrollline{
+    0%{ transform:translateX(-100%); }
+    50%{ transform:translateX(0); }
+    100%{ transform:translateX(100%); }
+  }
+
+  /* ---------- system ---------- */
+  .system{
+    padding:clamp(90px,14vw,160px) 0 clamp(70px,10vw,120px);
+    background:var(--bg);
+  }
+  .system .wrap{ max-width:900px; }
+  .system-statement{
+    font-family:'Barlow Condensed', sans-serif;
+    font-weight:600;
+    font-size:clamp(1.6rem,4.2vw,2.9rem);
+    line-height:1.18;
+    color:var(--white);
+    text-transform:none;
+    letter-spacing:0;
+    margin-top:26px;
+  }
+  .system-statement .accent{ color:var(--red2); }
+
+  /* ---------- apps ---------- */
+  .apps{
+    position:relative;
+    background:var(--deep);
+    padding:clamp(90px,12vw,140px) 0 clamp(100px,14vw,160px);
+    margin-top:-6vw;
+    clip-path:polygon(0 6%, 100% 0, 100% 100%, 0 100%);
+  }
+  .section-head{ max-width:760px; margin-bottom:clamp(50px,8vw,90px); }
+  .section-head h2{
+    font-weight:800;
+    font-size:clamp(2.2rem,6vw,4.4rem);
+    margin-top:18px;
+  }
+
+  .app-grid{
+    display:grid;
+    grid-template-columns:repeat(12, 1fr);
+    gap:18px;
+  }
+  .app-card{
+    grid-column:span 6;
+    position:relative;
+    background:var(--panel);
+    border:1px solid rgba(255,255,255,.07);
+    padding:38px 30px 34px;
+    min-height:230px;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    overflow:hidden;
+    transition:transform .45s cubic-bezier(.16,.8,.24,1), border-color .45s, box-shadow .45s, background .45s;
+  }
+  .app-card::before{
+    content:'';
+    position:absolute;
+    top:0; left:0; right:0;
+    height:2px;
+    background:linear-gradient(90deg, var(--red), transparent 70%);
+    transform:scaleX(0);
+    transform-origin:left;
+    transition:transform .5s cubic-bezier(.16,.8,.24,1);
+  }
+  .app-card:hover{
+    transform:translateY(-8px);
+    border-color:rgba(255,30,30,.4);
+    background:#181414;
+    box-shadow:0 22px 50px -18px rgba(255,30,30,.35);
+  }
+  .app-card:hover::before{ transform:scaleX(1); }
+
+  .card-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }
+  .card-num{
+    font-family:'Barlow Condensed', sans-serif;
+    font-weight:700;
+    font-size:.8rem;
+    letter-spacing:.15em;
+    color:var(--muted);
+  }
+  .card-arrow{
+    font-family:'Barlow Condensed', sans-serif;
+    font-size:1.3rem;
+    color:var(--red);
+    opacity:0;
+    transform:translateX(-10px);
+    transition:opacity .4s, transform .4s;
+  }
+  .app-card:hover .card-arrow{ opacity:1; transform:translateX(0); }
+
+  .card-body h3{
+    font-weight:800;
+    font-size:clamp(1.7rem,3vw,2.3rem);
+    margin-top:20px;
+    transition:transform .4s cubic-bezier(.16,.8,.24,1);
+  }
+  .app-card:hover .card-body h3{ transform:translateX(4px); }
+  .card-body p{
+    font-size:.98rem;
+    line-height:1.55;
+    color:var(--text);
+    margin-top:12px;
+    max-width:38ch;
+  }
+
+  /* ---------- numbers ---------- */
+  .numbers{
+    position:relative;
+    background:var(--bg);
+    padding:clamp(90px,12vw,130px) 0;
+    margin-top:-6vw;
+    clip-path:polygon(0 6%, 100% 0, 100% 94%, 0 100%);
+    border-top:1px solid rgba(200,169,110,.15);
+    border-bottom:1px solid rgba(200,169,110,.15);
+  }
+  .numbers-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:32px;
+    text-align:center;
+  }
+  .stat-num{
+    display:block;
+    font-family:'Barlow Condensed', sans-serif;
+    font-weight:900;
+    font-size:clamp(2.6rem,6.5vw,5rem);
+    color:var(--white);
+    line-height:1;
+  }
+  .stat-num .accent{ color:var(--red2); }
+  .stat-label{
+    display:block;
+    margin-top:12px;
+    font-family:'Barlow Condensed', sans-serif;
+    font-weight:600;
+    font-size:.78rem;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:var(--muted);
+  }
+
+  /* ---------- coach ---------- */
+  .coach{
+    padding:clamp(110px,14vw,170px) 0;
+    background:var(--deep);
+  }
+  .coach .wrap{
+    display:grid;
+    grid-template-columns:.85fr 1.15fr;
+    gap:clamp(40px,6vw,90px);
+    align-items:center;
+  }
+  .coach-media{
+    position:relative;
+    aspect-ratio:4/5;
+    background:linear-gradient(160deg, var(--panel), #0c0c0c);
+    border:1px solid rgba(255,255,255,.07);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+  }
+  .coach-media .glyph{
+    font-family:'Barlow Condensed', sans-serif;
+    font-weight:900;
+    font-size:min(28vw,220px);
+    color:transparent;
+    -webkit-text-stroke:1.5px rgba(255,255,255,.14);
+    line-height:1;
+    user-select:none;
+  }
+  .coach-media .glyph-fill{
+    position:absolute;
+    font-family:'Barlow Condensed', sans-serif;
+    font-weight:900;
+    font-size:min(28vw,220px);
+    color:rgba(255,30,30,.9);
+    line-height:1;
+    clip-path:polygon(0 62%, 100% 45%, 100% 100%, 0 100%);
+    user-select:none;
+  }
+  .coach-media .frame-line{
+    position:absolute;
+    inset:18px;
+    border:1px solid rgba(200,169,110,.35);
+    pointer-events:none;
+  }
+  .coach-text h2{
+    font-weight:800;
+    font-size:clamp(2.1rem,5vw,3.4rem);
+    margin-top:16px;
+  }
+  .coach-quote{
+    font-family:'Cormorant Garamond', serif;
+    font-style:italic;
+    font-weight:500;
+    font-size:clamp(1.25rem,2.4vw,1.7rem);
+    color:var(--white);
+    margin:26px 0;
+    line-height:1.4;
+  }
+  .coach-bio{
+    font-size:1rem;
+    line-height:1.7;
+    color:var(--text);
+    max-width:52ch;
+  }
+  .coach-bio + .coach-bio{ margin-top:16px; }
+
+  /* ---------- footer ---------- */
+  footer{
+    background:var(--bg);
+    padding:70px 0 34px;
+    border-top:1px solid rgba(255,255,255,.06);
+  }
+  .footer-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    flex-wrap:wrap;
+    gap:40px;
+    padding-bottom:44px;
+    border-bottom:1px solid rgba(255,255,255,.06);
+  }
+  .footer-mark{
+    font-family:'Barlow Condensed', sans-serif;
+    font-weight:900;
+    font-size:1.6rem;
+    letter-spacing:.1em;
+    color:var(--white);
+  }
+  .footer-mark span{ color:var(--red); }
+  .footer-tagline{
+    font-family:'Cormorant Garamond', serif;
+    font-style:italic;
+    color:var(--muted);
+    font-size:1rem;
+    margin-top:10px;
+    max-width:34ch;
+  }
+  .footer-links{
+    display:flex;
+    gap:clamp(32px,6vw,70px);
+    flex-wrap:wrap;
+  }
+  .footer-col h4{
+    font-family:'Barlow Condensed', sans-serif;
+    font-weight:700;
+    font-size:.72rem;
+    letter-spacing:.24em;
+    text-transform:uppercase;
+    color:var(--gold);
+    margin-bottom:14px;
+  }
+  .footer-col a{
+    display:block;
+    font-family:'Barlow Condensed', sans-serif;
+    font-weight:500;
+    font-size:.95rem;
+    letter-spacing:.02em;
+    color:var(--text);
+    padding:6px 0;
+    transition:color .3s, transform .3s;
+  }
+  .footer-col a:hover{ color:var(--white); transform:translateX(4px); }
+  .footer-bottom{
+    display:flex;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:12px;
+    padding-top:24px;
+    font-size:.78rem;
+    color:var(--muted);
+    letter-spacing:.03em;
+  }
+
+  /* ---------- responsive ---------- */
+  @media (max-width:900px){
+    .app-card{ grid-column:span 12; }
+    .numbers-grid{ grid-template-columns:repeat(2,1fr); row-gap:44px; }
+    .coach .wrap{ grid-template-columns:1fr; }
+    .coach-media{ max-width:340px; margin:0 auto; }
+  }
+  @media (max-width:560px){
+    .hero{ clip-path:polygon(0 0,100% 0,100% 97%,0 100%); }
+    .apps{ clip-path:polygon(0 3%, 100% 0, 100% 100%, 0 100%); margin-top:-3vw; }
+    .numbers{ clip-path:polygon(0 3%, 100% 0, 100% 97%, 0 100%); margin-top:-3vw; }
+    .cta{ width:100%; justify-content:center; }
+    .footer-top{ flex-direction:column; }
+  }
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <a href="#top" class="nav-mark"><span class="dot"></span>7ACE</a>
+  <div class="nav-right">
+    <button id="installBtn" class="nav-install" type="button" hidden>Install App</button>
+    <a href="#apps" class="nav-link">The Apps</a>
+  </div>
+</header>
+
+<main>
+
+  <!-- HERO -->
+  <section class="hero" id="top">
+    <div class="hero-stripe" data-parallax="0.12"></div>
+    <div class="hero-stripe-2" data-parallax="0.22"></div>
+    <div class="wrap hero-content">
+      <p class="hero-eyebrow">7ACE PLAYER DEVELOPMENT LAB</p>
+      <h1 class="hero-title">BUILT TO<br><em>BE MEASURED.</em></h1>
+      <p class="hero-sub">A performance system for pickleball players who train like the scoreboard is always on.</p>
+      <a href="#apps" class="cta">Enter the Lab <span>→</span></a>
+    </div>
+    <div class="scroll-cue"><span class="line"></span>SCROLL</div>
+  </section>
+
+  <!-- SYSTEM -->
+  <section class="system">
+    <div class="wrap reveal">
+      <span class="tag">The System</span>
+      <p class="system-statement">Talent gets you on the court. Data keeps you winning. 7ACE tracks the work — nutrition, body, training, mindset, practice — so nothing you do goes <span class="accent">unmeasured</span>.</p>
+    </div>
+  </section>
+
+  <!-- APPS -->
+  <section class="apps" id="apps">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <span class="tag">The Tools</span>
+        <h2>Six systems.<br>One standard.</h2>
+      </div>
+
+      <div class="app-grid">
+
+        <a class="app-card reveal" href="./7ACE_FuelOS.html">
+          <div class="card-top">
+            <span class="card-num">01</span>
+            <span class="card-arrow">→</span>
+          </div>
+          <div class="card-body">
+            <h3>FuelOS</h3>
+            <p>Nutrition tracking built for competition days — photo food scanner, macro targets, favorites logged in seconds.</p>
+          </div>
+        </a>
+
+        <a class="app-card reveal reveal-delay-1" href="./7ACE_BodyControl_OS.html">
+          <div class="card-top">
+            <span class="card-num">02</span>
+            <span class="card-arrow">→</span>
+          </div>
+          <div class="card-body">
+            <h3>BodyControl OS</h3>
+            <p>Body composition and session tracking. Know your numbers before they show up on the scoreboard.</p>
+          </div>
+        </a>
+
+        <a class="app-card reveal reveal-delay-2" href="./7ACE_Performance_Plan.html">
+          <div class="card-top">
+            <span class="card-num">03</span>
+            <span class="card-arrow">→</span>
+          </div>
+          <div class="card-body">
+            <h3>Performance Plan</h3>
+            <p>Training plan builder. Periodized work built around your matches — not a generic calendar.</p>
+          </div>
+        </a>
+
+        <a class="app-card reveal reveal-delay-3" href="./The%20Zone%20Part%201.html">
+          <div class="card-top">
+            <span class="card-num">04</span>
+            <span class="card-arrow">→</span>
+          </div>
+          <div class="card-body">
+            <h3>The Zone <span style="color:var(--muted);font-size:.6em;">/ Coach&nbsp;Z</span></h3>
+            <p>Eight-week mental performance framework. The mind trains too — this is how.</p>
+          </div>
+        </a>
+
+        <a class="app-card reveal reveal-delay-4" href="./7ace-drill-library-v5.html">
+          <div class="card-top">
+            <span class="card-num">05</span>
+            <span class="card-arrow">→</span>
+          </div>
+          <div class="card-body">
+            <h3>Practice Architect</h3>
+            <p>Drill library and session logging. Plan the work, log the work, see the pattern.</p>
+          </div>
+        </a>
+
+        <a class="app-card reveal reveal-delay-4" href="./ScoutPro%20Oficial.html">
+          <div class="card-top">
+            <span class="card-num">06</span>
+            <span class="card-arrow">→</span>
+          </div>
+          <div class="card-body">
+            <h3>ScoutPro</h3>
+            <p>Opponent scouting database. Matchup intelligence, tournament tracking, roster reports.</p>
+          </div>
+        </a>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- NUMBERS -->
+  <section class="numbers">
+    <div class="wrap">
+      <div class="numbers-grid">
+        <div class="reveal">
+          <span class="stat-num"><span class="accent">500</span>+</span>
+          <span class="stat-label">Sessions Logged</span>
+        </div>
+        <div class="reveal reveal-delay-1">
+          <span class="stat-num">120<span class="accent">+</span></span>
+          <span class="stat-label">Drills In The Library</span>
+        </div>
+        <div class="reveal reveal-delay-2">
+          <span class="stat-num">8</span>
+          <span class="stat-label">Weeks In The Zone</span>
+        </div>
+        <div class="reveal reveal-delay-3">
+          <span class="stat-num">6</span>
+          <span class="stat-label">Systems. One Standard.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- COACH -->
+  <section class="coach">
+    <div class="wrap">
+      <div class="coach-media reveal">
+        <span class="glyph">CS</span>
+        <span class="glyph-fill">CS</span>
+        <span class="frame-line"></span>
+      </div>
+      <div class="coach-text reveal reveal-delay-1">
+        <span class="tag">The Coach</span>
+        <h2>Carlos Subero</h2>
+        <p class="coach-quote">"If you can't measure it, you're not coaching it — you're guessing."</p>
+        <p class="coach-bio">Carlos Subero built 7ACE from court time, not theory. Years spent coaching competitive pickleball players — juniors chasing their first rating, adults climbing the DUPR ladder — showed the same gap every time: players training hard with nothing to show for it between sessions.</p>
+        <p class="coach-bio">7ACE is that record, systemized. Every tool in the Lab is one he uses with his own athletes, built for anyone serious enough about the game to want the same standard.</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-top">
+      <div>
+        <div class="footer-mark">7<span>ACE</span></div>
+        <p class="footer-tagline">Player Development Lab — Coach Carlos Subero.</p>
+      </div>
+      <div class="footer-links">
+        <div class="footer-col">
+          <h4>The Apps</h4>
+          <a href="./7ACE_FuelOS.html">FuelOS</a>
+          <a href="./7ACE_BodyControl_OS.html">BodyControl OS</a>
+          <a href="./7ACE_Performance_Plan.html">Performance Plan</a>
+          <a href="./The%20Zone%20Part%201.html">The Zone / Coach Z</a>
+          <a href="./7ace-drill-library-v5.html">Practice Architect</a>
+          <a href="./ScoutPro%20Oficial.html">ScoutPro</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 7ACE Player Development Lab.</span>
+      <span>Built to be measured.</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  // scroll reveal
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){
+        e.target.classList.add('in-view');
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold:0.15, rootMargin:'0px 0px -8% 0px' });
+  document.querySelectorAll('.reveal').forEach(function(el){ io.observe(el); });
+
+  // subtle hero parallax
+  var stripes = document.querySelectorAll('[data-parallax]');
+  var ticking = false;
+  function updateParallax(){
+    var y = window.scrollY || window.pageYOffset;
+    stripes.forEach(function(el){
+      var factor = parseFloat(el.getAttribute('data-parallax')) || 0.1;
+      el.style.transform = 'translateY(' + (y * factor) + 'px)';
+    });
+    ticking = false;
+  }
+  window.addEventListener('scroll', function(){
+    if(!ticking){
+      requestAnimationFrame(updateParallax);
+      ticking = true;
+    }
+  }, { passive:true });
+
+  // PWA install
+  var installBtn = document.getElementById('installBtn');
+  var deferredPrompt = null;
+
+  var isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
+  window.addEventListener('beforeinstallprompt', function(e){
+    e.preventDefault();
+    deferredPrompt = e;
+    if(!isStandalone) installBtn.hidden = false;
+  });
+
+  if(installBtn){
+    installBtn.addEventListener('click', function(){
+      if(!deferredPrompt) return;
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(function(){
+        deferredPrompt = null;
+        installBtn.hidden = true;
+      });
+    });
+  }
+
+  window.addEventListener('appinstalled', function(){
+    installBtn.hidden = true;
+  });
+
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', function(){
+      navigator.serviceWorker.register('./sw.js').catch(function(){});
+    });
+  }
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>7ACE Session Logger v16</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:#080A0E;color:#E8EAF0;min-height:100vh;padding:16px}
+.page{max-width:640px;margin:0 auto}
+
+.header{background:linear-gradient(135deg,#080A0E,#0d1630);border:1px solid #1E90FF33;border-radius:12px;padding:18px 20px;margin-bottom:16px}
+.brand{font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:#1E90FF;font-weight:700;margin-bottom:4px}
+.title{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:#fff;line-height:1}
+.subtitle{font-size:11px;color:#6B7280;margin-top:4px}
+.version-badge{display:inline-block;font-size:9px;font-weight:700;letter-spacing:1.5px;padding:2px 8px;border-radius:10px;background:#1E90FF18;color:#1E90FF;border:1px solid #1E90FF33;margin-top:6px;text-transform:uppercase}
+
+.card{background:#0D111A;border:1px solid #1E3A5F;border-radius:10px;padding:16px 18px;margin-bottom:12px}
+.card-title{font-family:'Bebas Neue',sans-serif;font-size:16px;color:#1E90FF;letter-spacing:1px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.card-title span{font-size:18px}
+
+label{display:block;font-size:11px;font-weight:600;letter-spacing:1px;color:#6B7280;text-transform:uppercase;margin-bottom:6px}
+input[type=text],input[type=date],input[type=time],input[type=number],select,textarea{width:100%;background:#080A0E;border:1px solid #1E3A5F;border-radius:6px;padding:8px 12px;color:#E8EAF0;font-family:'DM Sans',sans-serif;font-size:13px;outline:none}
+input:focus,select:focus,textarea:focus{border-color:#1E90FF66}
+textarea{resize:vertical;min-height:70px;line-height:1.5}
+select{appearance:none;cursor:pointer}
+
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+
+/* PLAYER CHECKBOXES */
+.player-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.player-check{display:flex;align-items:center;gap:8px;background:#080A0E;border:1px solid #1E3A5F;border-radius:6px;padding:7px 10px;cursor:pointer;transition:border-color .15s}
+.player-check:hover{border-color:#1E90FF55}
+.player-check.selected{border-color:#1E90FF;background:#1E90FF0D}
+.player-check input{display:none}
+.player-check .check-box{width:14px;height:14px;border:1.5px solid #1E3A5F;border-radius:3px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px}
+.player-check.selected .check-box{background:#1E90FF;border-color:#1E90FF;color:#fff}
+.player-check .player-label{font-size:12px;font-weight:500;color:#C0C8D8;line-height:1.2}
+.player-check .player-dupr{font-size:10px;color:#6B7280}
+.cat-badge{display:inline-block;font-size:9px;font-weight:700;padding:1px 5px;border-radius:4px;margin-left:4px}
+.cat-odl{background:#1E90FF18;color:#1E90FF}
+.cat-zone{background:#E8A02018;color:#E8A020}
+.cat-private{background:#00D68F18;color:#00D68F}
+
+/* PLAYER FILTER TABS */
+.filter-tabs{display:flex;gap:6px;margin-bottom:8px}
+.filter-tab{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid #1E3A5F;background:transparent;color:#6B7280;transition:all .15s}
+.filter-tab.active{background:#1E90FF18;border-color:#1E90FF44;color:#1E90FF}
+.filter-tab:hover:not(.active){border-color:#1E90FF33;color:#A0A8B8}
+
+/* DRILL CHECKBOXES */
+.drill-list{display:flex;flex-direction:column;gap:5px}
+.drill-check{display:flex;align-items:flex-start;gap:8px;background:#080A0E;border:1px solid #1E3A5F;border-radius:6px;padding:8px 10px;cursor:pointer;transition:border-color .15s}
+.drill-check:hover{border-color:#1E90FF55}
+.drill-check.selected{border-color:#E8A020;background:#E8A0200A}
+.drill-check input{display:none}
+.drill-check .check-box{width:14px;height:14px;border:1.5px solid #1E3A5F;border-radius:3px;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:10px}
+.drill-check.selected .check-box{background:#E8A020;border-color:#E8A020;color:#080A0E}
+.drill-check .drill-info{flex:1}
+.drill-check .drill-name-text{font-size:12px;font-weight:600;color:#C0C8D8}
+.drill-check .drill-tags-small{font-size:10px;color:#6B7280;margin-top:2px}
+
+/* DRILL CATEGORY TABS */
+.drill-cats{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
+.drill-cat-tab{padding:3px 9px;border-radius:12px;font-size:10px;font-weight:600;cursor:pointer;border:1px solid #1E3A5F;background:transparent;color:#6B7280;transition:all .15s;white-space:nowrap}
+.drill-cat-tab.active{background:#E8A02018;border-color:#E8A02044;color:#E8A020}
+.drill-cat-tab:hover:not(.active){border-color:#E8A02033;color:#A0A8B8}
+
+/* PERSONAL COMMENTS */
+.personal-block{background:#080A0E;border:1px solid #1E3A5F;border-radius:8px;padding:12px;margin-bottom:8px}
+.personal-player-name{font-size:12px;font-weight:600;color:#E8A020;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.personal-player-name::before{content:"📌";font-size:11px}
+
+/* SELECTION SUMMARY */
+.sel-summary{background:#080A0E;border:1px solid #1E3A5F22;border-radius:6px;padding:8px 10px;margin-bottom:10px;font-size:11px;color:#6B7280;display:flex;gap:12px;flex-wrap:wrap}
+.sel-count{font-weight:700;color:#1E90FF}
+.sel-drill-count{font-weight:700;color:#E8A020}
+
+/* BUTTONS */
+.btn-row{display:flex;gap:8px;margin-top:16px}
+.btn{padding:12px 20px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;border:none;flex:1;text-align:center;transition:all .15s}
+.btn-primary{background:#1E90FF;color:#fff}
+.btn-primary:hover{background:#1a7de0}
+.btn-secondary{background:transparent;border:1px solid #1E90FF44;color:#1E90FF}
+.btn-secondary:hover{background:#1E90FF11}
+.btn-danger{background:transparent;border:1px solid #E74C3C44;color:#E74C3C}
+.btn-danger:hover{background:#E74C3C11}
+
+/* SEARCH INPUT */
+.search-input{width:100%;background:#080A0E;border:1px solid #1E3A5F;border-radius:6px;padding:7px 12px;color:#E8EAF0;font-family:'DM Sans',sans-serif;font-size:12px;outline:none;margin-bottom:8px}
+.search-input:focus{border-color:#1E90FF66}
+.search-count{font-size:10px;color:#6B7280;margin-bottom:6px;display:none}
+
+/* OUTPUT */
+.output-card{background:#0D111A;border:1px solid #00D68F33;border-radius:10px;padding:16px 18px;margin-top:16px;display:none}
+.output-title{font-family:'Bebas Neue',sans-serif;font-size:15px;color:#00D68F;letter-spacing:1px;margin-bottom:10px}
+.output-text{font-size:12px;color:#A0A8B8;line-height:1.7;white-space:pre-wrap;font-family:monospace}
+.copy-btn{display:block;width:100%;margin-top:10px;padding:9px;background:#00D68F18;border:1px solid #00D68F40;border-radius:6px;color:#00D68F;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;text-align:center}
+
+.divider{height:1px;background:#1E3A5F;margin:12px 0}
+.other-input{margin-top:8px}
+
+/* TAGS */
+.tag-pill{display:inline-block;font-size:9px;padding:1px 6px;border-radius:10px;margin-right:3px;margin-bottom:2px;font-weight:600}
+.tag-blue{background:#1E90FF18;color:#1E90FF;border:1px solid #1E90FF35}
+.tag-gold{background:#E8A02018;color:#E8A020;border:1px solid #E8A02035}
+.tag-teal{background:#1ABC9C18;color:#1ABC9C;border:1px solid #1ABC9C35}
+.tag-purple{background:#9B59B618;color:#C39BD3;border:1px solid #9B59B635}
+.tag-red{background:#E74C3C18;color:#E74C3C;border:1px solid #E74C3C35}
+.tag-orange{background:#E67E2218;color:#E67E22;border:1px solid #E67E2235}
+.tag-green{background:#00D68F18;color:#00D68F;border:1px solid #00D68F35}
+
+/* DRAFT */
+.draft-item{display:flex;align-items:center;gap:8px;background:#080A0E;border:1px solid #1E3A5F;border-radius:6px;padding:8px 10px;margin-bottom:6px}
+.draft-item-name{flex:1;font-size:12px;font-weight:500;color:#C0C8D8}
+.draft-item-date{font-size:10px;color:#6B7280;white-space:nowrap}
+.draft-btn{font-size:10px;font-weight:600;padding:3px 10px;border-radius:4px;cursor:pointer;border:none;white-space:nowrap}
+.draft-load{background:#1E90FF20;color:#1E90FF;border:1px solid #1E90FF40}
+.draft-delete{background:#E74C3C15;color:#E74C3C;border:1px solid #E74C3C30}
+.draft-load:hover{background:#1E90FF35}
+.draft-delete:hover{background:#E74C3C25}
+
+/* TOAST */
+.save-toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#00D68F;color:#080A0E;font-weight:700;font-size:13px;padding:10px 20px;border-radius:8px;z-index:999;display:none;white-space:nowrap}
+
+/* SELECTED PLAYERS STRIP */
+.selected-strip{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;min-height:0}
+.sel-pill{display:inline-flex;align-items:center;gap:5px;background:#1E90FF15;border:1px solid #1E90FF33;border-radius:20px;padding:3px 10px;font-size:11px;color:#1E90FF;font-weight:500}
+.sel-pill .remove-player{cursor:pointer;font-size:13px;line-height:1;color:#1E90FF88}
+.sel-pill .remove-player:hover{color:#1E90FF}
+</style>
+</head>
+<body>
+<div class="page">
+
+<div class="header">
+  <div class="brand">7ACE Development Lab · Coach Carlos Subero</div>
+  <div class="title">Session Logger</div>
+  <div class="subtitle">Fill out → Generate → Paste into Claude to update the dashboard</div>
+  <div class="version-badge">v16 · 22 Players · 34 Drills</div>
+</div>
+
+<!-- ── SESSION INFO ── -->
+<div class="card">
+  <div class="card-title"><span>📅</span> Session Info</div>
+  <div style="margin-bottom:10px">
+    <label>Date</label>
+    <input type="date" id="sessDate">
+  </div>
+  <div class="row3" style="margin-bottom:10px">
+    <div><label>Start</label><input type="time" id="startTime"></div>
+    <div><label>End</label><input type="time" id="endTime"></div>
+    <div><label>Duration</label><input type="text" id="duration" readonly placeholder="—" style="color:#6B7280"></div>
+  </div>
+  <div style="margin-bottom:10px">
+    <label>Location</label>
+    <select id="location">
+      <option value="">Select location...</option>
+      <option value="East Park · Lake Nona">East Park · Lake Nona</option>
+      <option value="Urbon · Lake Nona">Urbon · Lake Nona</option>
+      <option value="Narcoossee Road Courts · Lake Nona">Narcoossee Road Courts · Lake Nona</option>
+      <option value="7ACE Lab · Home Court">7ACE Lab · Home Court</option>
+      <option value="other">Other (specify below)</option>
+    </select>
+    <div id="locationOther" style="display:none;margin-top:8px">
+      <input type="text" id="locationOtherText" placeholder="Enter location...">
+    </div>
+  </div>
+  <div>
+    <label>Session Type</label>
+    <select id="sessType">
+      <optgroup label="── Group Formats">
+        <option value="Group Practice">Group Practice</option>
+        <option value="Kitchen Dominators — $0">Kitchen Dominators — $0</option>
+      </optgroup>
+      <optgroup label="── Private / Partner">
+        <option value="Private Session">Private Session</option>
+        <option value="Partner Practice">Partner Practice</option>
+        <option value="Lab Session">Lab Session</option>
+      </optgroup>
+      <optgroup label="── Billing Programs">
+        <option value="Single Class w/ Report — $75/hr">Single Class w/ Report — $75/hr</option>
+        <option value="Single Class No Report — $70/hr">Single Class No Report — $70/hr</option>
+        <option value="10-Hr Player Development Package — $650">10-Hr Player Development Package — $650</option>
+        <option value="10-Hr Standard Package — $600">10-Hr Standard Package — $600</option>
+        <option value="The Zone Mental Session — $70/hr">The Zone Mental Session — $70/hr</option>
+        <option value="Complimentary / Coach — $0">Complimentary / Coach — $0</option>
+      </optgroup>
+    </select>
+  </div>
+</div>
+
+<!-- ── PLAYERS ── -->
+<div class="card">
+  <div class="card-title"><span>👥</span> Players</div>
+  
+  <!-- Selected pills -->
+  <div id="selectedStrip" style="display:none;margin-bottom:8px">
+    <div style="font-size:10px;font-weight:700;letter-spacing:1px;color:#00D68F;text-transform:uppercase;margin-bottom:5px">Selected:</div>
+    <div id="selPillsContainer" class="selected-strip"></div>
+  </div>
+
+  <!-- Filter tabs -->
+  <div class="filter-tabs">
+    <button class="filter-tab active" onclick="filterByCategory('all',this)">All</button>
+    <button class="filter-tab" onclick="filterByCategory('ODL',this)">ODL</button>
+    <button class="filter-tab" onclick="filterByCategory('ZONE Kids',this)">ZONE Kids</button>
+    <button class="filter-tab" onclick="filterByCategory('Private',this)">Private</button>
+  </div>
+  
+  <input type="text" id="playerSearch" class="search-input" placeholder="🔍 Search players..." oninput="filterPlayers(this.value)">
+  <div id="playerSearchCount" class="search-count"></div>
+  <div class="player-grid" id="playerGrid"></div>
+  <div class="divider"></div>
+  <label>Other / New Player</label>
+  <input type="text" id="otherPlayer" placeholder="Name, DUPR, age, category...">
+</div>
+
+<!-- ── DRILLS ── -->
+<div class="card">
+  <div class="card-title"><span>🏓</span> Drills Worked</div>
+  
+  <!-- Category filter tabs -->
+  <div class="drill-cats" id="drillCatTabs"></div>
+  
+  <input type="text" id="drillSearch" class="search-input" placeholder="🔍 Search drills or skill tags..." oninput="filterDrills(this.value)">
+  <div id="drillSearchCount" class="search-count"></div>
+  
+  <!-- Selection count -->
+  <div id="drillSelBar" style="display:none;font-size:11px;color:#E8A020;font-weight:600;margin-bottom:8px">
+    ✓ <span id="drillSelCount">0</span> drill(s) selected
+  </div>
+  
+  <div class="drill-list" id="drillList"></div>
+  <div class="divider"></div>
+  <label>Other Drill / Additional Context</label>
+  <textarea id="otherDrill" placeholder="Describe any drill not in the library, or add extra context on a listed drill..."></textarea>
+</div>
+
+<!-- ── GENERAL COMMENTS ── -->
+<div class="card">
+  <div class="card-title"><span>💬</span> General Coaching Comments</div>
+  <div style="margin-bottom:8px;font-size:11px;color:#6B7280">Shared with all players listed in this report.</div>
+  <textarea id="generalComments" placeholder="Overall session notes, energy, what clicked, what didn't..."></textarea>
+</div>
+
+<!-- ── PERSONAL NOTES ── -->
+<div class="card">
+  <div class="card-title"><span>📌</span> Individual Player Notes</div>
+  <div style="margin-bottom:8px;font-size:11px;color:#6B7280">Private to each player — never shared with the group.</div>
+  <div id="personalComments"></div>
+  <div style="font-size:11px;color:#3A4050;text-align:center;padding:8px" id="noPlayersMsg">Select players above to add individual notes</div>
+</div>
+
+<!-- ── DRAFT MANAGER ── -->
+<div class="card">
+  <div class="card-title"><span>💾</span> Draft Manager</div>
+  <div style="font-size:11px;color:#6B7280;margin-bottom:10px">Save your draft as a code — copy to notes or WhatsApp, paste back to restore.</div>
+
+  <button class="btn btn-secondary" style="width:100%;padding:9px;margin-bottom:10px" onclick="saveDraftCode()">💾 Save Draft → Get Code</button>
+
+  <div id="draftCodeOut" style="display:none;margin-bottom:10px">
+    <div style="font-size:10px;font-weight:700;letter-spacing:1px;color:#00D68F;text-transform:uppercase;margin-bottom:5px">✅ Draft Code — Copy this:</div>
+    <textarea id="draftCodeText" readonly onclick="this.select()"
+      style="width:100%;background:#080A0E;border:1px solid #00D68F33;border-radius:6px;padding:8px;color:#00D68F;font-family:monospace;font-size:10px;min-height:60px;resize:none;outline:none"></textarea>
+    <button onclick="copyDraftCode()" style="width:100%;margin-top:5px;padding:7px;background:#00D68F18;border:1px solid #00D68F40;border-radius:6px;color:#00D68F;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer">📋 Copy to Clipboard</button>
+  </div>
+
+  <div class="divider"></div>
+  <div style="font-size:10px;font-weight:700;letter-spacing:1px;color:#6B7280;text-transform:uppercase;margin-bottom:5px;margin-top:10px">Load saved draft:</div>
+  <textarea id="draftCodeIn" placeholder="Paste your draft code here..."
+    style="width:100%;background:#080A0E;border:1px solid #1E3A5F;border-radius:6px;padding:8px;color:#E8EAF0;font-family:monospace;font-size:10px;min-height:55px;resize:none;outline:none;margin-bottom:8px"></textarea>
+  <button onclick="loadDraftCode()" style="width:100%;padding:9px;background:transparent;border:1px solid #1E90FF44;border-radius:6px;color:#1E90FF;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer">📂 Load Draft</button>
+</div>
+
+<!-- ── GENERATE ── -->
+<div class="btn-row">
+  <button class="btn btn-danger" onclick="clearForm()">Clear</button>
+  <button class="btn btn-primary" onclick="generateReport()">Generate Report →</button>
+</div>
+
+<!-- ── OUTPUT ── -->
+<div class="output-card" id="outputCard">
+  <div class="output-title">✅ Report Ready — Paste into Claude</div>
+  <div class="output-text" id="outputText"></div>
+  <button class="copy-btn" onclick="copyReport()">📋 Copy to Clipboard</button>
+</div>
+
+</div><!-- /page -->
+
+<div class="save-toast" id="saveToast"></div>
+
+<script>
+// ── PLAYER DATA ──
+const PLAYERS = [
+  {id:"p_arielle",    name:"Arielle Nealy",          dupr:"4.642", cat:"ODL"},
+  {id:"p_andres",     name:"Andres Yanez",            dupr:"4.317", cat:"ODL"},
+  {id:"p_carlos",     name:"Carlos Subero",           dupr:"5.06",  cat:"Private"},
+  {id:"p_denise",     name:"Denise Kanashiro",        dupr:"—",     cat:"ODL"},
+  {id:"p_diego",      name:"Diego Villarroel",        dupr:"4.145", cat:"ODL"},
+  {id:"p_ellie",      name:"Ellie Rodriguez",         dupr:"3.552", cat:"ZONE Kids"},
+  {id:"p_ethan",      name:"Ethan Lin",               dupr:"3.653", cat:"ZONE Kids"},
+  {id:"p_ethan_dlr",  name:"Ethan De Los Reyes",      dupr:"4.307", cat:"ODL"},
+  {id:"p_hani",       name:"Hani Mawji",              dupr:"2.167", cat:"ZONE Kids"},
+  {id:"p_hadi",       name:"Hadi Mawji",              dupr:"3.452", cat:"ZONE Kids"},
+  {id:"p_ivan",       name:"Ivan Melians",            dupr:"5.005", cat:"ODL"},
+  {id:"p_jacob",      name:"Jacob Garcia",            dupr:"4.262", cat:"ZONE Kids"},
+  {id:"p_jared",      name:"Jared Gillespie",         dupr:"4.504", cat:"ODL"},
+  {id:"p_jorge",      name:"Jorge Mata",              dupr:"4.398", cat:"ODL"},
+  {id:"p_justin",     name:"Justin Graham",           dupr:"5.315", cat:"ODL"},
+  {id:"p_karla",      name:"Karla Mendez",            dupr:"4.604", cat:"ODL"},
+  {id:"p_kayan",      name:"Kayan Mehan",             dupr:"3.265", cat:"ODL"},
+  {id:"p_madden",     name:"Madden Mehan",            dupr:"4.105", cat:"ODL"},
+  {id:"p_maddy_sw",   name:"Maddy Stone-Wheatley",    dupr:"4.504", cat:"ODL"},
+  {id:"p_maxwell",    name:"Maxwell Walters-Smith",   dupr:"4.713", cat:"ODL"},
+  {id:"p_raynier",    name:"Raynier Fernandez",       dupr:"4.600", cat:"ODL"},
+  {id:"p_romina",     name:"Romina Casanova",         dupr:"4.125", cat:"ODL"},
+  {id:"p_siro",       name:"Siro Paez",               dupr:"3.350", cat:"ODL"},
+  {id:"p_william",    name:"William Hsieh",           dupr:"5.435", cat:"ODL"},
+];
+
+// ── DRILL DATA ──
+const DRILLS = [
+  // DINKING
+  {cat:"Dinking", name:"Corner-to-Middle Offensive/Defensive Dinking System",     tags:["DINK","PATTERN","POSITIONING","MENTAL"]},
+  {cat:"Dinking", name:"2-Ball Same-Quadrant Dinking",                            tags:["DINK","MENTAL","MOVEMENT"]},
+  {cat:"Dinking", name:"1v2 Dinking System",                                      tags:["DINK","SPEED-UP","COUNTER","PATTERN"]},
+  {cat:"Dinking", name:"KD Battle — Kitchen Dominators Game System",              tags:["DINK","SPEED-UP","ERNE","ATP","MENTAL"]},
+  {cat:"Dinking", name:"Kitchen Accuracy Game",                                   tags:["DINK","ERNE","ATP","MENTAL"]},
+  {cat:"Dinking", name:"All-Flick Game",                                          tags:["SPEED-UP","DINK","COUNTER","PATTERN"]},
+  {cat:"Dinking", name:"Live Dinking System — 1v1 / 1v2 / 2v2",                  tags:["DINK","SPEED-UP","PATTERN","POSITIONING","MENTAL"]},
+  {cat:"Dinking", name:"Self-Fed Dinking Drill (+ Coach-Fed Variant)",            tags:["DINK","PATTERN","MENTAL","MOVEMENT"]},
+  // SERVE & RETURN
+  {cat:"Serve & Return", name:"Kitchen Dominators — Serve & Return System",       tags:["SERVE","RETURN","3RD SHOT","4TH SHOT","TRANSITION"]},
+  {cat:"Serve & Return", name:"4-Shot Sequence Drill",                            tags:["SERVE","RETURN","3RD SHOT","4TH SHOT","PATTERN"]},
+  {cat:"Serve & Return", name:"7-11 Reset Game",                                  tags:["RESET","4TH SHOT","MENTAL"]},
+  {cat:"Serve & Return", name:"Bottle Placement Drill (+ Serve Placement Variant)",tags:["3RD SHOT","SERVE","DRIVE","MENTAL"]},
+  // TRANSITION & RESET
+  {cat:"Transition & Reset", name:"Baseline-to-Kitchen Progressive Reset Drill",  tags:["RESET","TRANSITION","4TH SHOT","MOVEMENT"]},
+  {cat:"Transition & Reset", name:"Transition Control Drill",                     tags:["TRANSITION","RESET","5TH SHOT","MOVEMENT"]},
+  {cat:"Transition & Reset", name:"Drive-Drop Transition System — One Ball Live", tags:["3RD SHOT","4TH SHOT","5TH SHOT","TRANSITION","RESET","SPEED-UP"]},
+  {cat:"Transition & Reset", name:"Backhand Reset Progression — Baseline to Kitchen", tags:["RESET","4TH SHOT","TRANSITION","MOVEMENT","MENTAL"]},
+  // DRIVE & DROP
+  {cat:"Drive & Drop", name:"3-Station 3rd Shot Drop System",                    tags:["3RD SHOT","RESET"]},
+  {cat:"Drive & Drop", name:"Drives vs. The Net",                                tags:["DRIVE","3RD SHOT"]},
+  {cat:"Drive & Drop", name:"Self-Fed 3rd Shot Drop Drill (+ Coach-Fed Variant)",tags:["3RD SHOT","RESET","MENTAL"]},
+  {cat:"Drive & Drop", name:"Self-Fed Drive Drill (+ Coach-Fed Variant)",         tags:["DRIVE","3RD SHOT","MENTAL","MOVEMENT"]},
+  // VOLLEY
+  {cat:"Volley", name:"2v1 Volley Pattern",                                       tags:["VOLLEY","MOVEMENT","POSITIONING"]},
+  {cat:"Volley", name:"Mid-Court Volley Quadrant System",                         tags:["VOLLEY","MOVEMENT","POSITIONING"]},
+  {cat:"Volley", name:"Low Volley Pickup Drill — Ground Ball Defense",            tags:["VOLLEY","COUNTER","RESET","MOVEMENT"]},
+  {cat:"Volley", name:"Winner-Stays-On Hands Battle — Quadrant Volley System",   tags:["VOLLEY","COUNTER","SPEED-UP","MENTAL","POSITIONING"]},
+  // LOB & OVERHEAD
+  {cat:"Lob & Overhead", name:"Lob Chase Drill",                                  tags:["LOB","OVERHEAD","MOVEMENT"]},
+  {cat:"Lob & Overhead", name:"3-Phase Overhead Progression",                     tags:["OVERHEAD","LOB","MOVEMENT"]},
+  // SPEED-UP & COUNTER
+  {cat:"Speed-Up & Counter", name:"Speed-Up Patterns Drill — Hip Target + Fast/Slow Reset", tags:["SPEED-UP","COUNTER","RESET","PATTERN","MENTAL"]},
+  {cat:"Speed-Up & Counter", name:"Live Counter Drill — Speed-Up Reaction & Redirect",      tags:["COUNTER","SPEED-UP","VOLLEY","PATTERN","MENTAL"]},
+  {cat:"Speed-Up & Counter", name:"Twoey Counter Progression — Line / Middle Coverage",     tags:["COUNTER","SPEED-UP","DINK","MENTAL","MOVEMENT"]},
+  {cat:"Speed-Up & Counter", name:"One-Hand Backhand Counter Progression",                  tags:["COUNTER","SPEED-UP","RESET","MENTAL","MOVEMENT"]},
+  {cat:"Speed-Up & Counter", name:"Progressive Ball-Size Training",                         tags:["COUNTER","SPEED-UP","MENTAL","VOLLEY"]},
+  // SPECIAL
+  {cat:"Mental & Special", name:"Zone Pre-Shot Routine Work",                     tags:["MENTAL"]},
+  {cat:"Mental & Special", name:"ATP Execution & Defense Drill",                  tags:["ATP","COUNTER","MOVEMENT"]},
+  {cat:"Mental & Special", name:"5th Shot Aggression Drill",                      tags:["5TH SHOT","SPEED-UP","MENTAL","TRANSITION"]},
+  // COACH-FED DRILLS
+  {cat:"Coach-Fed Drills", name:"Coach-Fed Counter Progression — Variable Speed & Timing",     tags:["COUNTER","SPEED-UP","MENTAL","MOVEMENT"]},
+  // SOFT HAND DRILLS
+  {cat:"Soft Hand Drills", name:"Soft Hand Dink Drill — 3 Variants",                           tags:["DINK","MENTAL","VOLLEY","PATTERN"]},
+  // VOLLEY CONTROL
+  {cat:"Volley Control", name:"FH/BH Counter Volley Drill — 4 Variants",                       tags:["VOLLEY","COUNTER","MOVEMENT","PATTERN"]},
+  // GAMES
+  {cat:"Games", name:"King/Queen of the 4th Shot",                                    tags:["4TH SHOT","TRANSITION","MENTAL","COUNTER","DRIVE"]},
+  // MACHINE DRILLS
+  {cat:"Machine Drills", name:"Machine Counter Progression — Speed Escalation",       tags:["COUNTER","SPEED-UP","MENTAL","MOVEMENT"]},
+  // LEFT SIDE DRILLS
+  {cat:"Left Side Drills", name:"Left Side Kitchen Offensive Package",                tags:["DINK","COUNTER","SPEED-UP","VOLLEY","PATTERN"]},
+  // DRIVE & DROP (continued)
+  {cat:"Drive & Drop", name:"3rd-to-5th Shot Drive Sequence — Offense/Defense System", tags:["3RD SHOT","4TH SHOT","5TH SHOT","DRIVE","TRANSITION","SPEED-UP"]},
+];
+
+const TAG_COLORS = {
+  "DINK":"blue","PATTERN":"teal","POSITIONING":"orange","MENTAL":"red",
+  "MOVEMENT":"blue","SPEED-UP":"teal","COUNTER":"blue","ERNE":"purple",
+  "ATP":"purple","DRIVE":"blue","RESET":"blue","TRANSITION":"blue",
+  "3RD SHOT":"gold","4TH SHOT":"gold","5TH SHOT":"gold","SERVE":"green",
+  "RETURN":"green","VOLLEY":"blue","LOB":"blue","OVERHEAD":"blue"
+};
+
+let selectedPlayers = new Set();
+let selectedDrills = new Set();
+let activeCatFilter = 'all';
+let activeDrillCat = 'All';
+
+// ── PLAYER GRID ──
+function buildPlayerGrid(){
+  const grid = document.getElementById('playerGrid');
+  grid.innerHTML = PLAYERS.map(p => {
+    const catClass = p.cat === 'ODL' ? 'cat-odl' : p.cat === 'ZONE Kids' ? 'cat-zone' : 'cat-private';
+    return `
+    <div class="player-check" id="pc_${p.id}" onclick="togglePlayer('${p.id}')">
+      <input type="checkbox" id="cb_${p.id}">
+      <div class="check-box" id="cbbox_${p.id}"></div>
+      <div>
+        <div class="player-label">${p.name}<span class="cat-badge ${catClass}">${p.cat}</span></div>
+        <div class="player-dupr">DUPR ${p.dupr}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterByCategory(cat, btn){
+  activeCatFilter = cat;
+  document.querySelectorAll('.filter-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  filterPlayers(document.getElementById('playerSearch').value);
+}
+
+function filterPlayers(query){
+  const q = query.toLowerCase().trim();
+  const countEl = document.getElementById('playerSearchCount');
+  let visible = 0;
+  PLAYERS.forEach(p => {
+    const el = document.getElementById('pc_'+p.id);
+    if(!el) return;
+    const catMatch = activeCatFilter === 'all' || p.cat === activeCatFilter;
+    const textMatch = !q || p.name.toLowerCase().includes(q) || p.cat.toLowerCase().includes(q);
+    const show = catMatch && textMatch;
+    el.style.display = show ? '' : 'none';
+    if(show) visible++;
+  });
+  if(q || activeCatFilter !== 'all'){
+    countEl.style.display = 'block';
+    countEl.textContent = visible + ' player' + (visible!==1?'s':'') + ' shown';
+  } else {
+    countEl.style.display = 'none';
+  }
+}
+
+function togglePlayer(id){
+  const el = document.getElementById('pc_'+id);
+  if(selectedPlayers.has(id)){
+    selectedPlayers.delete(id);
+    el.classList.remove('selected');
+    document.getElementById('cbbox_'+id).textContent = '';
+  } else {
+    selectedPlayers.add(id);
+    el.classList.add('selected');
+    document.getElementById('cbbox_'+id).textContent = '✓';
+  }
+  updatePersonalComments();
+  updateSelectedStrip();
+}
+
+function removePlayerFromStrip(id){
+  selectedPlayers.delete(id);
+  const el = document.getElementById('pc_'+id);
+  if(el){ el.classList.remove('selected'); document.getElementById('cbbox_'+id).textContent=''; }
+  updatePersonalComments();
+  updateSelectedStrip();
+}
+
+function updateSelectedStrip(){
+  const strip = document.getElementById('selectedStrip');
+  const container = document.getElementById('selPillsContainer');
+  if(selectedPlayers.size === 0){ strip.style.display='none'; return; }
+  strip.style.display = 'block';
+  container.innerHTML = [...selectedPlayers].map(id => {
+    const p = PLAYERS.find(x=>x.id===id);
+    if(!p) return '';
+    return `<span class="sel-pill">${p.name}<span class="remove-player" onclick="removePlayerFromStrip('${id}')">✕</span></span>`;
+  }).join('');
+}
+
+// ── DRILL LIST ──
+function buildDrillCatTabs(){
+  const cats = ['All', ...new Set(DRILLS.map(d=>d.cat))];
+  const container = document.getElementById('drillCatTabs');
+  container.innerHTML = cats.map(c =>
+    `<button class="drill-cat-tab${c==='All'?' active':''}" onclick="filterDrillsByCat('${c}',this)">${c}</button>`
+  ).join('');
+}
+
+function filterDrillsByCat(cat, btn){
+  activeDrillCat = cat;
+  document.querySelectorAll('.drill-cat-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  filterDrills(document.getElementById('drillSearch').value);
+}
+
+function filterDrills(query){
+  const q = query.toLowerCase().trim();
+  const countEl = document.getElementById('drillSearchCount');
+  let visible = 0;
+  DRILLS.forEach((d,i) => {
+    const el = document.getElementById('dc_'+i);
+    if(!el) return;
+    const catMatch = activeDrillCat === 'All' || d.cat === activeDrillCat;
+    const textMatch = !q || d.name.toLowerCase().includes(q) || d.tags.some(t=>t.toLowerCase().includes(q));
+    const show = catMatch && textMatch;
+    el.style.display = show ? '' : 'none';
+    if(show) visible++;
+  });
+  if(q || activeDrillCat !== 'All'){
+    countEl.style.display = 'block';
+    countEl.textContent = visible + ' drill' + (visible!==1?'s':'') + ' shown';
+  } else {
+    countEl.style.display = 'none';
+  }
+}
+
+function buildDrillList(){
+  const list = document.getElementById('drillList');
+  list.innerHTML = DRILLS.map((d,i) => {
+    const tags = d.tags.map(t=>`<span class="tag-pill tag-${TAG_COLORS[t]||'blue'}">${t}</span>`).join('');
+    return `
+    <div class="drill-check" id="dc_${i}" onclick="toggleDrill(${i})">
+      <div class="check-box" id="dcbbox_${i}"></div>
+      <div class="drill-info">
+        <div class="drill-name-text">${d.name}</div>
+        <div class="drill-tags-small"><span style="font-size:9px;color:#3A4050;margin-right:4px">${d.cat}</span>${tags}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleDrill(i){
+  const el = document.getElementById('dc_'+i);
+  if(selectedDrills.has(i)){
+    selectedDrills.delete(i);
+    el.classList.remove('selected');
+    document.getElementById('dcbbox_'+i).textContent = '';
+  } else {
+    selectedDrills.add(i);
+    el.classList.add('selected');
+    document.getElementById('dcbbox_'+i).textContent = '✓';
+  }
+  const bar = document.getElementById('drillSelBar');
+  const cnt = document.getElementById('drillSelCount');
+  if(selectedDrills.size > 0){ bar.style.display='block'; cnt.textContent=selectedDrills.size; }
+  else { bar.style.display='none'; }
+}
+
+// ── PERSONAL COMMENTS ──
+function updatePersonalComments(){
+  const container = document.getElementById('personalComments');
+  const noMsg = document.getElementById('noPlayersMsg');
+  if(selectedPlayers.size === 0){ container.innerHTML=''; noMsg.style.display='block'; return; }
+  noMsg.style.display = 'none';
+  const existing = {};
+  container.querySelectorAll('textarea').forEach(ta => { existing[ta.dataset.pid] = ta.value; });
+  container.innerHTML = [...selectedPlayers].map(pid => {
+    const p = PLAYERS.find(x=>x.id===pid);
+    if(!p) return '';
+    const val = existing[pid]||'';
+    return `
+    <div class="personal-block">
+      <div class="personal-player-name">${p.name}</div>
+      <textarea data-pid="${pid}" placeholder="Private coaching note for ${p.name} only..." style="min-height:55px">${val}</textarea>
+    </div>`;
+  }).join('');
+}
+
+// ── DURATION ──
+document.addEventListener('change', function(e){
+  if(e.target.id === 'startTime' || e.target.id === 'endTime') calcDuration();
+  if(e.target.id === 'location'){
+    document.getElementById('locationOther').style.display = e.target.value==='other' ? 'block' : 'none';
+  }
+});
+function calcDuration(){
+  const s = document.getElementById('startTime').value;
+  const e = document.getElementById('endTime').value;
+  if(!s||!e) return;
+  const [sh,sm]=s.split(':').map(Number);
+  const [eh,em]=e.split(':').map(Number);
+  const mins=(eh*60+em)-(sh*60+sm);
+  if(mins>0) document.getElementById('duration').value = mins+' min';
+}
+
+// ── GENERATE REPORT ──
+function generateReport(){
+  const date = document.getElementById('sessDate').value;
+  const start = document.getElementById('startTime').value;
+  const end = document.getElementById('endTime').value;
+  const dur = document.getElementById('duration').value;
+  const locSel = document.getElementById('location').value;
+  const loc = locSel==='other' ? document.getElementById('locationOtherText').value : locSel;
+  const type = document.getElementById('sessType').value;
+  const otherPlayer = document.getElementById('otherPlayer').value.trim();
+  const otherDrill = document.getElementById('otherDrill').value.trim();
+  const general = document.getElementById('generalComments').value.trim();
+
+  const playerNames = [...selectedPlayers].map(id=>PLAYERS.find(x=>x.id===id)?.name).filter(Boolean);
+  if(otherPlayer) playerNames.push(otherPlayer+' (NEW)');
+
+  const drillNames = [...selectedDrills].map(i=>DRILLS[i].name);
+  if(otherDrill) drillNames.push('OTHER: '+otherDrill);
+
+  const personals = [];
+  document.querySelectorAll('#personalComments textarea').forEach(ta=>{
+    if(ta.value.trim()){
+      const pid = ta.dataset.pid;
+      const p = PLAYERS.find(x=>x.id===pid);
+      if(p) personals.push({name:p.name, note:ta.value.trim()});
+    }
+  });
+
+  let out = `SESSION REPORT — 7ACE DEVELOPMENT LAB\n`;
+  out += `${'─'.repeat(44)}\n`;
+  out += `DATE: ${date||'—'}\n`;
+  out += `TIME: ${start||'—'} – ${end||'—'} (${dur||'—'})\n`;
+  out += `LOCATION: ${loc||'—'}\n`;
+  out += `TYPE: ${type}\n`;
+  out += `\nPLAYERS (${playerNames.length}):\n${playerNames.map(n=>`  · ${n}`).join('\n')||'  (none selected)'}\n`;
+  out += `\nDRILLS WORKED:\n${drillNames.length ? drillNames.map(d=>`  ✓ ${d}`).join('\n') : '  (none selected)'}\n`;
+  if(general) out += `\nGENERAL COACHING COMMENTS:\n${general}\n`;
+  if(personals.length){
+    out += `\nINDIVIDUAL NOTES (private — do not share):\n`;
+    personals.forEach(p=>{ out += `  📌 ${p.name}: ${p.note}\n`; });
+  }
+  out += `\n${'─'.repeat(44)}\nPlease update the dashboard with this session.`;
+
+  document.getElementById('outputText').textContent = out;
+  document.getElementById('outputCard').style.display = 'block';
+  document.getElementById('outputCard').scrollIntoView({behavior:'smooth'});
+}
+
+function copyReport(){
+  const text = document.getElementById('outputText').textContent;
+  navigator.clipboard.writeText(text).then(()=>{
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = '✅ Copied!';
+    setTimeout(()=>btn.textContent='📋 Copy to Clipboard', 2000);
+  }).catch(()=>{
+    showToast('Select all text and copy manually');
+  });
+}
+
+// ── CLEAR ──
+function clearForm(){
+  if(!confirm('Clear all form data?')) return;
+  document.getElementById('sessDate').value='';
+  document.getElementById('startTime').value='';
+  document.getElementById('endTime').value='';
+  document.getElementById('duration').value='';
+  document.getElementById('location').value='';
+  document.getElementById('locationOther').style.display='none';
+  document.getElementById('sessType').value='Group Practice';
+  document.getElementById('otherPlayer').value='';
+  document.getElementById('otherDrill').value='';
+  document.getElementById('generalComments').value='';
+  document.getElementById('playerSearch').value='';
+  document.getElementById('drillSearch').value='';
+  document.getElementById('playerSearchCount').style.display='none';
+  document.getElementById('drillSearchCount').style.display='none';
+  document.getElementById('drillSelBar').style.display='none';
+  document.getElementById('draftCodeOut').style.display='none';
+  document.getElementById('draftCodeIn').value='';
+  document.getElementById('outputCard').style.display='none';
+  selectedPlayers.clear();
+  selectedDrills.clear();
+  document.querySelectorAll('.player-check').forEach(el=>el.classList.remove('selected'));
+  document.querySelectorAll('.player-check .check-box').forEach(el=>el.textContent='');
+  document.querySelectorAll('.drill-check').forEach(el=>el.classList.remove('selected'));
+  document.querySelectorAll('.drill-check .check-box').forEach(el=>el.textContent='');
+  document.getElementById('personalComments').innerHTML='';
+  document.getElementById('noPlayersMsg').style.display='block';
+  document.getElementById('selectedStrip').style.display='none';
+  filterPlayers('');
+  filterDrills('');
+}
+
+// ── DRAFT SYSTEM ──
+function getFormState(){
+  const personals = {};
+  document.querySelectorAll('#personalComments textarea').forEach(ta=>{
+    if(ta.dataset.pid) personals[ta.dataset.pid] = ta.value;
+  });
+  return {
+    date: document.getElementById('sessDate').value,
+    startTime: document.getElementById('startTime').value,
+    endTime: document.getElementById('endTime').value,
+    location: document.getElementById('location').value,
+    locationOther: document.getElementById('locationOtherText').value,
+    sessType: document.getElementById('sessType').value,
+    otherPlayer: document.getElementById('otherPlayer').value,
+    otherDrill: document.getElementById('otherDrill').value,
+    generalComments: document.getElementById('generalComments').value,
+    selectedPlayers: [...selectedPlayers],
+    selectedDrills: [...selectedDrills],
+    personals
+  };
+}
+
+function applyFormState(state){
+  document.getElementById('sessDate').value = state.date||'';
+  document.getElementById('startTime').value = state.startTime||'';
+  document.getElementById('endTime').value = state.endTime||'';
+  document.getElementById('location').value = state.location||'';
+  document.getElementById('locationOtherText').value = state.locationOther||'';
+  document.getElementById('locationOther').style.display = state.location==='other' ? 'block' : 'none';
+  document.getElementById('sessType').value = state.sessType||'Group Practice';
+  document.getElementById('otherPlayer').value = state.otherPlayer||'';
+  document.getElementById('otherDrill').value = state.otherDrill||'';
+  document.getElementById('generalComments').value = state.generalComments||'';
+  calcDuration();
+
+  selectedPlayers.clear();
+  document.querySelectorAll('.player-check').forEach(el=>el.classList.remove('selected'));
+  document.querySelectorAll('.player-check .check-box').forEach(el=>el.textContent='');
+  (state.selectedPlayers||[]).forEach(id=>{
+    selectedPlayers.add(id);
+    const el = document.getElementById('pc_'+id);
+    if(el){ el.classList.add('selected'); document.getElementById('cbbox_'+id).textContent='✓'; }
+  });
+
+  selectedDrills.clear();
+  document.querySelectorAll('.drill-check').forEach(el=>el.classList.remove('selected'));
+  document.querySelectorAll('.drill-check .check-box').forEach(el=>el.textContent='');
+  (state.selectedDrills||[]).forEach(i=>{
+    selectedDrills.add(i);
+    const el = document.getElementById('dc_'+i);
+    if(el){ el.classList.add('selected'); document.getElementById('dcbbox_'+i).textContent='✓'; }
+  });
+  if(selectedDrills.size > 0){
+    document.getElementById('drillSelBar').style.display='block';
+    document.getElementById('drillSelCount').textContent = selectedDrills.size;
+  }
+
+  updatePersonalComments();
+  updateSelectedStrip();
+  setTimeout(()=>{
+    document.querySelectorAll('#personalComments textarea').forEach(ta=>{
+      if(state.personals && state.personals[ta.dataset.pid]) ta.value = state.personals[ta.dataset.pid];
+    });
+  }, 120);
+}
+
+function saveDraftCode(){
+  const state = getFormState();
+  const code = btoa(encodeURIComponent(JSON.stringify(state)));
+  document.getElementById('draftCodeText').value = code;
+  document.getElementById('draftCodeOut').style.display = 'block';
+  showToast('Draft code ready — copy it!');
+}
+
+function copyDraftCode(){
+  const text = document.getElementById('draftCodeText').value;
+  navigator.clipboard.writeText(text).then(()=>{
+    showToast('✅ Copied to clipboard!');
+  }).catch(()=>{
+    document.getElementById('draftCodeText').select();
+    document.execCommand('copy');
+    showToast('✅ Copied!');
+  });
+}
+
+function loadDraftCode(){
+  const code = document.getElementById('draftCodeIn').value.trim();
+  if(!code){ alert('Paste your draft code first.'); return; }
+  try {
+    const state = JSON.parse(decodeURIComponent(atob(code)));
+    applyFormState(state);
+    document.getElementById('draftCodeIn').value = '';
+    showToast('✅ Draft loaded!');
+  } catch(e){
+    alert('Invalid draft code — make sure you copied the full code.');
+  }
+}
+
+function showToast(msg){
+  const t = document.getElementById('saveToast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(()=>t.style.display='none', 2800);
+}
+
+// ── INIT ──
+buildPlayerGrid();
+buildDrillList();
+buildDrillCatTabs();
+</script>
+</body>
+</html>
