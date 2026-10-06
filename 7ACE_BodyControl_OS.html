@@ -213,7 +213,7 @@ function saveProfile(){const color=byId('profile-color')?.value||'#ff1e1e';setPr
 function previewColor(color){applyColor(color)}
 function hexToRgb(hex){const clean=(hex||'#ff1e1e').replace('#','');const n=parseInt(clean.length===3?clean.split('').map(c=>c+c).join(''):clean,16);return {r:(n>>16)&255,g:(n>>8)&255,b:n&255}}
 function applyColor(color){const rgb=hexToRgb(color);document.documentElement.style.setProperty('--red',color);document.documentElement.style.setProperty('--red2',color);document.documentElement.style.setProperty('--redDim',`rgba(${rgb.r},${rgb.g},${rgb.b},.10)`);document.documentElement.style.setProperty('--line',`rgba(${rgb.r},${rgb.g},${rgb.b},.14)`);document.documentElement.style.setProperty('--muted',`rgba(${Math.min(255,rgb.r+80)},${Math.min(255,rgb.g+80)},${Math.min(255,rgb.b+80)},.62)`)}
-function resetApp(){if(!confirm('Reset the app? This will delete the profile, color, and all logged sessions on this device. Export a JSON backup first if you want to keep the data.'))return;localStorage.removeItem(STORAGE_KEY);localStorage.removeItem(PROFILE_KEY);editingId=null;editPowerIds=null;editUpperIds=null;loadInit();alert('App reset complete.')}
+function resetApp(){if(!confirm('Reset the app? This will delete the profile, color, and all logged sessions on this device and sign you out here. If you are signed in, your cloud copy stays safe. Export a JSON backup first if you want to keep a copy.'))return;localStorage.removeItem(STORAGE_KEY);localStorage.removeItem(PROFILE_KEY);window.ACESync&&ACESync.localReset();editingId=null;editPowerIds=null;editUpperIds=null;loadInit();alert('App reset complete.')}
 function getCustomEx(type){try{return JSON.parse(localStorage.getItem('7ace_custom_ex_'+type)||'[]')}catch(e){return[]}}
 function saveCustomEx(type,list){localStorage.setItem('7ace_custom_ex_'+type,JSON.stringify(list))}
 function addCustomExercise(type){
@@ -349,5 +349,8 @@ function download(name,content,type){const a=document.createElement('a');a.href=
 function importJSON(){const f=byId('importFile').files[0];if(!f){alert('Choose a JSON backup first.');return}const r=new FileReader();r.onload=()=>{try{const data=JSON.parse(r.result);if(data.profile)setProfile(data.profile);if(Array.isArray(data.sessions))setSessions(data.sessions);alert('Backup restored.');loadInit()}catch(e){alert('Could not import this file.')}};r.readAsText(f)}
 window.addEventListener('DOMContentLoaded',loadInit);
 </script>
+<script src="./vendor/supabase.js"></script>
+<script src="./7ace-sync.js"></script>
+<script src="./sync-bodycontrol.js"></script>
 </body>
 </html>
