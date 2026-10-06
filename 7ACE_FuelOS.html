@@ -4713,5 +4713,13 @@ function toast(msg, type='success') {
 }
 </script>
 
+<script src="./vendor/supabase.js"></script>
+<script src="./7ace-sync.js"></script>
+<script src="./sync-keys.js"></script>
+<script>
+ACESync.keys('fuelos',{keys:['7ace_fuelos_v1'],depth:3});          // nutrition logs, merged day by day
+ACESync.keys('shared',{keys:['7ace_bridge'],depth:2});            // data shared with Performance Plan
+/* '7ace_api_key' is deliberately NOT synced: it is a personal secret and stays on this device */
+</script>
 </body>
 </html>

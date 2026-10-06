@@ -2175,5 +2175,12 @@ window.baseDays = typeof baseDays !== 'undefined' ? baseDays : null;
 })();
 window.addEventListener('resize', () => { if (document.getElementById('screenPlan').classList.contains('active')) setTimeout(drawWeightChart, 100); });
 </script>
+<script src="./vendor/supabase.js"></script>
+<script src="./7ace-sync.js"></script>
+<script src="./sync-keys.js"></script>
+<script>
+ACESync.keys('perfplan',{keys:['7ace_profile','7ace_weightlog','7ace_compliance','7ace_lang'],depth:2});
+ACESync.keys('shared',{keys:['7ace_bridge'],depth:2});
+</script>
 </body>
 </html>

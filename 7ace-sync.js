@@ -64,7 +64,8 @@
         var merged = remote ? ad.merge(local, remote) : ad.normalize(local);
         var ms = stable(merged);
         var localChanged = ms !== stable(ad.normalize(local));
-        if (localChanged) ad.write(merged);
+        var applied = false;
+        if (localChanged) { applied = ad.write(merged) !== false; }   // write() returns false when nothing on screen changed
         var needPush = !row || ms !== stable(ad.normalize(remote));
         var q = null;
         if (needPush) {
@@ -82,7 +83,7 @@
             if (tries < 3) return syncApp(app, tries + 1);   // someone else wrote first: merge again
             throw new Error('Sync conflict, will retry');
           }
-          if (localChanged && ad.onApplied) ad.onApplied();
+          if (applied && ad.onApplied) ad.onApplied();
           if ((S.seq[app] || 0) === seqAtStart) setDirty(app, false);
           return true;
         });
@@ -293,6 +294,31 @@
     if (anyDirty() || Object.keys(S.adapters).length) p.appendChild(el('p', { style: 'margin:12px 0 0;font-size:12px', text: 'Anything already saved on this device will be added to your account.' }));
   }
 
+  /* Keep the button clear of any bar an app fixes to the bottom of the screen (install banners, tab bars) */
+  var lift = 0;
+  function avoid() {
+    if (!ui.btn || !document.elementsFromPoint) return;
+    var want = 0;
+    [[innerWidth - 30, innerHeight - 30], [innerWidth / 2, innerHeight - 16]].forEach(function (pt) {
+      document.elementsFromPoint(pt[0], pt[1]).forEach(function (e) {
+        if (e.closest && e.closest('#ace-sync-btn,#ace-sync-panel,[data-ace-ui]')) return;
+        for (var n = e; n && n !== document.body && n !== document.documentElement; n = n.parentElement) {
+          var cs = getComputedStyle(n);
+          if (cs.position === 'fixed') {
+            var r = n.getBoundingClientRect();
+            if (cs.display !== 'none' && r.bottom >= innerHeight - 8 && r.height < 240 && r.width > innerWidth * 0.4) want = Math.max(want, Math.round(innerHeight - r.top));
+            break;
+          }
+        }
+      });
+    });
+    if (want !== lift) {
+      lift = want;
+      ui.btn.style.bottom = 'calc(' + (14 + lift) + 'px + env(safe-area-inset-bottom,0px))';
+      ui.panel.style.bottom = 'calc(' + (70 + lift) + 'px + env(safe-area-inset-bottom,0px))';
+    }
+  }
+
   /* ---------- boot ---------- */
   function boot() {
     ensureUI();
@@ -308,6 +334,7 @@
     });
     S.client.auth.getSession().then(function (r) { setUser(r && r.data && r.data.session ? r.data.session.user : null); });
 
+    setInterval(avoid, 1500); window.addEventListener('resize', avoid); setTimeout(avoid, 300);
     document.addEventListener('visibilitychange', function () { if (!document.hidden) syncAll(); });
     window.addEventListener('online', syncAll);
     setInterval(function () { if (!document.hidden) syncAll(); }, 60000);
