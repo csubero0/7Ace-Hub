@@ -460,6 +460,9 @@ body:has(#app.visible) .global-home-link { display: none; }
 
 /* ── MACRO RINGS ── */
 .macro-rings { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 28px; }
+.macro-input-row .mi-input{padding-left:4px;padding-right:4px;text-align:center}
+.mi-input::-webkit-inner-spin-button,.mi-input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.mi-input{-moz-appearance:textfield;appearance:textfield}   /* so 4-digit numbers like 2800 fit on small phones */
 @media(max-width:680px) { .macro-rings { grid-template-columns: 1fr 1fr; } }
 
 .ring-card {
@@ -1288,19 +1291,19 @@ body:has(#app.visible) .global-home-link { display: none; }
 
     <!-- Step 0: Name + Language -->
     <div class="ob-step active" id="step-0">
-      <div class="ob-label" id="lbl-name">Your name / Tu nombre</div>
-      <input class="ob-input" id="ob-name" placeholder="e.g. Alex Rivera" maxlength="40" />
-      <div class="ob-label">Language / Idioma</div>
+      <div class="ob-label" id="lbl-name" data-en="Your name" data-es="Tu nombre">Your name</div>
+      <input class="ob-input" id="ob-name" placeholder="e.g. Alex Rivera" data-ph-en="e.g. Alex Rivera" data-ph-es="ej. Alex Rivera" maxlength="40" />
+      <div class="ob-label" data-en="Language" data-es="Idioma">Language</div>
       <div class="lang-row">
         <button class="lang-btn active" id="lng-en" onclick="setLang('en')">EN</button>
         <button class="lang-btn" id="lng-es" onclick="setLang('es')">ES</button>
       </div>
-      <button class="ob-next" onclick="obNext(1)">CONTINUE →</button>
+      <button class="ob-next" onclick="obNext(1)" data-en="CONTINUE →" data-es="CONTINUAR →">CONTINUE →</button>
     </div>
 
     <!-- Step 1: Goal -->
     <div class="ob-step" id="step-1">
-      <div class="ob-label" id="lbl-goal">Select your goal / Selecciona tu meta</div>
+      <div class="ob-label" id="lbl-goal" data-en="Select your goal" data-es="Selecciona tu meta">Select your goal</div>
       <div class="goal-grid">
         <div class="goal-card selected" id="goal-perform" onclick="selectGoal('perform',this)">
           <div class="gc-icon">⚡</div>
@@ -1323,12 +1326,12 @@ body:has(#app.visible) .global-home-link { display: none; }
           <div class="gc-sub" data-en="Gain muscle, lose fat simultaneously" data-es="Ganar músculo y quemar grasa a la vez">Gain muscle, lose fat simultaneously</div>
         </div>
       </div>
-      <button class="ob-next" onclick="obNext(2)">CONTINUE →</button>
+      <button class="ob-next" onclick="obNext(2)" data-en="CONTINUE →" data-es="CONTINUAR →">CONTINUE →</button>
     </div>
 
     <!-- Step 2: Body stats -->
     <div class="ob-step" id="step-2">
-      <div class="ob-label" id="lbl-body">Body stats / Estadísticas corporales</div>
+      <div class="ob-label" id="lbl-body" data-en="Body stats" data-es="Estadísticas corporales">Body stats</div>
       <div class="macro-input-row" style="grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
         <div class="mi-wrap">
           <div class="mi-label" data-en="Current weight (lbs)" data-es="Peso actual (lbs)">Current weight (lbs)</div>
@@ -1344,12 +1347,12 @@ body:has(#app.visible) .global-home-link { display: none; }
         <div class="mi-wrap"><div class="mi-label">kcal</div><input class="mi-input" id="ob-kcal" type="number" placeholder="2800" /></div>
         <div class="mi-wrap"><div class="mi-label" data-en="protein g" data-es="proteína g">protein g</div><input class="mi-input" id="ob-prot" type="number" placeholder="180" /></div>
         <div class="mi-wrap"><div class="mi-label" data-en="carbs g" data-es="carbos g">carbs g</div><input class="mi-input" id="ob-carb" type="number" placeholder="300" /></div>
-        <div class="mi-wrap"><div class="mi-label">fat g</div><input class="mi-input" id="ob-fat" type="number" placeholder="80" /></div>
+        <div class="mi-wrap"><div class="mi-label" data-en="fat g" data-es="grasa g">fat g</div><input class="mi-input" id="ob-fat" type="number" placeholder="80" /></div>
       </div>
-      <div style="font-size:11px;color:var(--t2);margin-bottom:16px;font-family:var(--font-body)" id="macro-hint">
+      <div style="font-size:11px;color:var(--t2);margin-bottom:16px;font-family:var(--font-body)" id="macro-hint" data-en="Not sure? Leave blank — we'll set smart defaults based on your goal." data-es="¿No estás seguro? Déjalo en blanco y pondremos valores inteligentes según tu meta.">
         Not sure? Leave blank — we'll set smart defaults based on your goal.
       </div>
-      <button class="ob-next" onclick="obNext(3)">CONTINUE →</button>
+      <button class="ob-next" onclick="obNext(3)" data-en="CONTINUE →" data-es="CONTINUAR →">CONTINUE →</button>
     </div>
 
     <!-- Step 3: Ready -->
@@ -1362,7 +1365,7 @@ body:has(#app.visible) .global-home-link { display: none; }
           "Confía en el proceso, no en el resultado." — Coach Carlos Subero
         </div>
       </div>
-      <button class="ob-next" id="launch-btn" onclick="launchApp()">LAUNCH FUELOS →</button>
+      <button class="ob-next" id="launch-btn" onclick="launchApp()" data-en="LAUNCH FUELOS →" data-es="ABRIR FUELOS →">LAUNCH FUELOS →</button>
     </div>
   </div>
 </div>
@@ -2275,19 +2278,41 @@ function setLang(l) {
   obLang = l;
   document.getElementById('lng-en').classList.toggle('active', l==='en');
   document.getElementById('lng-es').classList.toggle('active', l==='es');
+  applyOnboardingLang();
+}
+
+// Show the setup screens in ONE language (the one picked), never both at once
+function applyOnboardingLang() {
+  const root = document.getElementById('onboarding'); if(!root) return;
+  root.querySelectorAll('[data-en][data-es]').forEach(el => { el.textContent = obLang==='es' ? el.dataset.es : el.dataset.en; });
+  root.querySelectorAll('[data-ph-en][data-ph-es]').forEach(el => { el.placeholder = obLang==='es' ? el.dataset.phEs : el.dataset.phEn; });
+}
+
+// Example numbers shown in the empty boxes follow the chosen goal
+const GOAL_EXAMPLE_WEIGHTS = {
+  perform: { cur:165, goal:165 },   // stay at weight
+  bulk:    { cur:155, goal:175 },   // gain
+  cut:     { cur:175, goal:155 },   // lose
+  recomp:  { cur:170, goal:170 },   // same weight, change the mix
+};
+function updateGoalPlaceholders(g) {
+  const def = GOAL_DEFAULTS[g], ex = GOAL_EXAMPLE_WEIGHTS[g];
+  document.getElementById('ob-weight').placeholder = ex.cur;
+  document.getElementById('ob-goalweight').placeholder = ex.goal;
+  document.getElementById('ob-kcal').placeholder = def.kcal;
+  document.getElementById('ob-prot').placeholder = def.prot;
+  document.getElementById('ob-carb').placeholder = def.carb;
+  document.getElementById('ob-fat').placeholder = def.fat;
 }
 
 function selectGoal(g, el) {
   obGoal = g;
   document.querySelectorAll('.goal-card').forEach(c => c.classList.remove('selected'));
   el.classList.add('selected');
-  // update macro hint defaults
-  const def = GOAL_DEFAULTS[g];
-  document.getElementById('ob-kcal').placeholder = def.kcal;
-  document.getElementById('ob-prot').placeholder = def.prot;
-  document.getElementById('ob-carb').placeholder = def.carb;
-  document.getElementById('ob-fat').placeholder = def.fat;
+  updateGoalPlaceholders(g);
 }
+updateGoalPlaceholders(obGoal);   // starting examples match the pre-selected goal
+applyOnboardingLang();
 
 function obNext(step) {
   if(step === 1) {
