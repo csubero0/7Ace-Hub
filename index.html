@@ -6,12 +6,14 @@
 <title>7ACE — Player Development Lab</title>
 <meta name="description" content="7ACE Player Development Lab. A pickleball performance system by Coach Carlos Subero — nutrition, body, training, mindset and practice, all tracked.">
 <link rel="manifest" href="./manifest.json">
-<meta name="theme-color" content="#080808">
-<link rel="icon" href="./icons/favicon-64.png">
+<meta name="theme-color" content="#0b0b0c">
+<link rel="icon" type="image/svg+xml" href="./icons/favicon.svg">
+<link rel="icon" type="image/png" sizes="64x64" href="./icons/favicon-64.png">
+<link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png">
 <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
-<meta name="apple-mobile-web-app-title" content="7ACE">
+<meta name="apple-mobile-web-app-title" content="7ACE Hub">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@500;600;700;800;900&family=Cormorant+Garamond:ital,wght@1,400;1,500;1,600&display=swap" rel="stylesheet">
@@ -128,6 +130,7 @@
     align-items:center;
     gap:8px;
   }
+  .nav-logo{ height:44px; width:auto; display:block; }
   .nav-mark .dot{
     width:6px; height:6px;
     border-radius:50%;
@@ -579,7 +582,7 @@
 <body>
 
 <header class="nav">
-  <a href="#top" class="nav-mark"><span class="dot"></span>7ACE</a>
+  <a href="#top" class="nav-mark" aria-label="7ACE Hub"><svg class="nav-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 208 66" role="img" aria-label="7ACE Hub"><g transform="translate(-26.14 -26.6) scale(0.23)"><path d="M118 120H396V188L264 400H190L322 188H118Z" fill="#f5f3ee"/><path d="M454 120H476L302 400H280Z" fill="#ff1e1e"/></g><g transform="translate(98 2) scale(.26) skewX(-8) translate(-144 0)"><path fill-rule="evenodd" fill="#f5f3ee" d="M144 116L188 0H228L272 116H242L233 90H183L174 116ZM208 30L226 66H190Z"/><path fill="#f5f3ee" d="M406 0H314Q288 0 288 26V90Q288 116 314 116H406V90H322Q316 90 316 84V32Q316 26 322 26H406Z"/><path fill="#f5f3ee" d="M430 0H542V26H458V44H530V70H458V90H542V116H430Z"/></g><path fill="#d4a832" d="M0 0H28V44H84V0H112V116H84V70H28V116H0Z" transform="translate(98.0 44) scale(0.17)"/><path fill="#d4a832" d="M0 0H28V88Q28 90 30 90H82Q84 90 84 88V0H112V90Q112 116 86 116H26Q0 116 0 90Z" transform="translate(123.84 44) scale(0.17)"/><path fill-rule="evenodd" fill="#d4a832" d="M0 0H82Q108 0 108 26V42Q108 54 94 58Q110 62 110 76V90Q110 116 84 116H0ZM28 24V44H76Q80 44 80 40V28Q80 24 76 24ZM28 70V92H80Q84 92 84 88V74Q84 70 80 70Z" transform="translate(149.68 44) scale(0.17)"/><rect x="176.72" y="53" width="24.28" height="2" fill="#d4a832" opacity=".55"/></svg></a>
   <div class="nav-right">
     <button id="installBtn" class="nav-install" type="button" hidden>Install App</button>
     <a href="#apps" class="nav-link">The Apps</a>
