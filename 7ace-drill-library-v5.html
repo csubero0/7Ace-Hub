@@ -129,6 +129,40 @@ ul.dlist li .bull{color:#4B5563;font-size:10px;min-width:14px;flex-shrink:0;padd
 .mp-chips{max-height:180px}
 .mp-save-big{width:100%;padding:15px;font-size:15px}
 .mp-field input,.mp-field select,.mp-field textarea{font-size:16px}
+.tab.hs{color:#1E90FF;border-color:#1E90FF30;background:#1E90FF0A}
+.tab.hs.on{background:#1E90FF;color:#fff;border-color:#1E90FF}
+.hs-wrap{max-width:720px;margin:0 auto;padding:14px 12px 40px}
+.hs-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.hs-head h3{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;color:#E8EAF0;font-weight:400}
+.hs-nav{width:42px;height:42px;border-radius:10px;border:1px solid #2A3050;background:#161923;color:#E8EAF0;font-size:18px;cursor:pointer}
+.hs-stats{display:flex;gap:8px;margin-bottom:12px}
+.hs-stat{flex:1;background:#161923;border:1px solid #1C2030;border-radius:10px;padding:9px 6px;text-align:center}
+.hs-stat b{display:block;font-size:20px;color:#00D68F;font-family:'Bebas Neue',sans-serif;letter-spacing:1px;font-weight:400}
+.hs-stat span{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:#6B7280}
+.hs-dow,.hs-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.hs-dow div{text-align:center;font-size:9px;letter-spacing:1px;color:#4B5563;padding:4px 0;font-weight:700}
+.hs-day{min-height:58px;border-radius:9px;background:#161923;border:1px solid #1C2030;padding:5px 4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:2px;color:#9CA3AF;font-size:12px;font-weight:600}
+.hs-day.empty{background:transparent;border-color:transparent;cursor:default}
+.hs-day.on{background:#00D68F22;border-color:#00D68F;color:#E8EAF0}
+.hs-day.today{box-shadow:inset 0 0 0 1px #1E90FF}
+.hs-day.sel{border-color:#1E90FF;box-shadow:0 0 0 2px #1E90FF}
+.hs-lbl{font-size:9px;line-height:1.15;color:#00D68F;text-align:center;font-weight:700}
+.hs-lbl i{display:block;font-style:normal;color:#6B7280;font-weight:600}
+.hs-detail{margin-top:14px}
+.hs-detail h4{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;color:#1E90FF;font-weight:400;margin-bottom:8px}
+.hs-sess{background:#161923;border:1px solid #1C2030;border-radius:12px;padding:12px 14px;margin-bottom:10px}
+.hs-sess .t{font-weight:700;font-size:13px;color:#E8EAF0;margin-bottom:6px}
+.hs-sess .d{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
+.hs-sess .d span{font-size:11px;padding:4px 9px;border-radius:20px;background:#00D68F18;border:1px solid #00D68F55;color:#00D68F}
+.hs-sess .n{font-size:12px;color:#9CA3AF;line-height:1.5;margin-bottom:8px;white-space:pre-wrap}
+.hs-act{display:flex;gap:8px}
+.hs-b{flex:1;padding:11px;border-radius:9px;border:1px solid #2A3050;background:#0D1117;color:#E8EAF0;font-weight:700;font-size:12px;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;font-family:'DM Sans',sans-serif}
+.hs-b.p{background:#00D68F;color:#0D1117;border-color:#00D68F}
+.hs-b.x{color:#E74C3C;border-color:#E74C3C55}
+.hs-empty{color:#6B7280;font-size:13px;padding:10px 0}
+.hs-modal{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:500;display:none;align-items:flex-start;justify-content:center;overflow-y:auto;padding:18px 12px}
+.hs-modal.open{display:flex}
+.hs-modal .mp-card{width:100%;max-width:560px;margin:auto 0}
 </style>
 </head>
 <body>
@@ -162,6 +196,9 @@ ul.dlist li .bull{color:#4B5563;font-size:10px;min-width:14px;flex-shrink:0;padd
   </div>
   <div class="tab mp" onclick="showSec('mypractice',this)">
     📝 <span class="lang-es">Mi Práctica</span><span class="lang-en" style="display:none">My Practice</span>
+  </div>
+  <div class="tab hs" onclick="showSec('history',this)">
+    📅 <span class="lang-es">Historial</span><span class="lang-en" style="display:none">History</span>
   </div>
 </div>
 
@@ -2345,6 +2382,55 @@ To win to 11, one point must come from a lob. If your team lobs and wins the ral
   </div>
 </div>
 
+<div id="history-sec" class="hidden">
+  <div class="hs-wrap">
+    <div class="hs-head">
+      <button class="hs-nav" onclick="histMove(-1)" aria-label="prev">&lsaquo;</button>
+      <h3 id="hs-title"></h3>
+      <button class="hs-nav" onclick="histMove(1)" aria-label="next">&rsaquo;</button>
+    </div>
+    <div class="hs-stats" id="hs-stats"></div>
+    <div class="hs-dow" id="hs-dow"></div>
+    <div class="hs-grid" id="hs-grid"></div>
+    <div class="hs-detail" id="hs-detail"></div>
+  </div>
+</div>
+
+<div class="hs-modal" id="ed-modal" onclick="if(event.target===this)closeEdit()">
+  <div class="mp-card">
+    <h3 id="ed-title"></h3>
+    <div class="mp-field">
+      <label class="lang-es">Fecha</label><label class="lang-en" style="display:none">Date</label>
+      <input type="date" id="ed-date">
+    </div>
+    <div class="mp-field">
+      <label class="lang-es">¿Cuánto tiempo? (min)</label><label class="lang-en" style="display:none">How long? (min)</label>
+      <div class="mp-quick" id="ed-dur-chips">
+        <button type="button" class="mp-q" onclick="edDur(30)">30</button>
+        <button type="button" class="mp-q" onclick="edDur(45)">45</button>
+        <button type="button" class="mp-q" onclick="edDur(60)">60</button>
+        <button type="button" class="mp-q" onclick="edDur(90)">90</button>
+      </div>
+      <input type="number" inputmode="numeric" id="ed-duration" placeholder="min" min="0" oninput="edSyncDur()">
+    </div>
+    <div class="mp-field">
+      <label class="lang-es">Drills (toca para elegir)</label><label class="lang-en" style="display:none">Drills (tap to pick)</label>
+      <div class="mp-sel" id="ed-selected"></div>
+      <input type="search" id="ed-search" class="mp-search" oninput="renderEditChips()" autocomplete="off">
+      <div class="mp-chips" id="ed-chips"></div>
+    </div>
+    <div class="mp-field">
+      <label class="lang-es">Notas</label><label class="lang-en" style="display:none">Notes</label>
+      <textarea id="ed-notes"></textarea>
+    </div>
+    <div class="hs-act">
+      <button class="hs-b" onclick="closeEdit()"><span class="lang-es">Cancelar</span><span class="lang-en" style="display:none">Cancel</span></button>
+      <button class="hs-b p" onclick="saveEdit()"><span class="lang-es">Guardar</span><span class="lang-en" style="display:none">Save</span></button>
+    </div>
+    <div id="ed-msg"></div>
+  </div>
+</div>
+
 <div class="ftr">7ACE Development Lab · Coach Carlos Subero · <em>Confía en el proceso, no en el resultado</em></div>
 
 <script>
@@ -2356,10 +2442,11 @@ function showSec(s,tab){
   curSec=s;
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
   tab.classList.add('on');
-  ['drills','guides','games','mypractice'].forEach(id=>
+  ['drills','guides','games','mypractice','history'].forEach(id=>
     document.getElementById(id+'-sec').classList.toggle('hidden', id!==s)
   );
-  document.querySelector('.srch-w').style.display = s==='mypractice' ? 'none' : '';
+  document.querySelector('.srch-w').style.display = (s==='mypractice'||s==='history') ? 'none' : '';
+  if(s==='history') renderHistory();
   updatePlaceholder();
   doSearch();
 }
@@ -2381,7 +2468,7 @@ function setLF(l,chip){
 function doSearch(){ applyFilters(); }
 
 function applyFilters(){
-  if(curSec==='mypractice') return;
+  if(curSec==='mypractice'||curSec==='history') return;
   const q=document.getElementById('si').value.toLowerCase().trim();
   if(curSec==='drills'){
     const cards=document.querySelectorAll('#drill-wrap .card');
@@ -2421,6 +2508,7 @@ function setLang(l,btn){
   document.querySelectorAll('.lang-es').forEach(el=>el.style.display=l==='es'?'':'none');
   document.querySelectorAll('.lang-en').forEach(el=>el.style.display=l==='en'?'':'none');
   updatePlaceholder();
+  if(typeof renderHistory==='function'){ renderHistory(); renderDrillChips(); }
 }
 
 /* ═══════════════════════════════════════════
@@ -2575,6 +2663,136 @@ function deleteItem(action,id){
   if(action==='deleteDrill') delete o.drills[id]; else delete o.sessions[id];
   writeStore(o);
   loadPracticeData();
+}
+
+/* ═══════════ HISTORY — calendar of logged sessions, tap a day to see / edit ═══════════ */
+let histYear = new Date().getFullYear(), histMonth = new Date().getMonth(), histSel = null;
+let editingSession = null;            // id, or null when adding a new one
+const editDrills = new Set();
+const L = (es,en) => curLang==='es' ? es : en;
+const cap = t => t.charAt(0).toUpperCase()+t.slice(1);
+const pad = n => String(n).padStart(2,'0');
+const dkey = (y,m,d) => y+'-'+pad(m+1)+'-'+pad(d);
+function loc(){ return curLang==='es' ? 'es-US' : 'en-US'; }
+function allDrillNames(){
+  const builtIn = Array.from(document.querySelectorAll('#drill-wrap .cname')).map(el=>el.textContent.trim());
+  return [...new Set([...practiceData.drills.map(d=>d.name), ...builtIn])];
+}
+function sessionsOn(key){ return practiceData.sessions.filter(s=>s.date===key); }
+
+function histMove(delta){
+  histMonth += delta;
+  if(histMonth<0){ histMonth=11; histYear--; } if(histMonth>11){ histMonth=0; histYear++; }
+  histSel = null; renderHistory();
+}
+
+function renderHistory(){
+  const grid = document.getElementById('hs-grid'); if(!grid) return;
+  loadPracticeDataQuiet();
+  const first = new Date(histYear, histMonth, 1);
+  const days = new Date(histYear, histMonth+1, 0).getDate();
+  document.getElementById('hs-title').textContent = cap(first.toLocaleDateString(loc(),{month:'long',year:'numeric'}));
+  const base = new Date(2023,0,1);                       // a Sunday
+  document.getElementById('hs-dow').innerHTML = Array.from({length:7},(_,i)=>{
+    const d = new Date(base); d.setDate(base.getDate()+i);
+    return '<div>'+d.toLocaleDateString(loc(),{weekday:'short'}).toUpperCase().slice(0,3)+'</div>';
+  }).join('');
+  const todayKey = new Date().toISOString().slice(0,10);
+  let html = '', nSess=0, mins=0, nDays=0;
+  for(let i=0;i<first.getDay();i++) html += '<div class="hs-day empty"></div>';
+  for(let d=1; d<=days; d++){
+    const key = dkey(histYear,histMonth,d), ss = sessionsOn(key);
+    let lbl = '';
+    if(ss.length){
+      nDays++; nSess += ss.length;
+      const dr = new Set(); let m = 0;
+      ss.forEach(s=>{ (s.drills||[]).forEach(x=>dr.add(x)); m += parseInt(s.duration)||0; });
+      mins += m;
+      lbl = '<div class="hs-lbl">'+(dr.size? dr.size+' drill'+(dr.size>1?'s':'') : L('nota','note'))+(m?'<i>'+m+' min</i>':'')+'</div>';
+    }
+    html += '<div class="hs-day'+(ss.length?' on':'')+(key===todayKey?' today':'')+(key===histSel?' sel':'')+'" onclick="histPick(\''+key+'\')">'+d+lbl+'</div>';
+  }
+  grid.innerHTML = html;
+  document.getElementById('hs-stats').innerHTML =
+    '<div class="hs-stat"><b>'+nDays+'</b><span>'+L('Días','Days')+'</span></div>'+
+    '<div class="hs-stat"><b>'+nSess+'</b><span>'+L('Sesiones','Sessions')+'</span></div>'+
+    '<div class="hs-stat"><b>'+mins+'</b><span>'+L('Minutos','Minutes')+'</span></div>';
+  renderHistoryDetail();
+}
+
+function histPick(key){ histSel = (histSel===key) ? null : key; renderHistory(); if(histSel) document.getElementById('hs-detail').scrollIntoView({behavior:'smooth',block:'nearest'}); }
+
+function renderHistoryDetail(){
+  const el = document.getElementById('hs-detail');
+  if(!histSel){ el.innerHTML = '<div class="hs-empty">'+L('Toca un día para ver o editar lo que hiciste.','Tap a day to see or edit what you did.')+'</div>'; return; }
+  const [y,m,d] = histSel.split('-').map(Number);
+  const label = cap(new Date(y,m-1,d).toLocaleDateString(loc(),{weekday:'long',month:'long',day:'numeric'}));
+  const ss = sessionsOn(histSel);
+  let html = '<h4>'+escapeHtml(label)+'</h4>';
+  if(!ss.length) html += '<div class="hs-empty">'+L('Sin sesiones este día.','No sessions this day.')+'</div>';
+  ss.forEach(s=>{
+    html += '<div class="hs-sess"><div class="t">'+(s.duration? escapeHtml(String(s.duration))+' min' : L('Sesión','Session'))+'</div>'+
+      ((s.drills||[]).length? '<div class="d">'+s.drills.map(x=>'<span>'+escapeHtml(x)+'</span>').join('')+'</div>' : '')+
+      (s.notes? '<div class="n">'+escapeHtml(s.notes)+'</div>' : '')+
+      '<div class="hs-act"><button class="hs-b p" onclick="openEdit(\''+s.id+'\')">✏️ '+L('Editar','Edit')+'</button><button class="hs-b x" onclick="histDelete(\''+s.id+'\')">'+L('Borrar','Delete')+'</button></div></div>';
+  });
+  html += '<button class="hs-b" style="width:100%" onclick="openEdit(null)">＋ '+L('Agregar sesión este día','Add a session this day')+'</button>';
+  el.innerHTML = html;
+}
+
+function loadPracticeDataQuiet(){
+  const o = readStore();
+  practiceData.sessions = Object.keys(o.sessions).map(k=>Object.assign({id:k},o.sessions[k]));
+  practiceData.drills = Object.keys(o.drills).map(k=>Object.assign({id:k},o.drills[k]));
+}
+
+function histDelete(id){
+  if(!confirm(L('¿Eliminar esta sesión?','Delete this session?'))) return;
+  const o = readStore(); delete o.sessions[id]; writeStore(o);
+  loadPracticeData(); renderHistory();
+}
+
+function openEdit(id){
+  editingSession = id; editDrills.clear();
+  const o = readStore(), s = id ? o.sessions[id] : null;
+  document.getElementById('ed-title').textContent = id ? L('✏️ Editar sesión','✏️ Edit session') : L('📋 Nueva sesión','📋 New session');
+  document.getElementById('ed-date').value = s ? s.date : (histSel || new Date().toISOString().slice(0,10));
+  document.getElementById('ed-duration').value = s ? (s.duration||'') : '';
+  document.getElementById('ed-notes').value = s ? (s.notes||'') : '';
+  document.getElementById('ed-search').value = '';
+  document.getElementById('ed-search').placeholder = L('🔍 Buscar drill…','🔍 Search drills…');
+  ((s&&s.drills)||[]).forEach(x=>editDrills.add(x));
+  edSyncDur(); renderEditChips();
+  document.getElementById('ed-modal').classList.add('open');
+}
+function closeEdit(){ document.getElementById('ed-modal').classList.remove('open'); }
+function edDur(n){ const el=document.getElementById('ed-duration'); el.value = String(el.value)===String(n)?'':n; edSyncDur(); }
+function edSyncDur(){
+  const v = String(document.getElementById('ed-duration').value);
+  document.querySelectorAll('#ed-dur-chips .mp-q').forEach(b=>b.classList.toggle('on', b.textContent.trim()===v));
+}
+function toggleEditDrill(name){ if(editDrills.has(name)) editDrills.delete(name); else editDrills.add(name); renderEditChips(); }
+function renderEditChips(){
+  const q = document.getElementById('ed-search').value.trim().toLowerCase();
+  const chip = name => `<span class="mp-chip${editDrills.has(name)?' on':''}" data-n="${escapeHtml(name)}" onclick="toggleEditDrill(this.dataset.n)">${escapeHtml(name)}</span>`;
+  document.getElementById('ed-selected').innerHTML = Array.from(editDrills).map(chip).join('');
+  const rest = allDrillNames().filter(n=>!editDrills.has(n) && (!q || n.toLowerCase().includes(q)));
+  document.getElementById('ed-chips').innerHTML = rest.map(chip).join('') || '<span class="mp-empty">—</span>';
+}
+function saveEdit(){
+  const date = document.getElementById('ed-date').value;
+  const notes = document.getElementById('ed-notes').value.trim();
+  const msg = document.getElementById('ed-msg');
+  if(!date){ showMsg(msg,'err',L('Elige una fecha.','Pick a date.')); return; }
+  if(!editDrills.size && !notes){ showMsg(msg,'err',L('Elige al menos un drill o escribe una nota.','Pick at least one drill or write a note.')); return; }
+  const o = readStore(), id = editingSession || newId();
+  const prev = o.sessions[id] || {};
+  o.sessions[id] = Object.assign({}, prev, { date, duration: document.getElementById('ed-duration').value.trim(), drills: Array.from(editDrills), notes, created: prev.created || Date.now(), edited: Date.now() });
+  writeStore(o);
+  closeEdit();
+  const [y,m] = date.split('-').map(Number);
+  histYear = y; histMonth = m-1; histSel = date;
+  loadPracticeData(); renderHistory();
 }
 
 (function initPractice(){
