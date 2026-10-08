@@ -90,7 +90,7 @@
         ['name', 'sport', 'age', 'weight'].forEach(function (k) { var e = byId('profile-' + k); if (e) e.value = p[k] || ''; });
         if (byId('profile-color')) byId('profile-color').value = p.color || '#ff1e1e';
         renderAll();
-        var busy = editingId || Array.prototype.some.call(document.querySelectorAll('#workoutForm input'), function (i) { return i.type !== 'checkbox' && i.value !== ''; });
+        var busy = editingId || (document.activeElement && document.activeElement.closest && document.activeElement.closest('#workoutForm')) || Array.prototype.some.call(document.querySelectorAll('#workoutForm input'), function (i) { return i.type !== 'checkbox' && i.value !== ''; });
         if (!busy) { renderWorkoutForm(); renderSuggestions(); }
       } catch (e) { console.warn('sync refresh', e); }
     }

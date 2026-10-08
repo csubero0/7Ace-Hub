@@ -463,6 +463,8 @@ body:has(#app.visible) .global-home-link { display: none; }
 .macro-input-row .mi-input{padding-left:4px;padding-right:4px;text-align:center}
 .mi-input::-webkit-inner-spin-button,.mi-input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
 .mi-input{-moz-appearance:textfield;appearance:textfield}   /* so 4-digit numbers like 2800 fit on small phones */
+.nav-lang{background:transparent;border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-family:var(--font-mono);font-size:10px;color:var(--t2);cursor:pointer}
+.nav-lang option{background:#111;color:#fff}
 @media(max-width:680px) { .macro-rings { grid-template-columns: 1fr 1fr; } }
 
 .ring-card {
@@ -1297,6 +1299,7 @@ body:has(#app.visible) .global-home-link { display: none; }
       <div class="lang-row">
         <button class="lang-btn active" id="lng-en" onclick="setLang('en')">EN</button>
         <button class="lang-btn" id="lng-es" onclick="setLang('es')">ES</button>
+        <button class="lang-btn" id="lng-fr" onclick="setLang('fr')">FR</button>
       </div>
       <button class="ob-next" onclick="obNext(1)" data-en="CONTINUE →" data-es="CONTINUAR →">CONTINUE →</button>
     </div>
@@ -1443,6 +1446,7 @@ body:has(#app.visible) .global-home-link { display: none; }
           <div class="today-verse" id="today-verse">Proverbios 21:31 — Confía en el proceso, no en el resultado.</div>
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
+          <select class="nav-lang" id="nav-lang" onchange="setAppLang(this.value)" aria-label="Language"><option value="en">English</option><option value="es">Español</option><option value="fr">Français</option></select>
           <button onclick="openApiKeyModal()" id="api-key-status-btn" title="API Key Settings" style="background:transparent;border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-family:var(--font-mono);font-size:10px;color:var(--t2);cursor:pointer;display:flex;align-items:center;gap:5px;white-space:nowrap;">⚙️ <span id="api-key-status-label">API KEY</span></button>
           <div class="weight-pill" onclick="openWeightModal()">
             <div class="wp-label" id="wp-label-text">Current Weight</div>
@@ -1935,6 +1939,7 @@ Night Snack: greek yogurt with almonds"></textarea>
 
 <div class="toast" id="toast"></div>
 
+<script src="./fuelos-i18n.js"></script>
 <script>
 // ══════════════════════════════════════════
 // API KEY — loaded from localStorage
@@ -2158,6 +2163,9 @@ let TARGETS = { kcal:2800, prot:160, carb:320, fat:80 };
 let PROFILE = { name:'Athlete', goal:'perform', lang:'en', goalWeight:0, currentWeight:0 };
 let currentGoal = 'perform';
 let currentLang = 'en';
+const I18N = window.FUEL_I18N;
+const trs = (s) => I18N.trs(s);
+const LOC = () => I18N.locale(currentLang);
 let aiParsed = [];
 let viewMonth = new Date().getMonth();
 let viewYear = new Date().getFullYear();
@@ -2218,7 +2226,7 @@ function updateViewDateNav() {
   if (label) {
     const d = new Date(viewDate + 'T12:00:00');
     const opts = { weekday:'short', month:'short', day:'numeric', year:'numeric' };
-    label.textContent = isToday ? '📅 Today — ' + d.toLocaleDateString('en-US', opts) : d.toLocaleDateString('en-US', opts);
+    label.textContent = isToday ? '📅 Today — ' + d.toLocaleDateString(LOC(), opts) : d.toLocaleDateString(LOC(), opts);
   }
   if (badge) badge.style.display = isToday ? 'none' : 'inline';
   if (todayBtn) todayBtn.style.display = isToday ? 'none' : 'block';
@@ -2278,7 +2286,10 @@ function setLang(l) {
   obLang = l;
   document.getElementById('lng-en').classList.toggle('active', l==='en');
   document.getElementById('lng-es').classList.toggle('active', l==='es');
+  document.getElementById('lng-fr').classList.toggle('active', l==='fr');
+  I18N.setLang(l);
   applyOnboardingLang();
+  I18N.refresh();
 }
 
 // Show the setup screens in ONE language (the one picked), never both at once
@@ -2317,7 +2328,7 @@ applyOnboardingLang();
 function obNext(step) {
   if(step === 1) {
     const name = document.getElementById('ob-name').value.trim();
-    if(!name) { alert(obLang==='es' ? 'Ingresa tu nombre.' : 'Please enter your name.'); return; }
+    if(!name) { alert(obLang==='es' ? 'Ingresa tu nombre.' : trs('Please enter your name.')); return; }
   }
   if(step === 3) {
     // finalize
@@ -2522,7 +2533,21 @@ const STRINGS = {
 
 function t(key) { return (STRINGS[currentLang] || STRINGS.en)[key] || key; }
 
+function setAppLang(l) {
+  currentLang = l;
+  PROFILE.lang = l;
+  if(db.profile) db.profile.lang = l;
+  saveData(db);
+  I18N.setLang(l);
+  applyLanguage();
+  applyGoalTheme();
+  initApp();
+  I18N.refresh();
+}
+
 function applyLanguage() {
+  const sel = document.getElementById('nav-lang'); if(sel) sel.value = currentLang;
+  I18N.setLang(currentLang);
   const h = new Date().getHours();
   const greeting = h < 12 ? t('greeting_morn') : h < 18 ? t('greeting_aft') : t('greeting_eve');
   safeSet('today-greeting', greeting);
@@ -2547,7 +2572,7 @@ function applyLanguage() {
   safeSet('protein-alert-text', t('protein_alert'));
   safeSet('macro-hint', t('macro_hint'));
   // tabs
-  safeSet('tab-today', currentLang==='es' ? 'HOY' : 'TODAY');
+  safeSet('tab-today', currentLang==='es' ? 'HOY' : currentLang==='fr' ? 'JOUR' : 'TODAY');
   safeSet('tab-weekly', currentLang==='es' ? 'SEMANA' : 'WEEKLY');
   safeSet('tab-monthly', currentLang==='es' ? 'MES' : 'MONTHLY');
 }
@@ -2598,7 +2623,7 @@ function initApp() {
 
 function updateTodayDateLabel() {
   const d = new Date();
-  safeSet('today-date-label', d.toLocaleDateString(currentLang==='es'?'es-US':'en-US',
+  safeSet('today-date-label', d.toLocaleDateString(LOC(),
     {weekday:'long',month:'long',day:'numeric',year:'numeric'}).toUpperCase());
 }
 
@@ -3191,7 +3216,7 @@ async function parseDietPlan() {
 }
 
 function removePlan() {
-  if(!confirm('Remove the active diet plan? Its meals will also be removed from Quick Add.')) return;
+  if(!confirm(trs('Remove the active diet plan? Its meals will also be removed from Quick Add.'))) return;
   db.dietPlan = null;
   if(db.quickLibrary) {
     db.quickLibrary = db.quickLibrary.filter(i => i.category !== 'Diet Plan');
@@ -3349,12 +3374,14 @@ ${mealDistText}
 
 MOST LOGGED FOODS: ${s.topFoods.map(([n,c]) => `${n} (${c}x)`).join(', ')}
 
-Write a personalized diagnosis with EXACTLY these 5 sections, using these exact section headers:
+Write a personalized diagnosis with EXACTLY these 5 sections, using these exact section headers (keep the headers in English as written):
 GOAL ALIGNMENT
 EATING PATTERNS
 PROTEIN TIMING
 RED FLAGS
 COACH'S PRESCRIPTION
+
+${currentLang==='fr' ? 'Write the content of every section in French (headers stay in English).' : currentLang==='es' ? 'Write the content of every section in Spanish (headers stay in English).' : ''}
 
 Rules: Be direct and specific. Reference their actual numbers, not generic advice. 2-4 sentences per section. RED FLAGS should name the 2-3 biggest problems in their data. COACH'S PRESCRIPTION should give exactly 3 concrete, actionable changes. Tone: demanding but caring coach — old school, no sugarcoating, accountability first.`;
 
@@ -3393,7 +3420,7 @@ Rules: Be direct and specific. Reference their actual numbers, not generic advic
     }
 
     document.getElementById('coach-report-meta').textContent =
-      `BASED ON ${s.daysLogged} DAYS OF DATA · ${new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}).toUpperCase()}`;
+      `BASED ON ${s.daysLogged} DAYS OF DATA · ${new Date().toLocaleDateString(LOC(),{month:'short',day:'numeric',year:'numeric'}).toUpperCase()}`;
     document.getElementById('coach-report-body').innerHTML = bodyHTML;
     report.classList.add('show');
     report.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -3442,7 +3469,7 @@ async function sendQA() {
 
 ${context}
 
-Rules: Answer in 3-5 sentences max. Be specific — use their actual numbers. Never give generic advice; always reference their data. If they're off track, say so directly. If they ask in Spanish, answer in Spanish. Tone: like a demanding coach who genuinely wants them to win.`;
+Rules: Answer in 3-5 sentences max. Be specific — use their actual numbers. Never give generic advice; always reference their data. If they're off track, say so directly. If they ask in Spanish, answer in Spanish. ${currentLang==='fr' ? 'ALWAYS answer in French.' : currentLang==='es' ? 'Prefer Spanish.' : ''} Tone: like a demanding coach who genuinely wants them to win.`;
 
   // add message to history
   qaHistory.push({ role: 'user', content: msg });
@@ -3698,7 +3725,7 @@ function photoLogAndSave() {
 
 
 function resetOnboarding() {
-  if(!confirm('Reset your profile and start over?')) return;
+  if(!confirm(trs('Reset your profile and start over?'))) return;
   localStorage.removeItem(STORAGE_KEY);
   location.reload();
 }
@@ -3733,7 +3760,7 @@ function saveApiKeyFromModal() {
   setTimeout(closeApiKeyModal, 1200);
 }
 function clearApiKey() {
-  if (!confirm('Remove your API key? AI features will stop working.')) return;
+  if (!confirm(trs('Remove your API key? AI features will stop working.'))) return;
   localStorage.removeItem('7ace_api_key');
   updateApiKeyBtn();
   closeApiKeyModal();
@@ -3789,7 +3816,7 @@ function startVoice() {
   voiceRecognition = new SpeechRecognition();
 
   // language follows the athlete's language setting
-  voiceRecognition.lang = currentLang === 'es' ? 'es-US' : 'en-US';
+  voiceRecognition.lang = LOC();
   voiceRecognition.continuous      = false;
   voiceRecognition.interimResults  = true;   // show live preview as they speak
   voiceRecognition.maxAlternatives = 1;
@@ -4219,7 +4246,7 @@ Rules:
 - Use the exact name from the Local Food Database when matched.
 - Scale by quantity (e.g. "2 tbsp chia seeds" = 2× per-tbsp values).
 - Round all numbers to integers.
-- If input is in Spanish, return English food names.
+- If input is in Spanish or French, return English food names.
 - Include water/drinks even if 0 kcal.
 - IMPORTANT: If a food matches the Saved Foods list, use those EXACT macro values.
 Example output: [{"name":"2 tbsp chia seeds","kcal":116,"prot":4,"carb":10,"fat":8},{"name":"2 cups oatmeal","kcal":332,"prot":12,"carb":56,"fat":8}]${localDBHint}${myFoodsContext}`;
@@ -4396,7 +4423,7 @@ function openEditModal(dateKey, idx) {
   const isToday = dateKey === TODAY;
   const dateLabel = isToday
     ? 'Today'
-    : `${d.toLocaleDateString('en-US',{weekday:'long'})} · ${MONTHS_SHORT[d.getMonth()]} ${d.getDate()}`;
+    : `${d.toLocaleDateString(LOC(),{weekday:'long'})} · ${MONTHS_SHORT[d.getMonth()]} ${d.getDate()}`;
   document.getElementById('emb-meta').textContent = dateLabel.toUpperCase();
 
   document.getElementById('edit-modal').classList.add('open');
@@ -4516,7 +4543,7 @@ function last7() {
   for(let i=6;i>=0;i--){ const d=new Date(); d.setDate(d.getDate()-i); keys.push(fmtDate(d)); }
   return keys;
 }
-function dayName(s) { const [y,m,d]=s.split('-'); return new Date(+y,+m-1,+d).toLocaleDateString(currentLang==='es'?'es-US':'en-US',{weekday:'short'}); }
+function dayName(s) { const [y,m,d]=s.split('-'); return new Date(+y,+m-1,+d).toLocaleDateString(LOC(),{weekday:'short'}); }
 function parseDate(s) { const [y,m,d]=s.split('-'); return new Date(+y,+m-1,+d); }
 
 function renderWeeklyView() {
@@ -4561,7 +4588,7 @@ function renderWeeklyView() {
     const isToday = k===TODAY;
     const hasData = (db.logs[k]||[]).length>0;
     return `<div class="day-cell ${isToday?'today':''} ${hasData?'has-data':''}" onclick="showDayDetail('${k}')">
-      <div class="dc-name">${d.toLocaleDateString('en-US',{weekday:'short'}).toUpperCase()}</div>
+      <div class="dc-name">${d.toLocaleDateString(LOC(),{weekday:'short'}).toUpperCase()}</div>
       <div class="dc-num">${d.getDate()}</div>
       <div class="dc-kcal">${hasData?Math.round(tot.kcal)+' kcal':'-'}</div>
       <div class="dc-dot"></div>
@@ -4573,7 +4600,7 @@ function showDayDetail(key) {
   document.querySelectorAll('.day-cell').forEach(c=>c.classList.remove('selected'));
   const entries = db.logs[key]||[];
   const detail = document.getElementById('week-day-detail');
-  const label = parseDate(key).toLocaleDateString(currentLang==='es'?'es-US':'en-US',{weekday:'long',month:'long',day:'numeric'});
+  const label = parseDate(key).toLocaleDateString(LOC(),{weekday:'long',month:'long',day:'numeric'});
   if(!entries.length) {
     detail.innerHTML=`<div class="log-empty" style="margin-top:12px">${currentLang==='es'?'Sin registros para '+label:'No entries for '+label}</div>`;
     return;
@@ -4612,7 +4639,7 @@ function changeMonth(dir) {
 }
 
 function renderMonthlyView() {
-  const monthNames = currentLang==='es' ? MONTHS_ES : MONTHS;
+  const monthNames = currentLang==='es' ? MONTHS_ES : (I18N.monthNames(currentLang) || MONTHS);
   safeSet('month-label', `${monthNames[viewMonth]} ${viewYear}`);
   const daysInMonth = new Date(viewYear, viewMonth+1, 0).getDate();
   let allEntries=[]; let daysLogged=0;
@@ -4645,7 +4672,7 @@ function renderMonthlyView() {
     wChart.innerHTML = monthWeights.map(w=>{
       const h=Math.round(((w.weight-wMin)/(wMax-wMin))*56)+4;
       const d=new Date(w.date);
-      return `<div class="wl-bar" style="height:${h}px" data-tip="${w.weight} lbs · ${d.toLocaleDateString('en-US',{month:'short',day:'numeric'})}"></div>`;
+      return `<div class="wl-bar" style="height:${h}px" data-tip="${w.weight} lbs · ${d.toLocaleDateString(LOC(),{month:'short',day:'numeric'})}"></div>`;
     }).join('');
     const statsDiv=document.createElement('div');
     statsDiv.dataset.wstats='1';
@@ -4660,7 +4687,7 @@ function renderMonthlyView() {
   const firstDow=new Date(viewYear,viewMonth,1).getDay();
   const DOW=['SUN','MON','TUE','WED','THU','FRI','SAT'];
   const DOW_ES=['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'];
-  const dowLabels = currentLang==='es' ? DOW_ES : DOW;
+  const dowLabels = currentLang==='es' ? DOW_ES : (I18N.dowLabels(currentLang) || DOW);
   let calHTML=dowLabels.map(d=>`<div class="cal-dow">${d}</div>`).join('');
   for(let i=0;i<firstDow;i++) calHTML+=`<div class="cal-day empty"><div class="cd-n">—</div></div>`;
   for(let d=1;d<=daysInMonth;d++){
@@ -4730,7 +4757,7 @@ function updateWeightDisplay() {
 let toastTimer;
 function toast(msg, type='success') {
   const el=document.getElementById('toast');
-  el.textContent=msg;
+  el.textContent=trs(String(msg));
   el.style.borderColor=type==='red'?'rgba(255,77,77,0.4)':type==='warn'?'rgba(245,166,35,0.4)':'rgba(61,220,132,0.4)';
   el.classList.add('show');
   clearTimeout(toastTimer);

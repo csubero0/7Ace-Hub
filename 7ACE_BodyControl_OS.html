@@ -61,6 +61,8 @@ h1{font-family:Barlow Condensed,sans-serif;font-size:clamp(38px,6vw,76px);line-h
 .round-table .r-off{display:none}.ex-rounds{display:flex;align-items:center;gap:6px;margin-top:8px}.rr-btn{background:rgba(255,30,30,.06);border:1px solid var(--line);color:var(--red2);font-family:Barlow Condensed,sans-serif;font-weight:800;font-size:11px;letter-spacing:.06em;padding:4px 9px;border-radius:6px;cursor:pointer;line-height:1.2;white-space:nowrap;transition:.15s}.rr-btn:hover{border-color:var(--red);color:var(--white);background:rgba(255,30,30,.14)}
 .btn.danger{color:#ff6a5e;border-color:rgba(255,80,60,.45)}.btn.danger:hover{background:rgba(255,30,30,.12);border-color:#ff3b2f;color:#fff}
 @media(max-width:850px){.hero,.grid.two,.grid.three,.grid.four{grid-template-columns:1fr}.tabs{overflow:auto}.tab{min-width:120px}.history-item{grid-template-columns:1fr}.nav{padding:12px 16px}.tag{display:none}.wrap{padding:18px 12px 70px}.round-table{font-size:12px}.round-table th,.round-table td{padding:6px}.hero-card,.card{padding:16px}}
+/* phones: 16px fields stop iOS from zooming/jumping when you tap a box; keep the focused box clear of the sticky tab bar */
+@media(max-width:850px){input,select,textarea{font-size:16px!important}.round-table input{padding:8px 4px}html{scroll-padding-top:160px;scroll-padding-bottom:140px}}
 </style>
 </head>
 <body>
@@ -351,6 +353,7 @@ function importJSON(){const f=byId('importFile').files[0];if(!f){alert('Choose a
 window.addEventListener('DOMContentLoaded',loadInit);
 </script>
 <script src="./vendor/supabase.js"></script>
+<script>document.addEventListener('focusin',function(e){var t=e.target;if(t&&t.matches&&t.matches('.round-input, #workoutForm input')){setTimeout(function(){try{t.scrollIntoView({block:'center',behavior:'smooth'})}catch(_){}},350)}});</script>
 <script src="./7ace-sync.js"></script>
 <script src="./sync-bodycontrol.js"></script>
 </body>
