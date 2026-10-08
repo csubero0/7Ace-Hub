@@ -119,6 +119,16 @@ ul.dlist li .bull{color:#4B5563;font-size:10px;min-width:14px;flex-shrink:0;padd
 .mp-empty{font-size:12px;color:#4B5563;text-align:center;padding:20px 0;font-style:italic}
 .mp-del{position:absolute;top:11px;right:13px;color:#4B5563;cursor:pointer;font-size:13px}
 .mp-del:hover{color:#E74C3C}
+.mp-quick{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.mp-q{flex:1;min-width:58px;padding:12px 6px;border-radius:10px;border:1px solid #2A3050;background:#0D1117;color:#9CA3AF;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer}
+.mp-q.on{background:#00D68F20;border-color:#00D68F;color:#00D68F}
+.mp-search{margin-bottom:8px}
+.mp-sel{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.mp-sel:empty{display:none}
+.mp-chip{padding:7px 12px}
+.mp-chips{max-height:180px}
+.mp-save-big{width:100%;padding:15px;font-size:15px}
+.mp-field input,.mp-field select,.mp-field textarea{font-size:16px}
 </style>
 </head>
 <body>
@@ -2295,22 +2305,30 @@ To win to 11, one point must come from a lob. If your team lobs and wins the ral
     <div class="mp-card">
       <h3><span class="lang-es">📋 Registrar Sesión</span><span class="lang-en" style="display:none">📋 Log Session</span></h3>
       <div class="mp-field">
-        <label class="lang-es">Fecha</label><label class="lang-en" style="display:none">Date</label>
-        <input type="date" id="ns-date">
+        <label class="lang-es">¿Cuánto tiempo? (min)</label><label class="lang-en" style="display:none">How long? (min)</label>
+        <div class="mp-quick" id="ns-dur-chips">
+          <button type="button" class="mp-q" onclick="setDur(30)">30</button>
+          <button type="button" class="mp-q" onclick="setDur(45)">45</button>
+          <button type="button" class="mp-q" onclick="setDur(60)">60</button>
+          <button type="button" class="mp-q" onclick="setDur(90)">90</button>
+        </div>
+        <input type="number" inputmode="numeric" id="ns-duration" placeholder="min" min="0" oninput="syncDurChips()">
       </div>
       <div class="mp-field">
-        <label class="lang-es">Duración (min)</label><label class="lang-en" style="display:none">Duration (min)</label>
-        <input type="number" id="ns-duration" placeholder="60" min="0">
-      </div>
-      <div class="mp-field">
-        <label class="lang-es">Drills Trabajados</label><label class="lang-en" style="display:none">Drills Worked</label>
+        <label class="lang-es">¿Qué trabajaste? (toca para elegir)</label><label class="lang-en" style="display:none">What did you work on? (tap to pick)</label>
+        <div class="mp-sel" id="ns-selected"></div>
+        <input type="search" id="ns-drill-search" class="mp-search" oninput="renderDrillChips()" autocomplete="off">
         <div class="mp-chips" id="ns-drill-chips"></div>
       </div>
       <div class="mp-field">
-        <label class="lang-es">Notas</label><label class="lang-en" style="display:none">Notes</label>
+        <label class="lang-es">Notas (opcional)</label><label class="lang-en" style="display:none">Notes (optional)</label>
         <textarea id="ns-notes"></textarea>
       </div>
-      <button class="mp-btn" id="ns-btn" onclick="submitSession()"><span class="lang-es">Guardar Sesión</span><span class="lang-en" style="display:none">Save Session</span></button>
+      <div class="mp-field">
+        <label class="lang-es">Fecha</label><label class="lang-en" style="display:none">Date</label>
+        <input type="date" id="ns-date">
+      </div>
+      <button class="mp-btn mp-save-big" id="ns-btn" onclick="submitSession()"><span class="lang-es">Guardar Sesión</span><span class="lang-en" style="display:none">Save Session</span></button>
       <div id="ns-msg"></div>
     </div>
 
@@ -2410,7 +2428,7 @@ function setLang(l,btn){
    Persists via Netlify Function + Blobs so it
    syncs across every device, not just this browser.
 ═══════════════════════════════════════════ */
-const PRACTICE_API = '/.netlify/functions/practice-data';
+const PRACTICE_KEY = '7ace_practice_v1';      // saved on this device, synced to your account by 7ace-sync
 let practiceData = { drills: [], sessions: [] };
 let selectedSessionDrills = new Set();
 
@@ -2418,32 +2436,51 @@ function escapeHtml(str){
   return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
-async function loadPracticeData(){
-  try{
-    const r = await fetch(PRACTICE_API);
-    if(!r.ok) throw new Error('fetch failed');
-    practiceData = await r.json();
-  }catch(e){
-    practiceData = { drills: [], sessions: [] };
-  }
-  renderMyDrills();
-  renderSessionHistory();
-  renderDrillChips();
+// stored as { drills:{id:{...}}, sessions:{id:{...}} } so two devices never overwrite each other
+function readStore(){
+  try{ const o = JSON.parse(localStorage.getItem(PRACTICE_KEY)||'{}'); return { drills:o.drills||{}, sessions:o.sessions||{} }; }
+  catch(e){ return { drills:{}, sessions:{} }; }
+}
+function writeStore(o){ localStorage.setItem(PRACTICE_KEY, JSON.stringify(o)); }
+function newId(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+function loadPracticeData(){
+  const o = readStore();
+  practiceData = {
+    drills: Object.keys(o.drills).map(k=>Object.assign({id:k},o.drills[k])).sort((a,b)=>(b.created||0)-(a.created||0)),
+    sessions: Object.keys(o.sessions).map(k=>Object.assign({id:k},o.sessions[k])).sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.created||0)-(a.created||0))
+  };
+  renderMyDrills(); renderSessionHistory(); renderDrillChips();
+}
+window.addEventListener('storage', e=>{ if(e.key===PRACTICE_KEY) loadPracticeData(); });
+
+function setDur(n){
+  const el = document.getElementById('ns-duration');
+  el.value = (String(el.value)===String(n)) ? '' : n;      // tap again to clear
+  syncDurChips();
+}
+function syncDurChips(){
+  const v = String(document.getElementById('ns-duration').value);
+  document.querySelectorAll('#ns-dur-chips .mp-q').forEach(b=>b.classList.toggle('on', b.textContent.trim()===v));
 }
 
 function renderDrillChips(){
   const wrap = document.getElementById('ns-drill-chips');
+  const selWrap = document.getElementById('ns-selected');
+  const search = document.getElementById('ns-drill-search');
+  if(search) search.placeholder = curLang==='es' ? '🔍 Buscar drill…' : '🔍 Search drills…';
+  const q = (search && search.value || '').trim().toLowerCase();
   const builtIn = Array.from(document.querySelectorAll('#drill-wrap .cname')).map(el=>el.textContent.trim());
   const custom = practiceData.drills.map(d=>d.name);
   const all = [...new Set([...custom, ...builtIn])];
-  wrap.innerHTML = all.map(name =>
-    `<span class="mp-chip${selectedSessionDrills.has(name)?' on':''}" onclick="toggleSessionDrill(this,'${name.replace(/'/g,"\\'")}')">${escapeHtml(name)}</span>`
-  ).join('') || '<span class="mp-empty">—</span>';
+  const chip = name => `<span class="mp-chip${selectedSessionDrills.has(name)?' on':''}" data-n="${escapeHtml(name)}" onclick="toggleSessionDrill(this.dataset.n)">${escapeHtml(name)}</span>`;
+  selWrap.innerHTML = Array.from(selectedSessionDrills).map(chip).join('');
+  const rest = all.filter(n=>!selectedSessionDrills.has(n) && (!q || n.toLowerCase().includes(q)));
+  wrap.innerHTML = rest.map(chip).join('') || '<span class="mp-empty">—</span>';
 }
 
-function toggleSessionDrill(chip,name){
-  if(selectedSessionDrills.has(name)){ selectedSessionDrills.delete(name); chip.classList.remove('on'); }
-  else{ selectedSessionDrills.add(name); chip.classList.add('on'); }
+function toggleSessionDrill(name){
+  if(selectedSessionDrills.has(name)) selectedSessionDrills.delete(name); else selectedSessionDrills.add(name);
+  renderDrillChips();
 }
 
 function renderMyDrills(){
@@ -2485,69 +2522,59 @@ function showMsg(el,type,text){
   setTimeout(()=>{ el.innerHTML=''; }, 4000);
 }
 
-async function submitDrill(){
+function submitDrill(){
   const name = document.getElementById('nd-name').value.trim();
   const msg = document.getElementById('nd-msg');
   if(!name){ showMsg(msg,'err', curLang==='es'?'El nombre es obligatorio.':'Name is required.'); return; }
-  const btn = document.getElementById('nd-btn'); btn.disabled = true;
-  try{
-    const r = await fetch(PRACTICE_API,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({
-      action:'addDrill',
-      drill:{
-        name,
-        category: document.getElementById('nd-cat').value.trim(),
-        level: document.getElementById('nd-level').value,
-        notes: document.getElementById('nd-notes').value.trim()
-      }
-    })});
-    if(!r.ok) throw new Error();
-    practiceData = await r.json();
-    document.getElementById('nd-name').value='';
-    document.getElementById('nd-cat').value='';
-    document.getElementById('nd-notes').value='';
-    renderMyDrills(); renderDrillChips();
-    showMsg(msg,'ok', curLang==='es'?'Drill guardado.':'Drill saved.');
-  }catch(e){
-    showMsg(msg,'err', curLang==='es'?'No se pudo guardar. Intenta de nuevo.':'Could not save. Try again.');
-  }finally{ btn.disabled=false; }
+  const o = readStore(), id = newId();
+  o.drills[id] = {
+    name,
+    category: document.getElementById('nd-cat').value.trim(),
+    level: document.getElementById('nd-level').value,
+    notes: document.getElementById('nd-notes').value.trim(),
+    created: Date.now()
+  };
+  writeStore(o);
+  document.getElementById('nd-name').value='';
+  document.getElementById('nd-cat').value='';
+  document.getElementById('nd-notes').value='';
+  loadPracticeData();
+  showMsg(msg,'ok', curLang==='es'?'Drill guardado.':'Drill saved.');
 }
 
-async function submitSession(){
-  const date = document.getElementById('ns-date').value || new Date().toISOString().slice(0,10);
+function submitSession(){
   const msg = document.getElementById('ns-msg');
-  const btn = document.getElementById('ns-btn'); btn.disabled = true;
-  try{
-    const r = await fetch(PRACTICE_API,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({
-      action:'logSession',
-      session:{
-        date,
-        duration: document.getElementById('ns-duration').value.trim(),
-        drills: Array.from(selectedSessionDrills),
-        notes: document.getElementById('ns-notes').value.trim()
-      }
-    })});
-    if(!r.ok) throw new Error();
-    practiceData = await r.json();
-    document.getElementById('ns-duration').value='';
-    document.getElementById('ns-notes').value='';
-    selectedSessionDrills.clear();
-    renderSessionHistory(); renderDrillChips();
-    showMsg(msg,'ok', curLang==='es'?'Sesión guardada.':'Session saved.');
-  }catch(e){
-    showMsg(msg,'err', curLang==='es'?'No se pudo guardar. Intenta de nuevo.':'Could not save. Try again.');
-  }finally{ btn.disabled=false; }
+  const notes = document.getElementById('ns-notes').value.trim();
+  if(!selectedSessionDrills.size && !notes){
+    showMsg(msg,'err', curLang==='es'?'Elige al menos un drill o escribe una nota.':'Pick at least one drill or write a note.');
+    return;
+  }
+  const date = document.getElementById('ns-date').value || new Date().toISOString().slice(0,10);
+  const o = readStore(), id = newId();
+  o.sessions[id] = {
+    date,
+    duration: document.getElementById('ns-duration').value.trim(),
+    drills: Array.from(selectedSessionDrills),
+    notes,
+    created: Date.now()
+  };
+  writeStore(o);
+  document.getElementById('ns-duration').value='';
+  document.getElementById('ns-notes').value='';
+  document.getElementById('ns-drill-search').value='';
+  document.getElementById('ns-date').valueAsDate = new Date();
+  selectedSessionDrills.clear();
+  syncDurChips();
+  loadPracticeData();
+  showMsg(msg,'ok', curLang==='es'?'✓ Sesión guardada.':'✓ Session saved.');
 }
 
-async function deleteItem(action,id){
+function deleteItem(action,id){
   if(!confirm(curLang==='es'?'¿Eliminar este elemento?':'Delete this item?')) return;
-  try{
-    const r = await fetch(PRACTICE_API,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action,id})});
-    if(!r.ok) throw new Error();
-    practiceData = await r.json();
-    renderMyDrills(); renderSessionHistory(); renderDrillChips();
-  }catch(e){
-    alert(curLang==='es'?'No se pudo eliminar.':'Could not delete.');
-  }
+  const o = readStore();
+  if(action==='deleteDrill') delete o.drills[id]; else delete o.sessions[id];
+  writeStore(o);
+  loadPracticeData();
 }
 
 (function initPractice(){
@@ -2556,5 +2583,9 @@ async function deleteItem(action,id){
   loadPracticeData();
 })();
 </script>
+<script src="./vendor/supabase.js"></script>
+<script src="./7ace-sync.js"></script>
+<script src="./sync-keys.js"></script>
+<script>ACESync.keys('practice',{keys:['7ace_practice_v1'],depth:3});</script>
 </body>
 </html>
