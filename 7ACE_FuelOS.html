@@ -2288,6 +2288,7 @@ function setLang(l) {
   document.getElementById('lng-es').classList.toggle('active', l==='es');
   document.getElementById('lng-fr').classList.toggle('active', l==='fr');
   I18N.setLang(l);
+  applyBilingual(l);
   applyOnboardingLang();
   I18N.refresh();
 }
@@ -2324,6 +2325,7 @@ function selectGoal(g, el) {
 }
 updateGoalPlaceholders(obGoal);   // starting examples match the pre-selected goal
 applyOnboardingLang();
+applyBilingual('en');
 
 function obNext(step) {
   if(step === 1) {
@@ -2533,6 +2535,21 @@ const STRINGS = {
 
 function t(key) { return (STRINGS[currentLang] || STRINGS.en)[key] || key; }
 
+// One language at a time: meal menus and the two "A / B" placeholders show only the chosen language
+function applyBilingual(l) {
+  const MEAL_ES = {'Breakfast':'Desayuno','Morning Snack':'Merienda mañana','Lunch':'Almuerzo','Pre-Workout':'Pre-Entreno','Post-Workout':'Post-Entreno','Dinner':'Cena','Night Snack':'Cena tardía'};
+  const MEAL_ICON = {'Breakfast':'🌅','Morning Snack':'🍎','Lunch':'🌞','Pre-Workout':'💪','Post-Workout':'⚡','Dinner':'🌙','Night Snack':'🌛'};
+  const es = l === 'es';
+  document.querySelectorAll('option[value]').forEach(o => {
+    const v = o.value; if(!MEAL_ES[v]) return;
+    o.textContent = MEAL_ICON[v] + ' ' + (es ? MEAL_ES[v] : v);
+  });
+  document.querySelectorAll('input[placeholder],textarea[placeholder]').forEach(el => {
+    if(!el.dataset.bi && / \/ /.test(el.placeholder) && /[¿ñáéíóú]|huevos|Nombre/.test(el.placeholder)) el.dataset.bi = el.placeholder;
+    if(el.dataset.bi) { const parts = el.dataset.bi.split(' / '); el.placeholder = es ? parts[parts.length-1] : parts[0]; }
+  });
+}
+
 function setAppLang(l) {
   currentLang = l;
   PROFILE.lang = l;
@@ -2548,6 +2565,7 @@ function setAppLang(l) {
 function applyLanguage() {
   const sel = document.getElementById('nav-lang'); if(sel) sel.value = currentLang;
   I18N.setLang(currentLang);
+  applyBilingual(currentLang);
   const h = new Date().getHours();
   const greeting = h < 12 ? t('greeting_morn') : h < 18 ? t('greeting_aft') : t('greeting_eve');
   safeSet('today-greeting', greeting);

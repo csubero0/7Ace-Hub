@@ -148,6 +148,9 @@
     'Food name or describe what you ate...': 'Nom de l’aliment ou décrivez ce que vous avez mangé...',
     'e.g. 2 eggs, oatmeal with banana and peanut butter / 2 huevos, avena con plátano': 'p. ex. 2 œufs, flocons d’avoine avec banane et beurre de cacahuète',
     'Food name / Nombre del alimento': 'Nom de l’aliment',
+    'e.g. 2 eggs, oatmeal with banana and peanut butter': 'ex. 2 œufs, flocons d’avoine avec banane et beurre de cacahuète',
+    'e.g. Why am I not gaining weight?': 'ex. Pourquoi est-ce que je ne prends pas de poids ?',
+    'Food name': 'Nom de l’aliment',
     'e.g. Why am I not gaining weight? / ¿Por qué no estoy subiendo de peso?': 'p. ex. Pourquoi est-ce que je ne prends pas de poids ?',
     'Breakfast: 3 eggs, oatmeal with banana Lunch: chicken breast 8oz, white rice 1 cup, broccoli Post-Workout: protein shake with 2 scoops Dinner: salmon 6oz, sweet potato, asparagus Night Snack: greek yogurt with almonds':
       'Petit-déjeuner : 3 œufs, flocons d’avoine avec banane\nDéjeuner : blanc de poulet 220 g, riz blanc 1 tasse, brocoli\nAprès l’entraînement : shake protéiné avec 2 mesures\nDîner : saumon 170 g, patate douce, asperges\nCollation du soir : yaourt grec aux amandes',
