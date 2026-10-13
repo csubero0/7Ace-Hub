@@ -175,8 +175,8 @@ ul.dlist li .bull{color:#4B5563;font-size:10px;min-width:14px;flex-shrink:0;padd
       <div class="sub lang-en" style="display:none">Coach Carlos Subero · Lake Nona, FL</div>
     </div>
     <div class="lang">
-      <button class="lb on" onclick="setLang('es',this)">ES</button>
-      <button class="lb" onclick="setLang('en',this)">EN</button>
+      <button class="lb on" onclick="setLang('en',this)">EN</button>
+      <button class="lb" onclick="setLang('es',this)">ES</button>
     </div>
   </div>
   <div class="srch-w">
@@ -2389,9 +2389,9 @@ To win to 11, one point must come from a lob. If your team lobs and wins the ral
       <h3 id="hs-title"></h3>
       <button class="hs-nav" onclick="histMove(1)" aria-label="next">&rsaquo;</button>
     </div>
-    <div class="hs-stats" id="hs-stats"></div>
     <div class="hs-dow" id="hs-dow"></div>
     <div class="hs-grid" id="hs-grid"></div>
+    <div class="hs-stats" id="hs-stats" style="margin-top:12px"></div>
     <div class="hs-detail" id="hs-detail"></div>
   </div>
 </div>
@@ -2434,7 +2434,7 @@ To win to 11, one point must come from a lob. If your team lobs and wins the ral
 <div class="ftr">7ACE Development Lab · Coach Carlos Subero · <em>Confía en el proceso, no en el resultado</em></div>
 
 <script>
-let curSec='drills', curF='all', curLF=null, curLang='es';
+let curSec='drills', curF='all', curLF=null, curLang=(localStorage.getItem('7ace_lang')==='es'?'es':'en');
 
 function tog(hdr){ hdr.closest('.card').classList.toggle('open'); }
 
@@ -2503,6 +2503,7 @@ function updatePlaceholder(){
 
 function setLang(l,btn){
   curLang=l;
+  try{ localStorage.setItem('7ace_lang',l); }catch(e){}
   document.querySelectorAll('.lb').forEach(b=>b.classList.remove('on'));
   btn.classList.add('on');
   document.querySelectorAll('.lang-es').forEach(el=>el.style.display=l==='es'?'':'none');
@@ -2794,6 +2795,14 @@ function saveEdit(){
   histYear = y; histMonth = m-1; histSel = date;
   loadPracticeData(); renderHistory();
 }
+
+(function tidyAndLang(){
+  // six drill cards sit outside the Drills section in the page source; bring them inside so they only show on the Drills tab
+  const dw = document.getElementById('drill-wrap');
+  if(dw) document.querySelectorAll('body > .sec-div, body > .card').forEach(n=>dw.appendChild(n));
+  const btn = Array.from(document.querySelectorAll('.lb')).find(b=>b.textContent.trim().toLowerCase()===curLang);
+  if(btn) setLang(curLang, btn);
+})();
 
 (function initPractice(){
   const dateEl = document.getElementById('ns-date');
